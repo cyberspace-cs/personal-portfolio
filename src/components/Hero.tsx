@@ -2,7 +2,7 @@ import { Github, Linkedin, Twitter, Mail, ChevronDown, Download } from 'lucide-r
 import { useLanguage } from '../context/LanguageContext';
 import { personalInfo, socialLinks } from '../data/portfolio';
 
-const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
+const iconMap: Record<string, any> = {
   github: Github,
   linkedin: Linkedin,
   twitter: Twitter,

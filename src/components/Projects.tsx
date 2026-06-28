@@ -3,7 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { projects } from '../data/portfolio';
 import { Github, ExternalLink, Sparkles, Search, Code, MessageCircle, Bot } from 'lucide-react';
 
-const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
+const iconMap: Record<string, any> = {
   'sparkles': Sparkles,
   'search': Search,
   'code': Code,
