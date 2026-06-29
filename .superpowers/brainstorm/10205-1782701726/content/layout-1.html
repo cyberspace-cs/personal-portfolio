@@ -1,114 +1,581 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="blue-deep">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>工作台布局</title>
+    <style>
+      :root {
+        --font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", Arial, sans-serif;
+
+        --radius-sm: 10px;
+        --radius-md: 14px;
+        --shadow-1: 0 10px 22px rgba(16, 24, 40, 0.06), 0 2px 6px rgba(16, 24, 40, 0.05);
+
+        --space-1: 6px;
+        --space-2: 10px;
+        --space-3: 12px;
+        --space-4: 16px;
+        --space-5: 20px;
+        --space-6: 24px;
+
+        --fs-1: 12px;
+        --fs-2: 14px;
+        --fs-3: 16px;
+        --fs-4: 20px;
+        --lh: 1.55;
+      }
+
+      html[data-theme="blue-deep"] {
+        --bg: #f4f7fb;
+        --surface: #ffffff;
+        --surface-2: #f8fafc;
+        --text: #0f172a;
+        --text-muted: #475569;
+        --border: rgba(15, 23, 42, 0.12);
+        --primary: #0b3a8b;
+        --primary-weak: rgba(11, 58, 139, 0.1);
+        --primary-strong: rgba(11, 58, 139, 0.18);
+      }
+
+      html[data-theme="blue-gray"] {
+        --bg: #f6f8fb;
+        --surface: #ffffff;
+        --surface-2: #f7f9fc;
+        --text: #0b1220;
+        --text-muted: #4b5565;
+        --border: rgba(11, 18, 32, 0.12);
+        --primary: #2a4f7a;
+        --primary-weak: rgba(42, 79, 122, 0.1);
+        --primary-strong: rgba(42, 79, 122, 0.18);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-family);
+        line-height: var(--lh);
+        color: var(--text);
+        background: radial-gradient(1100px 520px at 18% 6%, rgba(11, 58, 139, 0.1), transparent 55%),
+          radial-gradient(900px 420px at 90% 0%, rgba(42, 79, 122, 0.08), transparent 52%), var(--bg);
+      }
+
+      .page {
+        max-width: 1160px;
+        padding: 28px 18px 56px;
+        margin: 0 auto;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-bottom: var(--space-5);
+      }
+
+      .title {
+        margin: 0 0 6px;
+        font-size: 22px;
+        letter-spacing: 0.2px;
+      }
+
+      .subtitle {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: var(--fs-2);
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding-top: 2px;
+      }
+
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.65);
+        border-radius: 999px;
+        padding: 3px;
+        backdrop-filter: blur(10px);
+      }
+
+      .segmented button {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        color: var(--text-muted);
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: var(--fs-1);
+        cursor: pointer;
+      }
+
+      .segmented button[aria-pressed="true"] {
+        background: var(--surface);
+        color: var(--text);
+        box-shadow: 0 1px 0 rgba(16, 24, 40, 0.08);
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(10px);
+        font-size: var(--fs-1);
+        color: var(--text-muted);
+        white-space: nowrap;
+      }
+
+      .status-pill strong {
+        color: var(--text);
+        font-weight: 650;
+      }
+
+      .options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-4);
+        margin: var(--space-4) 0 var(--space-6);
+      }
+
+      .option {
+        display: grid;
+        grid-template-columns: 46px minmax(0, 1fr);
+        gap: var(--space-3);
+        padding: var(--space-5);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.78);
+        box-shadow: 0 1px 0 rgba(16, 24, 40, 0.04);
+        cursor: pointer;
+        user-select: none;
+        transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
+      }
+
+      .option:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-1);
+      }
+
+      .option.selected {
+        border-color: var(--primary);
+        background: linear-gradient(0deg, var(--primary-weak), rgba(255, 255, 255, 0.86));
+      }
+
+      .letter {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        font-size: 18px;
+        font-weight: 750;
+        color: var(--primary);
+      }
+
+      .option.selected .letter {
+        border-color: var(--primary);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.75));
+      }
+
+      .option h3 {
+        margin: 2px 0 6px;
+        font-size: var(--fs-3);
+      }
+
+      .option p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: var(--fs-2);
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-5);
+      }
+
+      .mockup {
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: 0 1px 0 rgba(16, 24, 40, 0.04);
+        overflow: hidden;
+      }
+
+      .mockup-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        padding: 12px 14px;
+        font-weight: 700;
+        font-size: var(--fs-2);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+        border-bottom: 1px solid var(--border);
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: var(--fs-1);
+        color: var(--primary);
+        border: 1px solid var(--primary-strong);
+        background: var(--primary-weak);
+      }
+
+      .mockup-body {
+        padding: 14px;
+        background: var(--surface-2);
+      }
+
+      .mock-nav {
+        font-size: var(--fs-1);
+        color: var(--text-muted);
+        padding: 8px 10px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid var(--border);
+      }
+
+      .section {
+        margin-top: 12px;
+      }
+
+      .label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 650;
+        font-size: var(--fs-2);
+        margin: 0 0 8px;
+      }
+
+      .label::before {
+        content: "";
+        width: 3px;
+        height: 12px;
+        border-radius: 999px;
+        background: var(--primary);
+        opacity: 0.85;
+      }
+
+      .mock-input {
+        width: 100%;
+        padding: 11px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.92);
+        font-size: var(--fs-2);
+        outline: none;
+      }
+
+      .mock-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-weak);
+      }
+
+      .row {
+        display: flex;
+        gap: 12px;
+      }
+
+      .wrap {
+        flex-wrap: wrap;
+      }
+
+      .mb-8 {
+        margin-bottom: 8px;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .mock-button {
+        appearance: none;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--text);
+        padding: 9px 12px;
+        border-radius: 12px;
+        font-size: var(--fs-2);
+        cursor: pointer;
+        transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+      }
+
+      .mock-button:hover {
+        border-color: rgba(11, 58, 139, 0.35);
+        box-shadow: 0 8px 16px rgba(16, 24, 40, 0.06);
+        transform: translateY(-1px);
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .placeholder {
+        display: block;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.92);
+        font-size: var(--fs-2);
+        color: var(--text);
+      }
+
+      .sidebar {
+        flex: 0 0 34%;
+      }
+
+      .content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      @media (max-width: 980px) {
+        .split {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .options {
+          grid-template-columns: 1fr;
+        }
+
+        .topbar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .toolbar {
+          justify-content: space-between;
+        }
+
+        .row {
+          flex-direction: column;
+        }
+
+        .sidebar {
+          flex: 1 1 auto;
+        }
+      }
+    </style>
   </head>
   <body>
-    <h2>工作台布局：选一个更符合审计一线</h2>
-    <p class="subtitle">点击卡片选择方案（A/B），再在终端回复你想保留/调整的点</p>
+    <div class="page">
+      <div class="topbar">
+        <div>
+          <h2 class="title">工作台布局：选一个更符合审计一线</h2>
+          <p class="subtitle">点击卡片选择方案（A/B），再在终端回复你想保留/调整的点</p>
+        </div>
+        <div class="toolbar">
+          <div class="segmented" role="group" aria-label="皮肤切换">
+            <button type="button" data-theme="blue-deep" aria-pressed="true">深政务蓝</button>
+            <button type="button" data-theme="blue-gray" aria-pressed="false">灰政务蓝</button>
+          </div>
+          <div class="status-pill">当前选择：<strong id="currentChoice">A</strong></div>
+        </div>
+      </div>
 
-<div class="options">
-  <div class="option" data-choice="a" onclick="toggleSelect(this)">
-    <div class="letter">A</div>
-    <div class="content">
-      <h3>你描述的“搜索+卡片+左右分栏”</h3>
-      <p>强调直达与进度可见性，信息层级清晰</p>
+      <div class="options" id="choices">
+        <div class="option selected" data-choice="a" tabindex="0" role="button" aria-label="选择方案 A">
+          <div class="letter">A</div>
+          <div>
+            <h3>你描述的“搜索+卡片+左右分栏”</h3>
+            <p>强调直达与进度可见性，信息层级清晰</p>
+          </div>
+        </div>
+        <div class="option" data-choice="b" tabindex="0" role="button" aria-label="选择方案 B">
+          <div class="letter">B</div>
+          <div>
+            <h3>“搜索+四宫格概览+单列表”</h3>
+            <p>更简洁，减少视觉切分，适合快速浏览</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="mockup">
+          <div class="mockup-header">
+            <span>方案 A 预览（布局骨架）</span>
+            <span class="badge" id="badgeA">已选</span>
+          </div>
+          <div class="mockup-body">
+            <div class="mock-nav">统一门户 | audit-ops-copilot | 个人中心</div>
+            <div class="section">
+              <div class="label">全局语义输入</div>
+              <input class="mock-input" placeholder="例如：查我待审批的工单 / 我申请的权限变更进度" />
+            </div>
+            <div class="section">
+              <div class="label">高频快捷</div>
+              <div class="row wrap">
+                <button class="mock-button" type="button">查待办</button>
+                <button class="mock-button" type="button">查我发起</button>
+                <button class="mock-button" type="button">查我关注</button>
+                <button class="mock-button" type="button">常用筛选</button>
+              </div>
+            </div>
+            <div class="section">
+              <div class="row">
+                <div class="sidebar">
+                  <div class="label">概览</div>
+                  <div class="placeholder">待我处理：12</div>
+                  <div class="placeholder">我发起：5</div>
+                  <div class="placeholder">我关注：3</div>
+                  <div class="placeholder">系统同步健康：正常</div>
+                </div>
+                <div class="content">
+                  <div class="label">近期动态流</div>
+                  <div class="placeholder">[工单#123] 已流转至“组长审批”</div>
+                  <div class="placeholder">[权限变更#88] 退回：补充说明</div>
+                  <div class="placeholder">[资产领用#56] 已到货：待签收</div>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="label">快速跳转</div>
+              <div class="row wrap">
+                <span class="placeholder">资产库</span>
+                <span class="placeholder">人员权限表</span>
+                <span class="placeholder">日志查询</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mockup">
+          <div class="mockup-header">
+            <span>方案 B 预览（布局骨架）</span>
+            <span class="badge hidden" id="badgeB">已选</span>
+          </div>
+          <div class="mockup-body">
+            <div class="mock-nav">统一门户 | audit-ops-copilot | 个人中心</div>
+            <div class="section">
+              <div class="label">全局语义输入</div>
+              <input class="mock-input" placeholder="例如：本周待我审批 / 关键字：账号开通" />
+            </div>
+            <div class="section">
+              <div class="label">四宫格概览</div>
+              <div class="grid-2">
+                <div class="placeholder">待我处理：12</div>
+                <div class="placeholder">我发起：5</div>
+                <div class="placeholder">我关注：3</div>
+                <div class="placeholder">同步异常：0</div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="label">统一列表（可切换视图）</div>
+              <div class="row wrap mb-8">
+                <button class="mock-button" type="button">待办</button>
+                <button class="mock-button" type="button">我发起</button>
+                <button class="mock-button" type="button">我关注</button>
+                <button class="mock-button" type="button">全部</button>
+              </div>
+              <div class="placeholder">[待办] 工单#123 | 组长审批 | 更新于 10:21</div>
+              <div class="placeholder">[我发起] 权限变更#88 | 退回 | 更新于 09:40</div>
+              <div class="placeholder">[我关注] 资产领用#56 | 到货 | 更新于 昨日</div>
+            </div>
+            <div class="section">
+              <div class="label">常用链接</div>
+              <div class="row wrap">
+                <span class="placeholder">资产库</span>
+                <span class="placeholder">人员权限表</span>
+                <span class="placeholder">日志查询</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="option" data-choice="b" onclick="toggleSelect(this)">
-    <div class="letter">B</div>
-    <div class="content">
-      <h3>“搜索+四宫格概览+单列表”</h3>
-      <p>更简洁，减少视觉切分，适合快速浏览</p>
-    </div>
-  </div>
-</div>
+
+    <script>
+      function setTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+
+        document.querySelectorAll('.segmented button[data-theme]').forEach((btn) => {
+          btn.setAttribute("aria-pressed", btn.getAttribute("data-theme") === theme ? "true" : "false");
+        });
+
+        try {
+          localStorage.setItem("layout_theme", theme);
+        } catch {}
+      }
+
+      function setChoice(choice) {
+        const normalized = choice === "b" ? "b" : "a";
+        const label = normalized.toUpperCase();
+        const currentChoice = document.getElementById("currentChoice");
+        if (currentChoice) currentChoice.textContent = label;
+
+        const badgeA = document.getElementById("badgeA");
+        const badgeB = document.getElementById("badgeB");
+        if (badgeA) badgeA.classList.toggle("hidden", normalized !== "a");
+        if (badgeB) badgeB.classList.toggle("hidden", normalized !== "b");
+      }
+
+      function toggleSelect(el) {
+        const root = document.getElementById("choices");
+        if (!root) return;
+
+        root.querySelectorAll(".option").forEach((node) => node.classList.remove("selected"));
+        el.classList.add("selected");
+        setChoice(el.getAttribute("data-choice") || "a");
+      }
+
+      (function init() {
+        const savedTheme = (() => {
+          try {
+            return localStorage.getItem("layout_theme");
+          } catch {
+            return null;
+          }
+        })();
+
+        if (savedTheme === "blue-deep" || savedTheme === "blue-gray") setTheme(savedTheme);
+        else setTheme(document.documentElement.getAttribute("data-theme") || "blue-deep");
+
+        document.querySelectorAll(".segmented button[data-theme]").forEach((btn) => {
+          btn.addEventListener("click", () => setTheme(btn.getAttribute("data-theme")));
+        });
+
+        document.querySelectorAll("#choices .option").forEach((card) => {
+          card.addEventListener("click", () => toggleSelect(card));
+          card.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              toggleSelect(card);
+            }
+          });
+        });
+
+        const selected = document.querySelector("#choices .option.selected");
+        setChoice(selected ? selected.getAttribute("data-choice") : "a");
+      })();
+    </script>
   </body>
 </html>
-
-<div class="split">
-  <div class="mockup">
-    <div class="mockup-header">方案 A 预览（布局骨架）</div>
-    <div class="mockup-body">
-      <div class="mock-nav">统一门户 | audit-ops-copilot | 个人中心</div>
-      <div class="section">
-        <div class="label">全局语义输入</div>
-        <input class="mock-input" placeholder="例如：查我待审批的工单 / 我申请的权限变更进度" />
-      </div>
-      <div class="section">
-        <div class="label">高频快捷</div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <button class="mock-button">查待办</button>
-          <button class="mock-button">查我发起</button>
-          <button class="mock-button">查我关注</button>
-          <button class="mock-button">常用筛选</button>
-        </div>
-      </div>
-      <div style="display:flex;gap:12px">
-        <div class="mock-sidebar" style="flex:0 0 34%">
-          <div class="label">概览</div>
-          <div class="placeholder">待我处理：12</div>
-          <div class="placeholder">我发起：5</div>
-          <div class="placeholder">我关注：3</div>
-          <div class="placeholder">系统同步健康：正常</div>
-        </div>
-        <div class="mock-content" style="flex:1">
-          <div class="label">近期动态流</div>
-          <div class="placeholder">[工单#123] 已流转至“组长审批”</div>
-          <div class="placeholder">[权限变更#88] 退回：补充说明</div>
-          <div class="placeholder">[资产领用#56] 已到货：待签收</div>
-        </div>
-      </div>
-      <div class="section" style="margin-top:12px">
-        <div class="label">快速跳转</div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <span class="placeholder">资产库</span>
-          <span class="placeholder">人员权限表</span>
-          <span class="placeholder">日志查询</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="mockup">
-    <div class="mockup-header">方案 B 预览（布局骨架）</div>
-    <div class="mockup-body">
-      <div class="mock-nav">统一门户 | audit-ops-copilot | 个人中心</div>
-      <div class="section">
-        <div class="label">全局语义输入</div>
-        <input class="mock-input" placeholder="例如：本周待我审批 / 关键字：账号开通" />
-      </div>
-      <div class="section">
-        <div class="label">四宫格概览</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
-          <div class="placeholder">待我处理：12</div>
-          <div class="placeholder">我发起：5</div>
-          <div class="placeholder">我关注：3</div>
-          <div class="placeholder">同步异常：0</div>
-        </div>
-      </div>
-      <div class="section">
-        <div class="label">统一列表（可切换视图）</div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px">
-          <button class="mock-button">待办</button>
-          <button class="mock-button">我发起</button>
-          <button class="mock-button">我关注</button>
-          <button class="mock-button">全部</button>
-        </div>
-        <div class="placeholder">[待办] 工单#123 | 组长审批 | 更新于 10:21</div>
-        <div class="placeholder">[我发起] 权限变更#88 | 退回 | 更新于 09:40</div>
-        <div class="placeholder">[我关注] 资产领用#56 | 到货 | 更新于 昨日</div>
-      </div>
-      <div class="section">
-        <div class="label">常用链接</div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <span class="placeholder">资产库</span>
-          <span class="placeholder">人员权限表</span>
-          <span class="placeholder">日志查询</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
