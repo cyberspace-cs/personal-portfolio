@@ -1,0 +1,104 @@
+<h2>工作台布局：选一个更符合审计一线</h2>
+<p class="subtitle">点击卡片选择方案（A/B），再在终端回复你想保留/调整的点</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>你描述的“搜索+卡片+左右分栏”</h3>
+      <p>强调直达与进度可见性，信息层级清晰</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>“搜索+四宫格概览+单列表”</h3>
+      <p>更简洁，减少视觉切分，适合快速浏览</p>
+    </div>
+  </div>
+</div>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">方案 A 预览（布局骨架）</div>
+    <div class="mockup-body">
+      <div class="mock-nav">统一门户 | audit-ops-copilot | 个人中心</div>
+      <div class="section">
+        <div class="label">全局语义输入</div>
+        <input class="mock-input" placeholder="例如：查我待审批的工单 / 我申请的权限变更进度" />
+      </div>
+      <div class="section">
+        <div class="label">高频快捷</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="mock-button">查待办</button>
+          <button class="mock-button">查我发起</button>
+          <button class="mock-button">查我关注</button>
+          <button class="mock-button">常用筛选</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px">
+        <div class="mock-sidebar" style="flex:0 0 34%">
+          <div class="label">概览</div>
+          <div class="placeholder">待我处理：12</div>
+          <div class="placeholder">我发起：5</div>
+          <div class="placeholder">我关注：3</div>
+          <div class="placeholder">系统同步健康：正常</div>
+        </div>
+        <div class="mock-content" style="flex:1">
+          <div class="label">近期动态流</div>
+          <div class="placeholder">[工单#123] 已流转至“组长审批”</div>
+          <div class="placeholder">[权限变更#88] 退回：补充说明</div>
+          <div class="placeholder">[资产领用#56] 已到货：待签收</div>
+        </div>
+      </div>
+      <div class="section" style="margin-top:12px">
+        <div class="label">快速跳转</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <span class="placeholder">资产库</span>
+          <span class="placeholder">人员权限表</span>
+          <span class="placeholder">日志查询</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">方案 B 预览（布局骨架）</div>
+    <div class="mockup-body">
+      <div class="mock-nav">统一门户 | audit-ops-copilot | 个人中心</div>
+      <div class="section">
+        <div class="label">全局语义输入</div>
+        <input class="mock-input" placeholder="例如：本周待我审批 / 关键字：账号开通" />
+      </div>
+      <div class="section">
+        <div class="label">四宫格概览</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+          <div class="placeholder">待我处理：12</div>
+          <div class="placeholder">我发起：5</div>
+          <div class="placeholder">我关注：3</div>
+          <div class="placeholder">同步异常：0</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="label">统一列表（可切换视图）</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px">
+          <button class="mock-button">待办</button>
+          <button class="mock-button">我发起</button>
+          <button class="mock-button">我关注</button>
+          <button class="mock-button">全部</button>
+        </div>
+        <div class="placeholder">[待办] 工单#123 | 组长审批 | 更新于 10:21</div>
+        <div class="placeholder">[我发起] 权限变更#88 | 退回 | 更新于 09:40</div>
+        <div class="placeholder">[我关注] 资产领用#56 | 到货 | 更新于 昨日</div>
+      </div>
+      <div class="section">
+        <div class="label">常用链接</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <span class="placeholder">资产库</span>
+          <span class="placeholder">人员权限表</span>
+          <span class="placeholder">日志查询</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
