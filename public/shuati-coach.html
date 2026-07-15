@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>专属刷题教练 · 多源数据聚合智能备考平台</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#f5f7fb;
+    --surface:#ffffff;
+    --ink:#1a2340;
+    --ink-2:#4a5578;
+    --ink-3:#8a94b0;
+    --line:#e8ecf5;
+    --brand:#3b5bdb;
+    --brand-2:#5c7cfa;
+    --brand-soft:#eaf0ff;
+    --teal:#0ca678;
+    --teal-soft:#e3faf3;
+    --amber:#f08c00;
+    --amber-soft:#fff4e0;
+    --rose:#e8590c;
+    --rose-soft:#ffece0;
+    --purple:#7048e8;
+    --purple-soft:#f0eaff;
+    --shadow:0 8px 30px rgba(28,42,90,.08);
+    --shadow-sm:0 2px 10px rgba(28,42,90,.06);
+    --radius:16px;
+    --radius-sm:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  .container{max-width:1200px;margin:0 auto;padding:0 20px}
+
+  /* ---------- Top Nav ---------- */
+  header{
+    position:sticky;top:0;z-index:100;background:rgba(255,255,255,.85);
+    backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:-.3px}
+  .logo .mark{
+    width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:18px;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:0 4px 12px rgba(59,91,219,.35);
+  }
+  .logo .mark svg{width:20px;height:20px}
+  .tabs{display:flex;gap:4px}
+  .tabs button{
+    padding:9px 16px;border-radius:10px;font-size:14.5px;font-weight:600;color:var(--ink-2);transition:.18s;
+  }
+  .tabs button:hover{background:var(--brand-soft);color:var(--brand)}
+  .tabs button.active{background:var(--brand);color:#fff;box-shadow:0 4px 12px rgba(59,91,219,.3)}
+  .nav-cta{display:flex;align-items:center;gap:12px}
+  .avatar{
+    width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--brand-2));
+    color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;
+  }
+  .menu-toggle{display:none;font-size:24px;color:var(--ink);padding:6px}
+
+  /* ---------- Views ---------- */
+  .view{display:none;animation:fade .4s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  section{padding:56px 0}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    background:
+      radial-gradient(1000px 400px at 80% -10%,rgba(92,124,250,.18),transparent),
+      radial-gradient(700px 400px at 0% 20%,rgba(112,72,232,.12),transparent);
+    padding:70px 0 40px;
+  }
+  .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+  .badge{
+    display:inline-flex;align-items:center;gap:7px;background:var(--brand-soft);color:var(--brand);
+    padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;margin-bottom:20px;
+  }
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--teal)}
+  h1.hero-title{font-size:48px;line-height:1.15;letter-spacing:-1px;font-weight:800}
+  h1.hero-title .grad{background:linear-gradient(120deg,var(--brand),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero-sub{font-size:17px;color:var(--ink-2);margin:22px 0 30px;max-width:520px}
+  .btn-row{display:flex;gap:14px;flex-wrap:wrap}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:12px;font-weight:700;font-size:15px;transition:.2s;
+  }
+  .btn-primary{background:var(--brand);color:#fff;box-shadow:0 8px 20px rgba(59,91,219,.3)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(59,91,219,.4)}
+  .btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+  .btn-ghost:hover{border-color:var(--brand);color:var(--brand)}
+  .hero-stats{display:flex;gap:30px;margin-top:38px}
+  .hero-stats .s .n{font-size:28px;font-weight:800;color:var(--brand)}
+  .hero-stats .s .l{font-size:13px;color:var(--ink-3);font-weight:600}
+
+  /* Hero card */
+  .hero-card{
+    background:var(--surface);border-radius:20px;box-shadow:var(--shadow);padding:22px;position:relative;overflow:hidden;
+  }
+  .hero-card::before{content:"";position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:var(--brand-soft)}
+  .hc-head{display:flex;align-items:center;justify-content:space-between;position:relative;margin-bottom:16px}
+  .hc-head .t{font-weight:800;font-size:15px}
+  .hc-head .tag{font-size:12px;background:var(--teal-soft);color:var(--teal);padding:4px 10px;border-radius:8px;font-weight:700}
+  .src-list{display:flex;flex-direction:column;gap:10px;position:relative}
+  .src{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+  .src .ico{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0}
+  .src .meta{flex:1;min-width:0}
+  .src .meta .n{font-weight:700;font-size:14px}
+  .src .meta .d{font-size:12px;color:var(--ink-3)}
+  .src .bar{width:70px;height:6px;border-radius:6px;background:var(--line);overflow:hidden}
+  .src .bar i{display:block;height:100%;border-radius:6px}
+
+  /* ---------- Section titles ---------- */
+  .sec-head{text-align:center;max-width:640px;margin:0 auto 44px}
+  .sec-head .kicker{color:var(--brand);font-weight:800;font-size:14px;letter-spacing:.5px;text-transform:uppercase}
+  .sec-head h2{font-size:34px;font-weight:800;letter-spacing:-.6px;margin:8px 0 12px}
+  .sec-head p{color:var(--ink-2);font-size:16px}
+
+  /* Feature cards */
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .feat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:28px;transition:.2s}
+  .feat:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:transparent}
+  .feat .fi{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;margin-bottom:18px}
+  .feat .fi svg{width:26px;height:26px}
+  .feat h3{font-size:18px;font-weight:800;margin-bottom:8px}
+  .feat p{color:var(--ink-2);font-size:14.5px}
+
+  /* Pain points */
+  .pain-wrap{background:var(--surface);border-radius:24px;box-shadow:var(--shadow-sm);padding:44px;border:1px solid var(--line)}
+  .pain-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+  .pain{display:flex;gap:14px;align-items:flex-start}
+  .pain .num{width:34px;height:34px;border-radius:10px;background:var(--rose-soft);color:var(--rose);display:grid;place-items:center;font-weight:800;flex-shrink:0}
+  .pain .txt strong{display:block;font-size:15px;margin-bottom:3px}
+  .pain .txt span{font-size:13.5px;color:var(--ink-3)}
+
+  /* ---------- Quiz view ---------- */
+  .page-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;flex-wrap:wrap;gap:16px}
+  .page-title h2{font-size:28px;font-weight:800;letter-spacing:-.5px}
+  .page-title p{color:var(--ink-3);font-size:14px;margin-top:2px}
+  .chip-row{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{padding:8px 16px;border-radius:999px;font-size:13.5px;font-weight:700;background:#fff;border:1px solid var(--line);color:var(--ink-2);transition:.15s}
+  .chip:hover{border-color:var(--brand-2)}
+  .chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+  .quiz-layout{display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start}
+  .quiz-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--line);padding:30px}
+  .q-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .q-type{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:800;padding:5px 12px;border-radius:8px;background:var(--purple-soft);color:var(--purple)}
+  .q-index{font-size:13px;color:var(--ink-3);font-weight:700}
+  .q-progress{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:24px}
+  .q-progress i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-2));border-radius:6px;transition:width .4s}
+  .q-stem{font-size:18px;font-weight:700;line-height:1.6;margin-bottom:22px}
+  .q-stem .src-tag{display:inline-block;font-size:11px;font-weight:700;color:var(--brand);background:var(--brand-soft);padding:2px 8px;border-radius:6px;margin-left:8px;vertical-align:middle}
+  .opts{display:flex;flex-direction:column;gap:12px}
+  .opt{display:flex;align-items:center;gap:14px;padding:15px 18px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;transition:.15s;background:#fff}
+  .opt:hover{border-color:var(--brand-2);background:var(--brand-soft)}
+  .opt .key{width:28px;height:28px;border-radius:8px;background:var(--bg);display:grid;place-items:center;font-weight:800;font-size:14px;color:var(--ink-2);flex-shrink:0;transition:.15s}
+  .opt .lbl{font-size:15px;font-weight:600}
+  .opt.selected{border-color:var(--brand);background:var(--brand-soft)}
+  .opt.selected .key{background:var(--brand);color:#fff}
+  .opt.correct{border-color:var(--teal);background:var(--teal-soft)}
+  .opt.correct .key{background:var(--teal);color:#fff}
+  .opt.wrong{border-color:var(--rose);background:var(--rose-soft)}
+  .opt.wrong .key{background:var(--rose);color:#fff}
+  .opt.disabled{cursor:default}
+
+  .explain{margin-top:22px;padding:18px;border-radius:12px;background:var(--teal-soft);border-left:4px solid var(--teal);display:none}
+  .explain.show{display:block;animation:fade .3s}
+  .explain .et{font-weight:800;font-size:14px;color:var(--teal);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .explain p{font-size:14px;color:var(--ink-2)}
+  .q-actions{display:flex;justify-content:space-between;gap:12px;margin-top:26px}
+  .q-actions .left{display:flex;gap:10px}
+  .btn-sm{padding:11px 22px;border-radius:10px;font-weight:700;font-size:14px}
+  .btn-line{border:1px solid var(--line);background:#fff;color:var(--ink-2)}
+  .btn-line:hover{border-color:var(--brand);color:var(--brand)}
+  .btn-line:disabled{opacity:.4;cursor:not-allowed}
+
+  /* Quiz side */
+  .side-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--line);padding:22px;margin-bottom:20px}
+  .side-card h4{font-size:15px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .mini-stat{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line);font-size:14px}
+  .mini-stat:last-child{border-bottom:none}
+  .mini-stat .v{font-weight:800}
+  .mini-stat .v.good{color:var(--teal)}
+  .mini-stat .v.bad{color:var(--rose)}
+  .q-nav-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+  .qn{aspect-ratio:1;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--bg);color:var(--ink-2);cursor:pointer;transition:.15s;border:1px solid transparent}
+  .qn:hover{border-color:var(--brand-2)}
+  .qn.done{background:var(--teal-soft);color:var(--teal)}
+  .qn.err{background:var(--rose-soft);color:var(--rose)}
+  .qn.cur{background:var(--brand);color:#fff}
+
+  /* ---------- Data Center ---------- */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:26px}
+  .kpi{background:var(--surface);border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow-sm);padding:22px;position:relative;overflow:hidden}
+  .kpi .ki{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;margin-bottom:14px}
+  .kpi .ki svg{width:22px;height:22px}
+  .kpi .kn{font-size:32px;font-weight:800;letter-spacing:-1px}
+  .kpi .kl{font-size:13.5px;color:var(--ink-3);font-weight:600;margin-top:2px}
+  .kpi .kd{font-size:12px;font-weight:800;margin-top:8px;display:inline-flex;align-items:center;gap:4px}
+  .kd.up{color:var(--teal)} .kd.down{color:var(--rose)}
+
+  .chart-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;margin-bottom:20px}
+  .chart-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow-sm);padding:24px}
+  .chart-card .ch-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+  .chart-card h4{font-size:16px;font-weight:800}
+  .chart-card .ch-head .sub{font-size:12.5px;color:var(--ink-3)}
+  .chart-box{position:relative;height:280px}
+  .chart-box.sm{height:250px}
+
+  /* Wrong-question book */
+  .wrong-list{display:flex;flex-direction:column;gap:12px}
+  .wrong-item{display:flex;gap:14px;padding:16px;border:1px solid var(--line);border-radius:12px;transition:.15s;background:#fff}
+  .wrong-item:hover{box-shadow:var(--shadow-sm);border-color:var(--brand-2)}
+  .wrong-item .wt{width:44px;height:44px;border-radius:10px;background:var(--rose-soft);color:var(--rose);display:grid;place-items:center;font-weight:800;flex-shrink:0;font-size:13px;text-align:center;line-height:1.2}
+  .wrong-item .wc{flex:1;min-width:0}
+  .wrong-item .wc .wq{font-weight:700;font-size:14.5px;margin-bottom:4px}
+  .wrong-item .wc .wtags{display:flex;gap:8px;flex-wrap:wrap}
+  .wtags span{font-size:11.5px;padding:2px 9px;border-radius:6px;background:var(--bg);color:var(--ink-3);font-weight:700}
+  .wtags span.plat{background:var(--brand-soft);color:var(--brand)}
+  .wrong-item .wr{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+  .wrong-item .wr .cnt{font-size:12px;color:var(--rose);font-weight:800}
+  .redo{font-size:12.5px;font-weight:800;color:var(--brand);padding:6px 12px;border-radius:8px;background:var(--brand-soft)}
+
+  /* ---------- Recommendation ---------- */
+  .rec-hero{background:linear-gradient(120deg,#2b3a80,#3b5bdb);border-radius:24px;padding:38px;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:24px;margin-bottom:30px;position:relative;overflow:hidden}
+  .rec-hero::after{content:"";position:absolute;right:-30px;bottom:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.08)}
+  .rec-hero .rh-l{position:relative;z-index:1}
+  .rec-hero h3{font-size:24px;font-weight:800;margin-bottom:8px}
+  .rec-hero p{opacity:.85;font-size:15px;max-width:460px}
+  .rec-hero .ring{position:relative;z-index:1;text-align:center}
+  .ring-val{font-size:40px;font-weight:800}
+  .ring-lbl{font-size:13px;opacity:.85}
+
+  .rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+  .rec-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow-sm);padding:24px}
+  .rec-card h4{font-size:16px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:9px}
+  .rec-card .desc{font-size:13px;color:var(--ink-3);margin-bottom:18px}
+  .path-step{display:flex;gap:14px;padding-bottom:18px;position:relative}
+  .path-step:not(:last-child)::before{content:"";position:absolute;left:15px;top:34px;bottom:0;width:2px;background:var(--line)}
+  .path-step .ps-dot{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0;z-index:1}
+  .path-step .ps-c .pt{font-weight:700;font-size:14.5px}
+  .path-step .ps-c .pd{font-size:13px;color:var(--ink-3)}
+  .path-step .ps-c .pmeta{font-size:11.5px;font-weight:700;color:var(--brand);margin-top:4px}
+
+  .rec-q{display:flex;align-items:center;gap:14px;padding:14px;border-radius:12px;transition:.15s;cursor:pointer}
+  .rec-q:hover{background:var(--brand-soft)}
+  .rec-q .rq-pri{width:8px;height:40px;border-radius:8px;flex-shrink:0}
+  .rec-q .rq-c{flex:1;min-width:0}
+  .rec-q .rq-c .rqt{font-weight:700;font-size:14.5px}
+  .rec-q .rq-c .rqm{font-size:12.5px;color:var(--ink-3)}
+  .rec-q .rq-score{font-weight:800;font-size:15px;color:var(--brand)}
+
+  /* source aggregation strip */
+  .agg-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:20px}
+  .agg{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center}
+  .agg .ai{width:44px;height:44px;border-radius:12px;margin:0 auto 10px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:16px}
+  .agg .an{font-weight:800;font-size:14px}
+  .agg .as{font-size:12px;color:var(--ink-3);margin-top:2px}
+  .agg .stat-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal);margin-right:5px}
+
+  footer{background:var(--ink);color:#cfd6ea;padding:40px 0;margin-top:40px}
+  .foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+  .foot .logo .mark{box-shadow:none}
+  .foot small{color:#7a85a8;font-size:13px}
+
+  /* ---------- Responsive ---------- */
+  @media(max-width:960px){
+    .hero-grid{grid-template-columns:1fr;gap:32px}
+    h1.hero-title{font-size:38px}
+    .feat-grid{grid-template-columns:1fr 1fr}
+    .quiz-layout{grid-template-columns:1fr}
+    .chart-grid{grid-template-columns:1fr}
+    .kpi-grid{grid-template-columns:1fr 1fr}
+    .rec-grid{grid-template-columns:1fr}
+  }
+  @media(max-width:640px){
+    .tabs{position:fixed;top:64px;left:0;right:0;background:#fff;flex-direction:column;padding:12px;gap:6px;border-bottom:1px solid var(--line);box-shadow:var(--shadow);transform:translateY(-140%);transition:.3s;z-index:99}
+    .tabs.open{transform:translateY(0)}
+    .tabs button{text-align:left}
+    .menu-toggle{display:block}
+    section{padding:40px 0}
+    h1.hero-title{font-size:30px}
+    .hero-stats{gap:20px}
+    .feat-grid{grid-template-columns:1fr}
+    .kpi-grid{grid-template-columns:1fr 1fr}
+    .sec-head h2{font-size:26px}
+    .pain-wrap{padding:24px}
+    .rec-hero{flex-direction:column;text-align:center}
+    .page-title h2{font-size:23px}
+    .q-nav-grid{grid-template-columns:repeat(8,1fr)}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container nav">
+    <div class="logo">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="M2 8v6"/><path d="M6 10.5V15c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/></svg>
+      </span>
+      专属刷题教练
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="active" data-view="home">首页</button>
+      <button data-view="quiz">刷题</button>
+      <button data-view="data">数据中心</button>
+      <button data-view="rec">智能推荐</button>
+    </nav>
+    <div class="nav-cta">
+      <div class="avatar">备</div>
+      <button class="menu-toggle" id="menuToggle">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HOME ============ -->
+<div class="view active" id="view-home">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="badge"><span class="dot"></span> 多源题库聚合 · 智能备考</span>
+        <h1 class="hero-title">一站式打通<br><span class="grad">考研 · 考公 · 大厂</span> 全部题库</h1>
+        <p class="hero-sub">告别多平台反复切换与数据割裂。聚合分散题库，统一管理错题与刷题进度，用个性化学习路径把碎片化刷题变成系统化备考。</p>
+        <div class="btn-row">
+          <button class="btn btn-primary" data-jump="quiz">开始刷题
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+          <button class="btn btn-ghost" data-jump="data">查看我的数据</button>
+        </div>
+        <div class="hero-stats">
+          <div class="s"><div class="n">12+</div><div class="l">聚合题库平台</div></div>
+          <div class="s"><div class="n">50万+</div><div class="l">覆盖题目</div></div>
+          <div class="s"><div class="n">93%</div><div class="l">薄弱点命中率</div></div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="hc-head">
+          <span class="t">多源数据聚合</span>
+          <span class="tag">● 实时同步中</span>
+        </div>
+        <div class="src-list">
+          <div class="src">
+            <div class="ico" style="background:#3b5bdb">研</div>
+            <div class="meta"><div class="n">考研题库</div><div class="d">政治·英语·数学·专业课</div></div>
+            <div class="bar"><i style="width:82%;background:#3b5bdb"></i></div>
+          </div>
+          <div class="src">
+            <div class="ico" style="background:#0ca678">公</div>
+            <div class="meta"><div class="n">考公行测申论</div><div class="d">行测·申论·面试</div></div>
+            <div class="bar"><i style="width:64%;background:#0ca678"></i></div>
+          </div>
+          <div class="src">
+            <div class="ico" style="background:#7048e8">厂</div>
+            <div class="meta"><div class="n">大厂笔面试题</div><div class="d">算法·八股·系统设计</div></div>
+            <div class="bar"><i style="width:71%;background:#7048e8"></i></div>
+          </div>
+          <div class="src">
+            <div class="ico" style="background:#f08c00">错</div>
+            <div class="meta"><div class="n">跨平台错题本</div><div class="d">自动归集·智能复盘</div></div>
+            <div class="bar"><i style="width:48%;background:#f08c00"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="sec-head">
+        <div class="kicker">Core Features</div>
+        <h2>核心功能，一站式解决备考痛点</h2>
+        <p>从题库聚合到智能复盘，覆盖备考全流程的每一个关键环节</p>
+      </div>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="fi" style="background:var(--brand-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#3b5bdb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+          <h3>多源题库聚合</h3>
+          <p>打通考研、考公、大厂等 12+ 平台题库，一个入口统一刷题，消除切换成本与数据孤岛。</p>
+        </div>
+        <div class="feat">
+          <div class="fi" style="background:var(--rose-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#e8590c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/><path d="M22 12A10 10 0 1 1 12 2" opacity=".4"/></svg></div>
+          <h3>跨平台错题本</h3>
+          <p>自动归集各平台错题，标注知识点与错因，支持智能复盘与针对性重做，不再遗漏薄弱环节。</p>
+        </div>
+        <div class="feat">
+          <div class="fi" style="background:var(--purple-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#7048e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>智能学习路径</h3>
+          <p>基于刷题数据分析知识掌握度，自动生成个性化复习计划与每日推荐，把有限时间用在刀刃上。</p>
+        </div>
+        <div class="feat">
+          <div class="fi" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#0ca678" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
+          <h3>进度可视化追踪</h3>
+          <p>刷题量、正确率、知识点掌握度全维度量化，趋势图 + 雷达图直观呈现，备考进度尽在掌握。</p>
+        </div>
+        <div class="feat">
+          <div class="fi" style="background:var(--amber-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#f08c00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5l-8-3Z"/></svg></div>
+          <h3>模拟考场</h3>
+          <p>按真实考试结构组卷，限时答题 + 全真模拟，提前适应考场节奏，考前冲刺更有底。</p>
+        </div>
+        <div class="feat">
+          <div class="fi" style="background:var(--brand-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#3b5bdb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <h3>多身份适配</h3>
+          <p>考研党、考公党、校招社招求职者，一套系统统筹多类考试复习计划，互不干扰。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:10px">
+    <div class="container">
+      <div class="pain-wrap">
+        <div class="sec-head" style="margin-bottom:32px">
+          <div class="kicker">Pain Points</div>
+          <h2>你是不是也被这些问题困扰</h2>
+        </div>
+        <div class="pain-grid">
+          <div class="pain"><div class="num">1</div><div class="txt"><strong>题库分散多平台</strong><span>反复切换 APP，资源无法统一管理</span></div></div>
+          <div class="pain"><div class="num">2</div><div class="txt"><strong>错题无法同步</strong><span>各平台错题各自为政，难以汇总复盘</span></div></div>
+          <div class="pain"><div class="num">3</div><div class="txt"><strong>缺个性化推荐</strong><span>盲目刷题，抓不住真正的薄弱点</span></div></div>
+          <div class="pain"><div class="num">4</div><div class="txt"><strong>进度无法量化</strong><span>不知道复习到哪了，心里没底</span></div></div>
+          <div class="pain"><div class="num">5</div><div class="txt"><strong>计划难以统筹</strong><span>多类考试并行，复习安排一团乱</span></div></div>
+          <div class="pain"><div class="num">6</div><div class="txt"><strong>数据无法互通</strong><span>学习数据割裂，无法形成系统策略</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ QUIZ ============ -->
+<div class="view" id="view-quiz">
+  <section>
+    <div class="container">
+      <div class="page-title">
+        <div>
+          <h2>智能刷题</h2>
+          <p>多源题库聚合 · 多题型交互 · 即时解析</p>
+        </div>
+        <div class="chip-row" id="catChips">
+          <button class="chip active" data-cat="all">全部</button>
+          <button class="chip" data-cat="考研">考研</button>
+          <button class="chip" data-cat="考公">考公</button>
+          <button class="chip" data-cat="大厂">大厂笔面</button>
+        </div>
+      </div>
+
+      <div class="quiz-layout">
+        <div class="quiz-card">
+          <div class="q-meta">
+            <span class="q-type" id="qType">单选题</span>
+            <span class="q-index" id="qIndex">第 1 / 6 题</span>
+          </div>
+          <div class="q-progress"><i id="qProg" style="width:16%"></i></div>
+          <div class="q-stem" id="qStem"></div>
+          <div class="opts" id="qOpts"></div>
+          <div class="explain" id="qExplain">
+            <div class="et"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2Z"/></svg> 答案解析</div>
+            <p id="qExplainText"></p>
+          </div>
+          <div class="q-actions">
+            <div class="left">
+              <button class="btn-sm btn-line" id="prevBtn" disabled>上一题</button>
+            </div>
+            <div class="left">
+              <button class="btn-sm btn-line" id="submitBtn">提交答案</button>
+              <button class="btn-sm btn-primary" id="nextBtn" style="background:var(--brand);color:#fff">下一题</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="side-card">
+            <h4>📊 本组进度</h4>
+            <div class="mini-stat"><span>已作答</span><span class="v" id="sAns">0</span></div>
+            <div class="mini-stat"><span>正确</span><span class="v good" id="sRight">0</span></div>
+            <div class="mini-stat"><span>错误</span><span class="v bad" id="sWrong">0</span></div>
+            <div class="mini-stat"><span>正确率</span><span class="v" id="sRate">—</span></div>
+          </div>
+          <div class="side-card">
+            <h4>🧭 答题卡</h4>
+            <div class="q-nav-grid" id="qNav"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ DATA CENTER ============ -->
+<div class="view" id="view-data">
+  <section>
+    <div class="container">
+      <div class="page-title">
+        <div>
+          <h2>个人学习数据中心</h2>
+          <p>聚合全平台刷题数据 · 量化你的备考进度</p>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="ki" style="background:var(--brand-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#3b5bdb" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></div>
+          <div class="kn">2,486</div>
+          <div class="kl">累计刷题</div>
+          <div class="kd up">▲ 本周 +214</div>
+        </div>
+        <div class="kpi">
+          <div class="ki" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#0ca678" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg></div>
+          <div class="kn">78.5%</div>
+          <div class="kl">平均正确率</div>
+          <div class="kd up">▲ 较上周 +3.2%</div>
+        </div>
+        <div class="kpi">
+          <div class="ki" style="background:var(--rose-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#e8590c" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+          <div class="kn">168</div>
+          <div class="kl">错题待复盘</div>
+          <div class="kd down">▼ 已消化 42</div>
+        </div>
+        <div class="kpi">
+          <div class="ki" style="background:var(--amber-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#f08c00" stroke-width="2" stroke-linecap="round"><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/><circle cx="12" cy="12" r="6"/></svg></div>
+          <div class="kn">27<span style="font-size:16px">天</span></div>
+          <div class="kl">连续打卡</div>
+          <div class="kd up">🔥 保持势头</div>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="ch-head">
+            <div><h4>刷题量与正确率趋势</h4><div class="sub">近 14 天数据聚合</div></div>
+          </div>
+          <div class="chart-box"><canvas id="trendChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="ch-head">
+            <div><h4>知识点掌握度</h4><div class="sub">六大模块雷达分析</div></div>
+          </div>
+          <div class="chart-box"><canvas id="radarChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="chart-grid" style="grid-template-columns:1fr 1.4fr">
+        <div class="chart-card">
+          <div class="ch-head"><div><h4>各平台刷题占比</h4><div class="sub">多源数据分布</div></div></div>
+          <div class="chart-box sm"><canvas id="pieChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="ch-head"><div><h4>📕 错题本 · 高频薄弱点</h4><div class="sub">按错误次数排序</div></div></div>
+          <div class="wrong-list" id="wrongList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ RECOMMENDATION ============ -->
+<div class="view" id="view-rec">
+  <section>
+    <div class="container">
+      <div class="page-title">
+        <div>
+          <h2>智能推荐</h2>
+          <p>AI 分析掌握度 · 为你量身定制今日学习计划</p>
+        </div>
+      </div>
+
+      <div class="rec-hero">
+        <div class="rh-l">
+          <h3>👋 备考同学，今天为你准备了 18 道精选题</h3>
+          <p>系统检测到你在「概率统计」与「操作系统」模块正确率偏低，已优先推荐相关强化题，预计 45 分钟可完成今日目标。</p>
+        </div>
+        <div class="ring">
+          <div class="ring-val">72%</div>
+          <div class="ring-lbl">今日目标完成度</div>
+        </div>
+      </div>
+
+      <div class="rec-grid">
+        <div class="rec-card">
+          <h4><span>🗺️</span> 个性化学习路径</h4>
+          <div class="desc">基于你的目标岗位与当前掌握度自动规划</div>
+          <div id="pathList"></div>
+        </div>
+        <div class="rec-card">
+          <h4><span>🎯</span> 今日智能推荐题</h4>
+          <div class="desc">优先攻克薄弱点，匹配度越高越值得刷</div>
+          <div id="recList"></div>
+        </div>
+      </div>
+
+      <div class="rec-card">
+        <h4><span>🔗</span> 多源题库聚合状态</h4>
+        <div class="desc">已接入以下平台，数据实时同步归集</div>
+        <div class="agg-strip">
+          <div class="agg"><div class="ai" style="background:#3b5bdb">研</div><div class="an">考研帮</div><div class="as"><span class="stat-dot"></span>已同步 8,200 题</div></div>
+          <div class="agg"><div class="ai" style="background:#0ca678">公</div><div class="an">粉笔行测</div><div class="as"><span class="stat-dot"></span>已同步 6,540 题</div></div>
+          <div class="agg"><div class="ai" style="background:#7048e8">码</div><div class="an">LeetCode</div><div class="as"><span class="stat-dot"></span>已同步 2,100 题</div></div>
+          <div class="agg"><div class="ai" style="background:#f08c00">牛</div><div class="an">牛客网</div><div class="as"><span class="stat-dot"></span>已同步 4,880 题</div></div>
+          <div class="agg"><div class="ai" style="background:#e8590c">题</div><div class="an">中公题库</div><div class="as"><span class="stat-dot"></span>已同步 5,300 题</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="container foot">
+    <div class="logo" style="color:#fff">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="M2 8v6"/><path d="M6 10.5V15c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/></svg></span>
+      专属刷题教练
+    </div>
+    <small>多源数据聚合智能备考平台 · 让碎片化刷题变成系统化备考 · Demo 演示原型</small>
+  </div>
+</footer>
+
+<script>
+/* ---------------- 视图切换 ---------------- */
+const tabs=document.querySelectorAll('.tabs button');
+const views=document.querySelectorAll('.view');
+function switchView(v){
+  tabs.forEach(t=>t.classList.toggle('active',t.dataset.view===v));
+  views.forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
+  document.getElementById('tabs').classList.remove('open');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(v==='data')initCharts();
+}
+tabs.forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));
+document.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.jump)));
+document.getElementById('menuToggle').addEventListener('click',()=>document.getElementById('tabs').classList.toggle('open'));
+
+/* ---------------- 题库数据 ---------------- */
+const QUESTIONS=[
+  {cat:'考研',src:'考研帮',type:'单选题',stem:'设随机变量 X 服从参数为 λ 的泊松分布，则 E(X) 与 D(X) 的关系为？',opts:['E(X) > D(X)','E(X) = D(X)','E(X) < D(X)','无法确定'],answer:[1],explain:'泊松分布的期望与方差均等于参数 λ，因此 E(X)=D(X)=λ。这是泊松分布的重要性质。'},
+  {cat:'考研',src:'考研帮',type:'多选题',stem:'下列关于矩阵可逆的说法中，正确的有？（多选）',opts:['行列式不为零','秩等于阶数','存在零特征值','各行向量线性无关'],answer:[0,1,3],explain:'矩阵可逆 ⇔ 行列式非零 ⇔ 满秩 ⇔ 行(列)向量线性无关。存在零特征值意味着行列式为零，故 C 错误。'},
+  {cat:'考公',src:'粉笔行测',type:'单选题',stem:'某工程队 8 天完成一项工程的 2/5，照此速度，完成剩余工程还需多少天？',opts:['10 天','12 天','14 天','16 天'],answer:[1],explain:'8 天完成 2/5，即每天 1/20。剩余 3/5，需 (3/5)÷(1/20)=12 天。'},
+  {cat:'考公',src:'中公题库',type:'判断题',stem:'行政诉讼中，被告对作出的行政行为负有举证责任。',opts:['正确','错误'],answer:[0],explain:'正确。《行政诉讼法》规定被告对其作出的行政行为承担举证责任，这是"举证责任倒置"原则的体现。'},
+  {cat:'大厂',src:'LeetCode',type:'单选题',stem:'对一个已排序数组进行查找，采用二分查找的时间复杂度为？',opts:['O(1)','O(log n)','O(n)','O(n log n)'],answer:[1],explain:'二分查找每次将搜索范围折半，时间复杂度为 O(log n)，前提是数组有序。'},
+  {cat:'大厂',src:'牛客网',type:'多选题',stem:'下列属于进程间通信(IPC)方式的有？（多选）',opts:['管道 Pipe','共享内存','消息队列','局部变量'],answer:[0,1,2],explain:'管道、共享内存、消息队列、信号量、Socket 均为常见 IPC 方式。局部变量属于线程私有栈空间，不能跨进程通信。'}
+];
+
+let filtered=[...QUESTIONS];
+let cur=0;
+const answers={}; // idx -> {picked:[], correct:bool, submitted:bool}
+
+/* 分类筛选 */
+document.querySelectorAll('#catChips .chip').forEach(c=>{
+  c.addEventListener('click',()=>{
+    document.querySelectorAll('#catChips .chip').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    const cat=c.dataset.cat;
+    filtered=cat==='all'?[...QUESTIONS]:QUESTIONS.filter(q=>q.cat===cat);
+    cur=0; renderQ(); buildNav();
+  });
+});
+
+const el=id=>document.getElementById(id);
+function renderQ(){
+  if(filtered.length===0)return;
+  const q=filtered[cur];
+  const st=answers[cur]||{picked:[],submitted:false};
+  el('qType').textContent=q.type;
+  el('qIndex').textContent=`第 ${cur+1} / ${filtered.length} 题`;
+  el('qProg').style.width=((cur+1)/filtered.length*100)+'%';
+  el('qStem').innerHTML=q.stem+`<span class="src-tag">来源：${q.src}</span>`;
+
+  const isMulti=q.type==='多选题';
+  el('qOpts').innerHTML=q.opts.map((o,i)=>{
+    const key=String.fromCharCode(65+i);
+    let cls='opt';
+    if(st.submitted){
+      cls+=' disabled';
+      if(q.answer.includes(i))cls+=' correct';
+      else if(st.picked.includes(i))cls+=' wrong';
+    }else if(st.picked.includes(i))cls+=' selected';
+    return `<div class="${cls}" data-i="${i}"><div class="key">${key}</div><div class="lbl">${o}</div></div>`;
+  }).join('');
+
+  el('qOpts').querySelectorAll('.opt').forEach(op=>{
+    op.addEventListener('click',()=>{
+      if(st.submitted)return;
+      const i=+op.dataset.i;
+      let picked=st.picked.slice();
+      if(isMulti){
+        picked.includes(i)?picked=picked.filter(x=>x!==i):picked.push(i);
+      }else{picked=[i];}
+      answers[cur]={picked,submitted:false};
+      renderQ();
+    });
+  });
+
+  // explain
+  const ex=el('qExplain');
+  if(st.submitted){ex.classList.add('show');el('qExplainText').textContent=q.explain;}
+  else ex.classList.remove('show');
+
+  el('submitBtn').disabled=st.submitted||st.picked.length===0;
+  el('submitBtn').style.opacity=(st.submitted||st.picked.length===0)?.5:1;
+  el('prevBtn').disabled=cur===0;
+  el('nextBtn').textContent=cur===filtered.length-1?'完成':'下一题';
+  updateStats(); buildNav();
+}
+
+el('submitBtn').addEventListener('click',()=>{
+  const st=answers[cur];if(!st||st.picked.length===0)return;
+  const q=filtered[cur];
+  const correct=JSON.stringify(st.picked.slice().sort())===JSON.stringify(q.answer.slice().sort());
+  answers[cur]={...st,submitted:true,correct};
+  renderQ();
+});
+el('nextBtn').addEventListener('click',()=>{if(cur<filtered.length-1){cur++;renderQ();}else{switchView('data');}});
+el('prevBtn').addEventListener('click',()=>{if(cur>0){cur--;renderQ();}});
+
+function updateStats(){
+  const done=Object.values(answers).filter(a=>a.submitted);
+  const right=done.filter(a=>a.correct).length;
+  const wrong=done.length-right;
+  el('sAns').textContent=done.length;
+  el('sRight').textContent=right;
+  el('sWrong').textContent=wrong;
+  el('sRate').textContent=done.length?Math.round(right/done.length*100)+'%':'—';
+}
+function buildNav(){
+  el('qNav').innerHTML=filtered.map((q,i)=>{
+    const st=answers[i];let cls='qn';
+    if(i===cur)cls+=' cur';
+    else if(st&&st.submitted)cls+=st.correct?' done':' err';
+    return `<div class="${cls}" data-n="${i}">${i+1}</div>`;
+  }).join('');
+  el('qNav').querySelectorAll('.qn').forEach(n=>n.addEventListener('click',()=>{cur=+n.dataset.n;renderQ();}));
+}
+renderQ();
+
+/* ---------------- 错题本 ---------------- */
+const WRONG=[
+  {q:'概率密度函数积分性质的应用',topic:'概率统计',plat:'考研帮',cnt:5},
+  {q:'页面置换算法 LRU 的实现细节',topic:'操作系统',plat:'牛客网',cnt:4},
+  {q:'资料分析中增长率的速算技巧',topic:'行测·资料分析',plat:'粉笔行测',cnt:4},
+  {q:'TCP 三次握手与四次挥手的状态转换',topic:'计算机网络',plat:'LeetCode',cnt:3},
+  {q:'行政复议与行政诉讼的衔接关系',topic:'公共基础·法律',plat:'中公题库',cnt:3}
+];
+el('wrongList').innerHTML=WRONG.map(w=>`
+  <div class="wrong-item">
+    <div class="wt">×${w.cnt}<br>次</div>
+    <div class="wc">
+      <div class="wq">${w.q}</div>
+      <div class="wtags"><span class="plat">${w.plat}</span><span>${w.topic}</span></div>
+    </div>
+    <div class="wr"><span class="redo">重做 →</span></div>
+  </div>`).join('');
+
+/* ---------------- 智能推荐 ---------------- */
+const PATH=[
+  {t:'夯实薄弱：概率统计强化',d:'当前掌握度 58%，建议优先攻克',meta:'20 题 · 约 35 分钟',c:'#e8590c'},
+  {t:'巩固提升：操作系统专项',d:'当前掌握度 65%，稳步提升',meta:'15 题 · 约 25 分钟',c:'#f08c00'},
+  {t:'保持手感：数据结构刷题',d:'掌握度良好 82%，维持状态',meta:'10 题 · 约 15 分钟',c:'#3b5bdb'},
+  {t:'冲刺拔高：真题模拟考',d:'检验综合水平，查漏补缺',meta:'全真卷 · 约 90 分钟',c:'#0ca678'}
+];
+el('pathList').innerHTML=PATH.map((p,i)=>`
+  <div class="path-step">
+    <div class="ps-dot" style="background:${p.c}">${i+1}</div>
+    <div class="ps-c"><div class="pt">${p.t}</div><div class="pd">${p.d}</div><div class="pmeta">${p.meta}</div></div>
+  </div>`).join('');
+
+const RECQ=[
+  {t:'大数定律与中心极限定理辨析',m:'概率统计 · 薄弱点强化',score:98,c:'#e8590c'},
+  {t:'死锁产生的四个必要条件',m:'操作系统 · 高频考点',score:95,c:'#f08c00'},
+  {t:'行测：图形推理规律归纳',m:'考公行测 · 提分空间大',score:91,c:'#7048e8'},
+  {t:'二叉树的层序遍历实现',m:'数据结构 · 大厂真题',score:88,c:'#3b5bdb'},
+  {t:'申论归纳概括题作答框架',m:'考公申论 · 系统训练',score:85,c:'#0ca678'}
+];
+el('recList').innerHTML=RECQ.map(r=>`
+  <div class="rec-q">
+    <div class="rq-pri" style="background:${r.c}"></div>
+    <div class="rq-c"><div class="rqt">${r.t}</div><div class="rqm">${r.m}</div></div>
+    <div class="rq-score">${r.score}<span style="font-size:11px;color:var(--ink-3)">分</span></div>
+  </div>`).join('');
+
+/* ---------------- 图表 ---------------- */
+let charted=false;
+function initCharts(){
+  if(charted||typeof Chart==='undefined')return;charted=true;
+  const ink='#4a5578',grid='#e8ecf5';
+  Chart.defaults.font.family='"PingFang SC","Microsoft YaHei",sans-serif';
+  Chart.defaults.color=ink;
+
+  // 趋势
+  new Chart(el('trendChart'),{
+    data:{
+      labels:['7-02','7-04','7-06','7-08','7-10','7-12','7-14'],
+      datasets:[
+        {type:'bar',label:'刷题量',data:[120,180,150,210,190,240,214],backgroundColor:'#5c7cfa',borderRadius:6,yAxisID:'y',order:2},
+        {type:'line',label:'正确率(%)',data:[70,72,71,75,74,77,78.5],borderColor:'#0ca678',backgroundColor:'rgba(12,166,120,.1)',borderWidth:3,tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#0ca678',yAxisID:'y1',order:1}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8,padding:16}}},
+      scales:{
+        y:{position:'left',grid:{color:grid},title:{display:true,text:'题量'}},
+        y1:{position:'right',min:50,max:100,grid:{drawOnChartArea:false},title:{display:true,text:'正确率%'}},
+        x:{grid:{display:false}}
+      }}
+  });
+
+  // 雷达
+  new Chart(el('radarChart'),{
+    type:'radar',
+    data:{labels:['数学','英语','政治','数据结构','操作系统','计算机网络'],
+      datasets:[{label:'掌握度',data:[58,82,76,85,65,72],
+        borderColor:'#3b5bdb',backgroundColor:'rgba(59,91,219,.18)',borderWidth:2,pointBackgroundColor:'#3b5bdb'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{r:{min:0,max:100,ticks:{stepSize:20,backdropColor:'transparent'},grid:{color:grid},angleLines:{color:grid},pointLabels:{font:{size:12,weight:'600'}}}}}
+  });
+
+  // 饼
+  new Chart(el('pieChart'),{
+    type:'doughnut',
+    data:{labels:['考研帮','粉笔行测','牛客网','LeetCode','中公题库'],
+      datasets:[{data:[820,654,488,210,530],backgroundColor:['#3b5bdb','#0ca678','#f08c00','#7048e8','#e8590c'],borderWidth:3,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{legend:{position:'right',labels:{usePointStyle:true,boxWidth:8,padding:12,font:{size:12}}}}}
+  });
+}
+</script>
+</body>
+</html>
