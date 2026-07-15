@@ -191,6 +191,17 @@ export const projects: Project[] = [
     demo: "https://demo.com",
     icon: "message-circle",
   },
+  {
+    name: { en: "AI Quiz Coach", zh: "专属刷题教练" },
+    description: {
+      en: "Multi-source question bank aggregator for exam prep (postgrad, civil service, tech interviews) with smart recommendations, wrong-question review and progress analytics.",
+      zh: "面向考研、考公、大厂面试备考的多源题库聚合智能刷题平台，支持个性化推荐、错题复盘与学习进度可视化分析。",
+    },
+    tech: ["React", "Chart.js", "Tailwind CSS", "SPA"],
+    github: "https://github.com/cyberspace-cs/personal-portfolio",
+    demo: "/shuati-coach.html",
+    icon: "graduation-cap",
+  },
 ];
 
 export const education: Education[] = [
