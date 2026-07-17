@@ -1,0 +1,19 @@
+# ===== Hermes 模型配置（拷成 hermes.config.yaml，挂载到 /root/.hermes/config.yaml） =====
+# 与 hermes.env 里的提供商 KEY 配套。
+
+# 方案A：OpenRouter（默认示例）
+model:
+  provider: openrouter
+  default: deepseek/deepseek-chat
+
+# 方案B：DeepSeek 直连（取消注释并填入 KEY 到 hermes.env）
+# model:
+#   provider: custom
+#   base_url: https://api.deepseek.com/v1
+#   default: deepseek-chat
+#   api_key: sk-xxxxxxxx
+
+# 方案C：OpenAI 直连
+# model:
+#   provider: openai-api
+#   default: gpt-4o-mini

@@ -1,0 +1,47 @@
+/* pages/quiz/quiz.wxss */
+.page { padding: 28rpx 28rpx 180rpx; }
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
+.prog { font-weight: 800; font-size: 30rpx; color: var(--brand); }
+.cat-tag { font-size: 24rpx; color: var(--ink-3); font-weight: 700; }
+.progress-bar { height: 10rpx; background: var(--line); border-radius: 999rpx; overflow: hidden; margin-bottom: 28rpx; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--brand), var(--brand-2)); transition: width .25s; }
+
+.qcard { padding: 36rpx; }
+.q-head { display: flex; align-items: center; gap: 16rpx; margin-bottom: 20rpx; }
+.q-topic { font-size: 24rpx; color: var(--ink-3); }
+.q-stem { font-size: 34rpx; font-weight: 700; line-height: 1.5; margin-bottom: 32rpx; }
+
+.opts { display: flex; flex-direction: column; gap: 20rpx; }
+.opt {
+  display: flex; align-items: center; gap: 20rpx; padding: 28rpx;
+  border: 2rpx solid var(--line); border-radius: 16rpx; background: #fff; transition: .15s;
+}
+.opt-sel { border-color: var(--brand); background: var(--brand-soft); }
+.opt-right { border-color: var(--teal); background: var(--teal-soft); }
+.opt-wrong { border-color: #e8590c; background: #ffece0; }
+.opt-abc {
+  width: 56rpx; height: 56rpx; border-radius: 50%; flex-shrink: 0;
+  display: grid; place-items: center; font-weight: 800; font-size: 28rpx;
+  background: var(--brand-soft); color: var(--brand);
+}
+.opt-sel .opt-abc { background: var(--brand); color: #fff; }
+.opt-right .opt-abc { background: var(--teal); color: #fff; }
+.opt-wrong .opt-abc { background: #e8590c; color: #fff; }
+.opt-txt { font-size: 30rpx; flex: 1; }
+
+.explain { margin-top: 32rpx; padding-top: 28rpx; border-top: 1rpx dashed var(--line); }
+.exp-title { font-weight: 800; font-size: 28rpx; color: var(--teal); margin-bottom: 12rpx; }
+.exp-body { font-size: 28rpx; color: var(--ink-2); line-height: 1.7; }
+.exp-actions { margin-top: 24rpx; }
+.mini-btn { display: inline-block; font-size: 26rpx; padding: 14rpx 32rpx; border-radius: 12rpx;
+  background: var(--amber-soft); color: var(--amber); font-weight: 700; }
+.added { font-size: 26rpx; color: var(--teal); font-weight: 700; }
+
+.foot {
+  position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 20rpx;
+  padding: 20rpx 28rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: rgba(255,255,255,.95); backdrop-filter: blur(10rpx); border-top: 1rpx solid var(--line);
+}
+.foot .btn { flex: 1; }
+
+.loading { text-align: center; color: var(--ink-3); padding: 120rpx 0; font-size: 28rpx; }

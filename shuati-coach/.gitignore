@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.db
+*.sqlite3
+
+# 真实密钥/配置（只提交 .example 模板）
+.env
+hermes.env
+hermes.config.yaml
+
+# 运行时与持久化
+certbot/
+data/
+*.log
+
+# 系统
+.DS_Store
+Thumbs.db

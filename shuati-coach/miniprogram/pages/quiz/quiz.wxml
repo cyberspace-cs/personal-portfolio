@@ -1,0 +1,49 @@
+<!-- pages/quiz/quiz.wxml -->
+<view class="page" wx:if="{{questions.length}}">
+  <!-- 进度 -->
+  <view class="topbar">
+    <view class="prog">{{cur + 1}} / {{questions.length}}</view>
+    <view class="cat-tag">{{cat}}</view>
+  </view>
+  <view class="progress-bar"><view class="progress-fill" style="width:{{((cur) / questions.length) * 100}}%"></view></view>
+
+  <!-- 题干 -->
+  <view class="card qcard">
+    <view class="q-head">
+      <text class="tag tag-teal">{{q.type}}</text>
+      <text class="q-topic">{{q.topic}}</text>
+    </view>
+    <view class="q-stem">{{q.stem}}</view>
+
+    <!-- 选项 -->
+    <view class="opts">
+      <view
+        wx:for="{{q.options}}" wx:key="index"
+        class="opt {{selected[index] ? 'opt-sel' : ''}} {{showAnswer ? (isCorrect(index) ? 'opt-right' : (selected[index] ? 'opt-wrong' : '')) : ''}}"
+        data-i="{{index}}" bindtap="onSelect">
+        <view class="opt-abc">{{abc[index]}}</view>
+        <view class="opt-txt">{{item}}</view>
+      </view>
+    </view>
+
+    <!-- 解析 -->
+    <view class="explain" wx:if="{{showAnswer}}">
+      <view class="exp-title">解析</view>
+      <view class="exp-body">{{q.explain}}</view>
+      <view class="exp-actions">
+        <button class="mini-btn" bindtap="addWrong" wx:if="{{!q.wrongAdded}}">加入错题本</button>
+        <text class="added" wx:if="{{q.wrongAdded}}">✓ 已加入错题本</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作 -->
+  <view class="foot">
+    <button class="btn btn-ghost" bindtap="prev" wx:if="{{cur > 0}}">上一题</button>
+    <button class="btn btn-primary" bindtap="submit" wx:if="{{!showAnswer}}">提交答案</button>
+    <button class="btn btn-primary" bindtap="next" wx:if="{{showAnswer && cur < questions.length - 1}}">下一题</button>
+    <button class="btn btn-primary" bindtap="finish" wx:if="{{showAnswer && cur === questions.length - 1}}">完成</button>
+  </view>
+</view>
+
+<view class="loading" wx:else>加载中…</view>

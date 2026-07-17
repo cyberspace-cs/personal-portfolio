@@ -1,0 +1,4 @@
+<!-- pages/webview/webview.wxml -->
+<!-- C 方案：用 web-view 承载完整 H5 智能备考平台（AI 讲题/变式/押题报告等重交互） -->
+<web-view wx:if="{{url}}" src="{{url}}"></web-view>
+<view class="tip" wx:else>正在加载…</view>

@@ -1,0 +1,76 @@
+<!-- pages/index/index.wxml -->
+<view class="page">
+  <!-- 顶部欢迎 -->
+  <view class="hero">
+    <view class="hero-top">
+      <view class="logo">
+        <view class="mark">刷</view>
+        <view class="logo-t">
+          <view class="t1">专属刷题教练</view>
+          <view class="t2">多源聚合 · 智能备考</view>
+        </view>
+      </view>
+      <view class="streak-badge" bindtap="goMine">
+        <text class="fire">🔥</text>
+        <text class="streak-n">{{streak}}</text>
+        <text class="streak-l">天打卡</text>
+      </view>
+    </view>
+    <view class="hero-sub">选个方向，马上开刷。错题自动归集，薄弱点智能推送。</view>
+    <view class="hero-cta">
+      <button class="btn btn-primary" bindtap="startQuiz" data-cat="考研">考研开刷</button>
+      <button class="btn btn-ghost" bindtap="startQuiz" data-cat="考公">考公开刷</button>
+      <button class="btn btn-ghost" bindtap="startQuiz" data-cat="大厂">大厂开刷</button>
+    </view>
+  </view>
+
+  <!-- 统计卡 -->
+  <view class="card stats">
+    <view class="stat">
+      <view class="n">{{totalQuestions}}</view>
+      <view class="l">题库总量</view>
+    </view>
+    <view class="stat">
+      <view class="n">{{doneToday}}</view>
+      <view class="l">今日已刷</view>
+    </view>
+    <view class="stat">
+      <view class="n">{{wrongCount}}</view>
+      <view class="l">错题归集</view>
+    </view>
+  </view>
+
+  <!-- 分类卡片 -->
+  <view class="sec-title">选择你的赛道</view>
+  <view class="cats">
+    <view class="cat-card" wx:for="{{cats}}" wx:key="key" bindtap="startQuiz" data-cat="{{item.key}}">
+      <view class="cat-ico" style="background:{{item.bg}}">{{item.emoji}}</view>
+      <view class="cat-meta">
+        <view class="cat-name">{{item.name}}</view>
+        <view class="cat-desc">{{item.desc}}</view>
+      </view>
+      <view class="cat-count">{{item.count}} 题 ›</view>
+    </view>
+  </view>
+
+  <!-- 深度智能版（web-view 承载 H5） -->
+  <view class="sec-title">进阶能力</view>
+  <view class="card deep" bindtap="openWeb">
+    <view class="deep-l">
+      <view class="deep-t">AI 深度版（讲题 / 变式 / 押题）</view>
+      <view class="deep-d">打开完整 H5 智能备考平台，体验大模型讲题与冲刺报告。</view>
+    </view>
+    <view class="deep-go">进入 ›</view>
+  </view>
+
+  <!-- 问教练（Hermes 智能体） -->
+  <view class="card deep" bindtap="openChat">
+    <view class="deep-l">
+      <view class="deep-t">问教练 · Hermes 智能体</view>
+      <view class="deep-d">把任意备考问题丢给 Hermes Agent，多轮对话、查资料、给方法。</view>
+    </view>
+    <view class="deep-go">去问 ›</view>
+  </view>
+
+  <view class="tip">数据由后端实时返回 · 手机端专属体验</view>
+</view>

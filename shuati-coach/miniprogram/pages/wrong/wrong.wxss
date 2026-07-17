@@ -1,0 +1,17 @@
+/* pages/wrong/wrong.wxss */
+.page { padding: 28rpx; }
+.head { margin-bottom: 28rpx; }
+.h-title { font-size: 38rpx; font-weight: 800; }
+.h-sub { font-size: 24rpx; color: var(--ink-3); margin-top: 6rpx; }
+
+.empty { text-align: center; padding: 140rpx 0; }
+.empty-ico { font-size: 96rpx; }
+.empty-t { font-size: 32rpx; font-weight: 700; margin-top: 20rpx; }
+.empty-d { font-size: 24rpx; color: var(--ink-3); margin-top: 10rpx; }
+
+.wlist { display: flex; flex-direction: column; gap: 20rpx; }
+.wcard { background: var(--surface); border-radius: var(--radius); padding: 28rpx; border: 1rpx solid var(--line); box-shadow: var(--shadow-sm); }
+.w-top { display: flex; align-items: center; gap: 16rpx; margin-bottom: 14rpx; }
+.w-topic { font-size: 24rpx; color: var(--ink-3); }
+.w-stem { font-size: 30rpx; font-weight: 600; line-height: 1.55; }
+.w-src { font-size: 22rpx; color: var(--ink-3); margin-top: 14rpx; }

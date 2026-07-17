@@ -1,0 +1,51 @@
+<!-- pages/mine/mine.wxml -->
+<view class="page">
+  <!-- 用户卡 -->
+  <view class="ucard">
+    <view class="avatar">刷</view>
+    <view class="u-meta">
+      <view class="u-name">备考同学</view>
+      <view class="u-id">UID: {{uid}}</view>
+    </view>
+  </view>
+
+  <!-- 打卡 -->
+  <view class="card streak-card">
+    <view class="sc-top">
+      <view class="sc-l">
+        <view class="sc-n">🔥 {{streak}} 天</view>
+        <view class="sc-t">连续打卡</view>
+      </view>
+      <button class="btn btn-primary checkin-btn" bindtap="checkIn" wx:if="{{!checkedToday}}">今日打卡</button>
+      <text class="checked" wx:else>✓ 今日已打卡</text>
+    </view>
+    <view class="sc-days">
+      <view class="day {{item.on ? 'on' : ''}}" wx:for="{{week}}" wx:key="idx">{{item.label}}</view>
+    </view>
+  </view>
+
+  <!-- 数据 -->
+  <view class="card datacard">
+    <view class="d-item"><view class="dn">{{totalDone}}</view><view class="dl">累计刷题</view></view>
+    <view class="d-item"><view class="dn">{{wrongCount}}</view><view class="dl">错题数</view></view>
+    <view class="d-item"><view class="dn">{{quizRounds}}</view><view class="dl">答题轮次</view></view>
+  </view>
+
+  <!-- 入口 -->
+  <view class="menu">
+    <view class="m-item" bindtap="openWeb" data-type="home">
+      <view class="m-l">🤖 AI 深度版</view>
+      <view class="m-r">讲题 / 变式 / 押题报告 ›</view>
+    </view>
+    <view class="m-item" bindtap="openWeb" data-type="wrong">
+      <view class="m-l">📊 数据看板</view>
+      <view class="m-r">掌握度分析 ›</view>
+    </view>
+    <view class="m-item" bindtap="goWrong">
+      <view class="m-l">📕 错题本</view>
+      <view class="m-r">查看全部 ›</view>
+    </view>
+  </view>
+
+  <view class="foot-note">刷题教练 · 微信小程序版（手机刷题首选）</view>
+</view>

@@ -1,0 +1,24 @@
+<!-- pages/wrong/wrong.wxml -->
+<view class="page">
+  <view class="head">
+    <view class="h-title">我的错题本</view>
+    <view class="h-sub">按错误次数排序 · 越红越该复盘</view>
+  </view>
+
+  <view class="empty" wx:if="{{!list.length}}">
+    <view class="empty-ico">📭</view>
+    <view class="empty-t">还没有错题</view>
+    <view class="empty-d">去答几道题，答错的会自动归集到这里</view>
+  </view>
+
+  <view class="wlist" wx:else>
+    <view class="wcard" wx:for="{{list}}" wx:key="question_id">
+      <view class="w-top">
+        <text class="tag tag-amber">错 {{item.error_count}} 次</text>
+        <text class="w-topic">{{item.topic}}</text>
+      </view>
+      <view class="w-stem">{{item.stem}}</view>
+      <view class="w-src">{{item.src}} · {{item.difficulty}}</view>
+    </view>
+  </view>
+</view>
