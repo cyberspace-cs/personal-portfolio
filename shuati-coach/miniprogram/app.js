@@ -1,10 +1,8 @@
 // app.js · 全局状态与后端地址
 App({
   globalData: {
-    // 后端地址：本地试水默认走本机（Windows 开发者工具勾「不校验合法域名」即可）
-    // 部署后替换为公网 HTTPS 域名（微信小程序要求 request 域名必须备案且为 https）
-    // 若后端跑在另一台机器，改成该机局域网 IP，如 'http://192.168.1.100:8000'
-    baseUrl: 'http://127.0.0.1:8000',
+    // 生产分支：微信小程序要求 request 域名必须备案且为 https
+    baseUrl: 'https://taoxie.vip',
     userId: null,
     userInfo: null
   },
