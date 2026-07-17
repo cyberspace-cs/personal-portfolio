@@ -1,0 +1,2218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>专属刷题教练 · 多源数据聚合智能备考平台</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#f5f7fb;
+    --surface:#ffffff;
+    --ink:#1a2340;
+    --ink-2:#4a5578;
+    --ink-3:#8a94b0;
+    --line:#e8ecf5;
+    --brand:#3b5bdb;
+    --brand-2:#5c7cfa;
+    --brand-soft:#eaf0ff;
+    --teal:#0ca678;
+    --teal-soft:#e3faf3;
+    --amber:#f08c00;
+    --amber-soft:#fff4e0;
+    --rose:#e8590c;
+    --rose-soft:#ffece0;
+    --purple:#7048e8;
+    --purple-soft:#f0eaff;
+    --shadow:0 8px 30px rgba(28,42,90,.08);
+    --shadow-sm:0 2px 10px rgba(28,42,90,.06);
+    --radius:16px;
+    --radius-sm:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  .container{max-width:1200px;margin:0 auto;padding:0 20px}
+
+  /* ---------- Top Nav ---------- */
+  header{
+    position:sticky;top:0;z-index:100;background:rgba(255,255,255,.85);
+    backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:-.3px}
+  .logo .mark{
+    width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:18px;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:0 4px 12px rgba(59,91,219,.35);
+  }
+  .logo .mark svg{width:20px;height:20px}
+  .tabs{display:flex;gap:4px;flex-wrap:wrap}
+  .tabs button{
+    padding:9px 14px;border-radius:10px;font-size:14px;font-weight:600;color:var(--ink-2);transition:.18s;
+  }
+  .tabs button:hover{background:var(--brand-soft);color:var(--brand)}
+  .tabs button.active{background:var(--brand);color:#fff;box-shadow:0 4px 12px rgba(59,91,219,.3)}
+  .nav-cta{display:flex;align-items:center;gap:12px}
+  .avatar{
+    width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--brand-2));
+    color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;
+  }
+  .menu-toggle{display:none;font-size:24px;color:var(--ink);padding:6px}
+
+  /* ---------- Views ---------- */
+  .view{display:none;animation:fade .4s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  section{padding:56px 0}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    background:
+      radial-gradient(1000px 400px at 80% -10%,rgba(92,124,250,.18),transparent),
+      radial-gradient(700px 400px at 0% 20%,rgba(112,72,232,.12),transparent);
+    padding:70px 0 40px;
+  }
+  .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+  .badge{
+    display:inline-flex;align-items:center;gap:7px;background:var(--brand-soft);color:var(--brand);
+    padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;margin-bottom:20px;
+  }
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--teal)}
+  h1.hero-title{font-size:48px;line-height:1.15;letter-spacing:-1px;font-weight:800}
+  h1.hero-title .grad{background:linear-gradient(120deg,var(--brand),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero-sub{font-size:17px;color:var(--ink-2);margin:22px 0 30px;max-width:520px}
+  .btn-row{display:flex;gap:14px;flex-wrap:wrap}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:12px;font-weight:700;font-size:15px;transition:.2s;
+  }
+  .btn-primary{background:var(--brand);color:#fff;box-shadow:0 8px 20px rgba(59,91,219,.3)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(59,91,219,.4)}
+  .btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+  .btn-ghost:hover{border-color:var(--brand);color:var(--brand)}
+  .hero-stats{display:flex;gap:30px;margin-top:38px}
+  .hero-stats .s .n{font-size:28px;font-weight:800;color:var(--brand)}
+  .hero-stats .s .l{font-size:13px;color:var(--ink-3);font-weight:600}
+
+  /* Hero card */
+  .hero-card{
+    background:var(--surface);border-radius:20px;box-shadow:var(--shadow);padding:22px;position:relative;overflow:hidden;
+  }
+  .hero-card::before{content:"";position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:var(--brand-soft)}
+  .hc-head{display:flex;align-items:center;justify-content:space-between;position:relative;margin-bottom:16px}
+  .hc-head .t{font-weight:800;font-size:15px}
+  .hc-head .tag{font-size:12px;background:var(--teal-soft);color:var(--teal);padding:4px 10px;border-radius:8px;font-weight:700}
+  .src-list{display:flex;flex-direction:column;gap:10px;position:relative}
+  .src{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+  .src .ico{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0}
+  .src .meta{flex:1;min-width:0}
+  .src .meta .n{font-weight:700;font-size:14px}
+  .src .meta .d{font-size:12px;color:var(--ink-3)}
+  .src .bar{width:70px;height:6px;border-radius:6px;background:var(--line);overflow:hidden}
+  .src .bar i{display:block;height:100%;border-radius:6px}
+
+  /* ---------- Section titles ---------- */
+  .sec-head{text-align:center;max-width:640px;margin:0 auto 44px}
+  .sec-head .kicker{color:var(--brand);font-weight:800;font-size:14px;letter-spacing:.5px;text-transform:uppercase}
+  .sec-head h2{font-size:34px;font-weight:800;letter-spacing:-.6px;margin:8px 0 12px}
+  .sec-head p{color:var(--ink-2);font-size:16px}
+
+  /* Feature cards */
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .feat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:28px;transition:.2s}
+  .feat:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:transparent}
+  .feat .fi{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;margin-bottom:18px}
+  .feat .fi svg{width:26px;height:26px}
+  .feat h3{font-size:18px;font-weight:800;margin-bottom:8px}
+  .feat p{color:var(--ink-2);font-size:14.5px}
+
+  /* Pain points */
+  .pain-wrap{background:var(--surface);border-radius:24px;box-shadow:var(--shadow-sm);padding:44px;border:1px solid var(--line)}
+  .pain-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+  .pain{display:flex;gap:14px;align-items:flex-start}
+  .pain .num{width:34px;height:34px;border-radius:10px;background:var(--rose-soft);color:var(--rose);display:grid;place-items:center;font-weight:800;flex-shrink:0}
+  .pain .txt strong{display:block;font-size:15px;margin-bottom:3px}
+  .pain .txt span{font-size:13.5px;color:var(--ink-3)}
+
+  /* ---------- Quiz view ---------- */
+  .page-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;flex-wrap:wrap;gap:16px}
+  .page-title h2{font-size:28px;font-weight:800;letter-spacing:-.5px}
+  .page-title p{color:var(--ink-3);font-size:14px;margin-top:2px}
+  .chip-row{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{padding:8px 16px;border-radius:999px;font-size:13.5px;font-weight:700;background:#fff;border:1px solid var(--line);color:var(--ink-2);transition:.15s}
+  .chip:hover{border-color:var(--brand-2)}
+  .chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .chip.disabled-chip{opacity:.5;pointer-events:none}
+
+  .quiz-layout{display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start}
+  .quiz-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--line);padding:30px}
+  .q-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+  .q-type{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:800;padding:5px 12px;border-radius:8px;background:var(--purple-soft);color:var(--purple)}
+  .q-tags{display:flex;gap:6px;flex-wrap:wrap}
+  .q-tag{padding:4px 10px;border-radius:8px;font-size:12px;font-weight:700}
+  .q-tag.topic{background:var(--brand-soft);color:var(--brand)}
+  .q-tag.diff-easy{background:var(--teal-soft);color:var(--teal)}
+  .q-tag.diff-medium{background:var(--amber-soft);color:var(--amber)}
+  .q-tag.diff-hard{background:var(--rose-soft);color:var(--rose)}
+  .q-index{font-size:13px;color:var(--ink-3);font-weight:700}
+  .q-progress{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:24px}
+  .q-progress i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-2));border-radius:6px;transition:width .4s}
+  .q-stem{font-size:18px;font-weight:700;line-height:1.6;margin-bottom:22px}
+  .q-stem .src-tag{display:inline-block;font-size:11px;font-weight:700;color:var(--brand);background:var(--brand-soft);padding:2px 8px;border-radius:6px;margin-left:8px;vertical-align:middle}
+  .opts{display:flex;flex-direction:column;gap:12px}
+  .opt{display:flex;align-items:center;gap:14px;padding:15px 18px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;transition:.15s;background:#fff}
+  .opt:hover{border-color:var(--brand-2);background:var(--brand-soft)}
+  .opt .key{width:28px;height:28px;border-radius:8px;background:var(--bg);display:grid;place-items:center;font-weight:800;font-size:14px;color:var(--ink-2);flex-shrink:0;transition:.15s}
+  .opt .lbl{font-size:15px;font-weight:600}
+  .opt.selected{border-color:var(--brand);background:var(--brand-soft)}
+  .opt.selected .key{background:var(--brand);color:#fff}
+  .opt.correct{border-color:var(--teal);background:var(--teal-soft)}
+  .opt.correct .key{background:var(--teal);color:#fff}
+  .opt.wrong{border-color:var(--rose);background:var(--rose-soft)}
+  .opt.wrong .key{background:var(--rose);color:#fff}
+  .opt.disabled{cursor:default}
+  .opt.correct-pulse{animation:pulseGreen .5s ease}
+  .opt.wrong-shake{animation:shake .4s ease}
+  @keyframes pulseGreen{0%,100%{box-shadow:0 0 0 0 rgba(12,166,120,.4)}50%{box-shadow:0 0 0 8px rgba(12,166,120,0)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+  .explain{margin-top:22px;padding:18px;border-radius:12px;background:var(--teal-soft);border-left:4px solid var(--teal);display:none}
+  .explain.show{display:block;animation:fade .3s}
+  .explain .et{font-weight:800;font-size:14px;color:var(--teal);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .explain p{font-size:14px;color:var(--ink-2)}
+  .q-actions{display:flex;justify-content:space-between;gap:12px;margin-top:26px}
+  .q-actions .left{display:flex;gap:10px}
+  .btn-sm{padding:11px 22px;border-radius:10px;font-weight:700;font-size:14px}
+  .btn-line{border:1px solid var(--line);background:#fff;color:var(--ink-2)}
+  .btn-line:hover{border-color:var(--brand);color:var(--brand)}
+  .btn-line:disabled{opacity:.4;cursor:not-allowed}
+
+  /* Quiz side */
+  .side-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--line);padding:22px;margin-bottom:20px}
+  .side-card h4{font-size:15px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .mini-stat{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line);font-size:14px}
+  .mini-stat:last-child{border-bottom:none}
+  .mini-stat .v{font-weight:800}
+  .mini-stat .v.good{color:var(--teal)}
+  .mini-stat .v.bad{color:var(--rose)}
+  .q-nav-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+  .qn{aspect-ratio:1;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--bg);color:var(--ink-2);cursor:pointer;transition:.15s;border:1px solid transparent}
+  .qn:hover{border-color:var(--brand-2)}
+  .qn.done{background:var(--teal-soft);color:var(--teal)}
+  .qn.err{background:var(--rose-soft);color:var(--rose)}
+  .qn.cur{background:var(--brand);color:#fff}
+
+  /* ---------- Exam Hall ---------- */
+  .exam-setup{max-width:520px;margin:0 auto;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);padding:36px}
+  .exam-setup h3{font-size:22px;font-weight:800;margin-bottom:6px}
+  .exam-setup .sub{color:var(--ink-3);font-size:14px;margin-bottom:28px}
+  .form-group{margin-bottom:22px}
+  .form-group label{display:block;font-weight:700;font-size:14px;margin-bottom:10px;color:var(--ink-2)}
+  .radio-row{display:flex;gap:10px;flex-wrap:wrap}
+  .radio-btn{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;border:1.5px solid var(--line);background:#fff;color:var(--ink-2);transition:.15s}
+  .radio-btn:hover{border-color:var(--brand-2)}
+  .radio-btn.selected{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+  .btn-start{width:100%;padding:15px;border-radius:12px;font-size:16px;font-weight:800;background:var(--brand);color:#fff;margin-top:10px;transition:.2s}
+  .btn-start:hover{background:var(--brand-2);transform:translateY(-1px)}
+  .btn-start:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+  /* Exam in progress */
+  .exam-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+  .exam-timer{font-size:48px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-2px;transition:color .3s}
+  .exam-timer.warning{color:var(--rose);animation:blink 1s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+  .exam-timer-label{font-size:14px;color:var(--ink-3);font-weight:600}
+  .exam-info{display:flex;gap:16px;align-items:center}
+
+  /* Score report */
+  .score-card{max-width:680px;margin:0 auto;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);padding:40px;text-align:center}
+  .score-big{font-size:72px;font-weight:900;line-height:1;animation:scorePop .6s ease}
+  @keyframes scorePop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+  .score-label{font-size:16px;color:var(--ink-3);margin-top:8px;font-weight:600}
+  .score-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:28px 0}
+  .score-stat{text-align:center}
+  .score-stat .sv{font-size:26px;font-weight:800}
+  .score-stat .sl{font-size:12px;color:var(--ink-3);font-weight:600;margin-top:4px}
+  .score-topic{background:var(--bg);border-radius:12px;padding:16px;margin-top:10px}
+  .score-topic h4{font-size:14px;font-weight:800;margin-bottom:12px;text-align:left}
+  .topic-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;font-weight:600}
+  .topic-row .bar-wrap{flex:1;margin:0 12px;height:8px;background:var(--line);border-radius:8px;overflow:hidden}
+  .topic-row .bar-wrap i{display:block;height:100%;border-radius:8px}
+  .topic-row .tr{font-weight:800;min-width:40px;text-align:right}
+
+  /* ---------- Data Center ---------- */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:26px}
+  .kpi{background:var(--surface);border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow-sm);padding:22px;position:relative;overflow:hidden}
+  .kpi .ki{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;margin-bottom:14px}
+  .kpi .ki svg{width:22px;height:22px}
+  .kpi .kn{font-size:32px;font-weight:800;letter-spacing:-1px}
+  .kpi .kl{font-size:13.5px;color:var(--ink-3);font-weight:600;margin-top:2px}
+  .kpi .kd{font-size:12px;font-weight:800;margin-top:8px;display:inline-flex;align-items:center;gap:4px}
+  .kd.up{color:var(--teal)} .kd.down{color:var(--rose)}
+
+  .chart-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;margin-bottom:20px}
+  .chart-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow-sm);padding:24px}
+  .chart-card .ch-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+  .chart-card h4{font-size:16px;font-weight:800}
+  .chart-card .ch-head .sub{font-size:12.5px;color:var(--ink-3)}
+  .chart-box{position:relative;height:280px}
+  .chart-box.sm{height:250px}
+
+  /* Wrong-question book */
+  .wrong-list{display:flex;flex-direction:column;gap:12px}
+  .wrong-item{display:flex;gap:14px;padding:16px;border:1px solid var(--line);border-radius:12px;transition:.15s;background:#fff}
+  .wrong-item:hover{box-shadow:var(--shadow-sm);border-color:var(--brand-2)}
+  .wrong-item .wt{width:44px;height:44px;border-radius:10px;background:var(--rose-soft);color:var(--rose);display:grid;place-items:center;font-weight:800;flex-shrink:0;font-size:13px;text-align:center;line-height:1.2}
+  .wrong-item .wc{flex:1;min-width:0}
+  .wrong-item .wc .wq{font-weight:700;font-size:14.5px;margin-bottom:4px}
+  .wrong-item .wc .wtags{display:flex;gap:8px;flex-wrap:wrap}
+  .wtags span{font-size:11.5px;padding:2px 9px;border-radius:6px;background:var(--bg);color:var(--ink-3);font-weight:700}
+  .wtags span.plat{background:var(--brand-soft);color:var(--brand)}
+  .wrong-item .wr{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+  .wrong-item .wr .cnt{font-size:12px;color:var(--rose);font-weight:800}
+  .redo{font-size:12.5px;font-weight:800;color:var(--brand);padding:6px 12px;border-radius:8px;background:var(--brand-soft);cursor:pointer}
+
+  /* Weak topic ranking */
+  .weak-list{display:flex;flex-direction:column;gap:10px}
+  .weak-item{display:flex;align-items:center;gap:14px;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .weak-item .rank{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
+  .weak-item .w-info{flex:1;min-width:0}
+  .weak-item .w-info .wn{font-weight:700;font-size:14px}
+  .weak-item .w-info .wm{font-size:12px;color:var(--ink-3)}
+  .weak-item .w-bar{width:80px;height:8px;background:var(--line);border-radius:8px;overflow:hidden;flex-shrink:0}
+  .weak-item .w-bar i{display:block;height:100%;border-radius:8px;background:var(--rose)}
+  .weak-item .w-rate{font-weight:800;font-size:13px;color:var(--rose);min-width:42px;text-align:right}
+
+  /* ---------- Recommendation ---------- */
+  .rec-hero{background:linear-gradient(120deg,#2b3a80,#3b5bdb);border-radius:24px;padding:38px;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:24px;margin-bottom:30px;position:relative;overflow:hidden}
+  .rec-hero::after{content:"";position:absolute;right:-30px;bottom:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.08)}
+  .rec-hero .rh-l{position:relative;z-index:1}
+  .rec-hero h3{font-size:24px;font-weight:800;margin-bottom:8px}
+  .rec-hero p{opacity:.85;font-size:15px;max-width:460px}
+  .rec-hero .ring{position:relative;z-index:1;text-align:center}
+  .ring-val{font-size:40px;font-weight:800}
+  .ring-lbl{font-size:13px;opacity:.85}
+
+  .rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+  .rec-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow-sm);padding:24px}
+  .rec-card h4{font-size:16px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:9px}
+  .rec-card .desc{font-size:13px;color:var(--ink-3);margin-bottom:18px}
+  .path-step{display:flex;gap:14px;padding-bottom:18px;position:relative}
+  .path-step:not(:last-child)::before{content:"";position:absolute;left:15px;top:34px;bottom:0;width:2px;background:var(--line)}
+  .path-step .ps-dot{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0;z-index:1}
+  .path-step .ps-c .pt{font-weight:700;font-size:14.5px}
+  .path-step .ps-c .pd{font-size:13px;color:var(--ink-3)}
+  .path-step .ps-c .pmeta{font-size:11.5px;font-weight:700;color:var(--brand);margin-top:4px}
+
+  .rec-q{display:flex;align-items:center;gap:14px;padding:14px;border-radius:12px;transition:.15s;cursor:pointer}
+  .rec-q:hover{background:var(--brand-soft)}
+  .rec-q .rq-pri{width:8px;height:40px;border-radius:8px;flex-shrink:0}
+  .rec-q .rq-c{flex:1;min-width:0}
+  .rec-q .rq-c .rqt{font-weight:700;font-size:14.5px}
+  .rec-q .rq-c .rqm{font-size:12.5px;color:var(--ink-3)}
+  .rec-q .rq-score{font-weight:800;font-size:15px;color:var(--brand)}
+
+  /* source aggregation strip */
+  .agg-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:20px}
+  .agg{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center}
+  .agg .ai{width:44px;height:44px;border-radius:12px;margin:0 auto 10px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:16px}
+  .agg .an{font-weight:800;font-size:14px}
+  .agg .as{font-size:12px;color:var(--ink-3);margin-top:2px}
+  .agg .stat-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal);margin-right:5px}
+
+  /* ---------- About Page ---------- */
+  .timeline{position:relative;padding-left:40px;max-width:700px;margin:0 auto}
+  .timeline::before{content:"";position:absolute;left:19px;top:0;bottom:0;width:2px;background:var(--brand);opacity:.3}
+  .tl-item{position:relative;margin-bottom:36px}
+  .tl-item::before{content:"";position:absolute;left:-29px;top:4px;width:14px;height:14px;border-radius:50%;background:var(--brand);border:3px solid #fff;box-shadow:0 0 0 3px var(--brand-soft)}
+  .tl-item .tl-date{font-size:12px;font-weight:800;color:var(--brand);margin-bottom:4px;text-transform:uppercase}
+  .tl-item .tl-title{font-size:18px;font-weight:800;margin-bottom:4px}
+  .tl-item .tl-desc{font-size:14px;color:var(--ink-2);line-height:1.6}
+
+  .highlight-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:800px;margin:0 auto}
+  .hl-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:28px;transition:.2s;text-align:center}
+  .hl-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  .hl-card .hl-icon{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;margin:0 auto 16px;color:#fff;font-size:24px}
+  .hl-card h3{font-size:17px;font-weight:800;margin-bottom:8px}
+  .hl-card p{font-size:13.5px;color:var(--ink-2);line-height:1.6}
+
+  .tech-stack{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:700px;margin:0 auto}
+  .tech-tag{padding:8px 18px;border-radius:999px;font-size:14px;font-weight:700;background:var(--brand-soft);color:var(--brand);border:1px solid transparent;transition:.15s}
+  .tech-tag:hover{background:var(--brand);color:#fff}
+
+  .roadmap{max-width:700px;margin:0 auto}
+  .rm-item{display:flex;gap:16px;padding:18px;border:1px solid var(--line);border-radius:14px;margin-bottom:14px;background:#fff;transition:.2s}
+  .rm-item:hover{box-shadow:var(--shadow-sm)}
+  .rm-item .rm-phase{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;font-weight:800;font-size:20px;color:#fff;flex-shrink:0}
+  .rm-item .rm-c .rmt{font-weight:800;font-size:15px;margin-bottom:3px}
+  .rm-item .rm-c .rmd{font-size:13px;color:var(--ink-2)}
+
+  .author-card{max-width:520px;margin:0 auto;background:var(--surface);border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow-sm);padding:30px;text-align:center}
+  .author-card .avatar-lg{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--brand-2));color:#fff;display:grid;place-items:center;font-weight:800;font-size:28px;margin:0 auto 16px}
+  .author-card h3{font-size:20px;font-weight:800;margin-bottom:6px}
+  .author-card .role{font-size:13px;color:var(--ink-3);font-weight:600;margin-bottom:14px}
+  .author-card .bio{font-size:14px;color:var(--ink-2);line-height:1.7}
+
+  /* ---------- Toast ---------- */
+  .toast-container{position:fixed;top:80px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px}
+  .toast{padding:14px 22px;background:var(--surface);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);font-weight:700;font-size:14px;border-left:4px solid var(--teal);animation:slideIn .3s ease;display:flex;align-items:center;gap:10px;max-width:360px}
+  .toast.warning{border-left-color:var(--amber)}
+  .toast.error{border-left-color:var(--rose)}
+  @keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+  /* ---------- Confetti ---------- */
+  .confetti-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9998;overflow:hidden}
+  .confetti-piece{position:absolute;width:10px;height:10px;border-radius:2px;animation:confettiFall 2.5s ease-in forwards}
+  @keyframes confettiFall{0%{transform:translateY(-100px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+  footer{background:var(--ink);color:#cfd6ea;padding:40px 0;margin-top:40px}
+  .foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+  .foot .logo .mark{box-shadow:none}
+  .foot small{color:#7a85a8;font-size:13px}
+
+  /* ---------- Responsive ---------- */
+  @media(max-width:960px){
+    .hero-grid{grid-template-columns:1fr;gap:32px}
+    h1.hero-title{font-size:38px}
+    .feat-grid{grid-template-columns:1fr 1fr}
+    .quiz-layout{grid-template-columns:1fr}
+    .chart-grid{grid-template-columns:1fr}
+    .kpi-grid{grid-template-columns:1fr 1fr}
+    .rec-grid{grid-template-columns:1fr}
+    .highlight-grid{grid-template-columns:1fr}
+    .score-grid{grid-template-columns:repeat(2,1fr)}
+    .exam-timer{font-size:36px}
+  }
+  @media(max-width:640px){
+    .tabs{position:fixed;top:64px;left:0;right:0;background:#fff;flex-direction:column;padding:12px;gap:6px;border-bottom:1px solid var(--line);box-shadow:var(--shadow);transform:translateY(-140%);transition:.3s;z-index:99}
+    .tabs.open{transform:translateY(0)}
+    .tabs button{text-align:left}
+    .menu-toggle{display:block}
+    section{padding:40px 0}
+    h1.hero-title{font-size:30px}
+    .hero-stats{gap:20px}
+    .feat-grid{grid-template-columns:1fr}
+    .kpi-grid{grid-template-columns:1fr 1fr}
+    .sec-head h2{font-size:26px}
+    .pain-wrap{padding:24px}
+    .rec-hero{flex-direction:column;text-align:center}
+    .page-title h2{font-size:23px}
+    .q-nav-grid{grid-template-columns:repeat(8,1fr)}
+    .score-big{font-size:48px}
+    .score-grid{grid-template-columns:repeat(2,1fr)}
+    .exam-timer{font-size:30px}
+    .timeline{padding-left:30px}
+    .tl-item::before{left:-22px}
+    .timeline::before{left:13px}
+    .toast-container{right:10px;top:70px}
+  }
+
+  /* ---------- AI 讲题弹层 ---------- */
+  .modal-mask{position:fixed;inset:0;background:rgba(20,28,55,.55);backdrop-filter:blur(4px);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:.25s}
+  .modal-mask.show{opacity:1;pointer-events:auto}
+  .modal{background:var(--surface);border-radius:20px;max-width:640px;width:100%;max-height:86vh;overflow-y:auto;box-shadow:0 20px 60px rgba(20,28,55,.35);transform:translateY(16px) scale(.98);transition:.25s;padding:30px}
+  .modal-mask.show .modal{transform:none}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px}
+  .modal-head h3{font-size:19px;font-weight:800;display:flex;align-items:center;gap:9px}
+  .modal-head .ai-badge{font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;background:linear-gradient(135deg,var(--purple),var(--brand-2));color:#fff}
+  .modal-close{cursor:pointer;font-size:24px;color:var(--ink-3);line-height:1;background:none;border:none;padding:4px 8px;border-radius:8px}
+  .modal-close:hover{background:var(--bg);color:var(--ink)}
+  .explain-summary{background:var(--brand-soft);border-radius:12px;padding:14px 16px;font-size:14.5px;font-weight:600;color:var(--brand);margin-bottom:18px}
+  .explain-steps{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+  .explain-steps li{display:flex;gap:12px;font-size:14px;color:var(--ink-2);line-height:1.6}
+  .explain-steps li .n{width:24px;height:24px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px}
+  .explain-tips{border-left:4px solid var(--amber);background:var(--amber-soft);padding:12px 16px;border-radius:10px;font-size:13.5px;color:var(--ink-2);margin-bottom:8px}
+  .modal-loading{text-align:center;padding:40px 0;color:var(--ink-3);font-size:14px}
+  .spinner{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ---------- 登录/注册弹层 ---------- */
+  .auth-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--line)}
+  .auth-tab{flex:1;padding:12px;text-align:center;font-weight:700;font-size:14px;color:var(--ink-3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s}
+  .auth-tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+  .auth-form{display:flex;flex-direction:column;gap:14px}
+  .auth-input{padding:13px 16px;border:1.5px solid var(--line);border-radius:12px;font-size:15px;font-family:inherit;outline:none;transition:.15s;width:100%}
+  .auth-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  .auth-btn{width:100%;padding:14px;border-radius:12px;font-size:16px;font-weight:800;background:var(--brand);color:#fff;transition:.2s;cursor:pointer}
+  .auth-btn:hover{background:var(--brand-2)}
+  .auth-btn:disabled{opacity:.5;cursor:not-allowed}
+  .auth-error{color:var(--rose);font-size:13px;font-weight:600;text-align:center;min-height:20px;margin-bottom:6px}
+  .auth-success{color:var(--teal);font-size:13px;font-weight:600;text-align:center;min-height:20px;margin-bottom:6px}
+  .login-btn{padding:8px 16px;border-radius:10px;font-size:13px;font-weight:700;background:var(--brand);color:#fff;transition:.15s;cursor:pointer;border:none;white-space:nowrap}
+  .login-btn:hover{background:var(--brand-2)}
+  .user-name{font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;margin-left:4px}
+  .login-prompt-overlay{text-align:center;padding:80px 20px;display:none}
+
+  .gen-block{margin-top:22px;border-top:1px dashed var(--line);padding-top:20px}
+  .gen-block h4{font-size:15px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .gen-q{background:var(--bg);border-radius:12px;padding:16px;margin-bottom:12px}
+  .gen-q .gq-stem{font-weight:700;font-size:14px;margin-bottom:10px}
+  .gen-q .gq-opts{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+  .gen-q .gq-opt{font-size:13.5px;color:var(--ink-2);padding:6px 10px;border-radius:8px;background:#fff;border:1px solid var(--line)}
+  .gen-q .gq-opt.ok{border-color:var(--teal);background:var(--teal-soft);color:var(--teal);font-weight:700}
+  .gen-q .gq-exp{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+
+  /* ---------- 押题报告视图 ---------- */
+  .report-hero{background:linear-gradient(120deg,#2b3a80,#3b5bdb);border-radius:24px;padding:36px;color:#fff;margin-bottom:26px;position:relative;overflow:hidden}
+  .report-hero::after{content:"";position:absolute;right:-40px;bottom:-70px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.07)}
+  .report-hero h3{font-size:22px;font-weight:800;margin-bottom:8px;position:relative;z-index:1}
+  .report-hero p{opacity:.85;font-size:14px;max-width:560px;position:relative;z-index:1}
+  .report-hero .ring-wrap{position:absolute;right:36px;top:50%;transform:translateY(-50%);text-align:center;z-index:1}
+  .report-ring{width:110px;height:110px;border-radius:50%;background:conic-gradient(var(--teal) 0%, var(--teal) var(--p,0%), rgba(255,255,255,.18) var(--p,0%));display:grid;place-items:center}
+  .report-ring .inner{width:84px;height:84px;border-radius:50%;background:#2b3a80;display:grid;place-items:center}
+  .report-ring .inner b{font-size:26px}
+  .report-ring .inner small{font-size:11px;opacity:.8;display:block}
+  .report-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+  .report-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:26px}
+  .report-card h4{font-size:16px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:9px}
+  .report-card .desc{font-size:13px;color:var(--ink-3);margin-bottom:16px}
+  .report-line{font-size:14px;color:var(--ink-2);line-height:1.7;margin-bottom:10px}
+  .report-plan li{margin-bottom:10px;font-size:14px;color:var(--ink-2);margin-left:4px}
+  .report-plan{padding-left:4px;list-style:none}
+  .report-plan li{display:flex;gap:10px}
+  .report-plan li .pn{width:22px;height:22px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px}
+  .focus-chips{display:flex;flex-wrap:wrap;gap:10px}
+  .focus-chip{padding:8px 16px;border-radius:999px;font-size:13.5px;font-weight:700;background:var(--rose-soft);color:var(--rose)}
+  .report-enc{background:var(--teal-soft);border-radius:12px;padding:16px;font-size:14px;color:var(--teal);font-weight:700;text-align:center}
+  .report-actions{text-align:center;margin-top:8px}
+  .report-empty{text-align:center;padding:60px 20px;color:var(--ink-3)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container nav">
+    <div class="logo">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="M2 8v6"/><path d="M6 10.5V15c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/></svg>
+      </span>
+      专属刷题教练
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="active" data-view="home">首页</button>
+      <button data-view="quiz">刷题</button>
+      <button data-view="exam">考场</button>
+      <button data-view="data">数据中心</button>
+      <button data-view="rec">智能推荐</button>
+      <button data-view="report">押题报告</button>
+      <button data-view="about">关于</button>
+    </nav>
+    <div class="nav-cta">
+      <button class="login-btn" id="loginBtn" onclick="showAuthModal()">登录/注册</button>
+      <div class="avatar" id="userAvatar" style="display:none">备</div>
+      <span class="user-name" id="userNameDisplay" style="display:none"></span>
+      <button class="menu-toggle" id="menuToggle">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Login prompt -->
+<div id="loginPrompt" class="login-prompt-overlay">
+  <div style="font-size:48px;margin-bottom:16px">🔒</div>
+  <div style="font-size:18px;font-weight:800;color:var(--ink-2);margin-bottom:8px">请先登录</div>
+  <div style="font-size:14px;color:var(--ink-3);margin-bottom:24px">登录后即可使用刷题、数据中心、考场等全部功能</div>
+  <button class="btn btn-primary" onclick="showAuthModal()">登录 / 注册</button>
+</div>
+
+<!-- ============ HOME ============ -->
+<div class="view active" id="view-home">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="badge"><span class="dot"></span> 多源题库聚合 · 智能备考</span>
+        <h1 class="hero-title">一站式打通<br><span class="grad">考研 · 考公 · 大厂</span> 全部题库</h1>
+        <p class="hero-sub">告别多平台反复切换与数据割裂。聚合分散题库，统一管理错题与刷题进度，用个性化学习路径把碎片化刷题变成系统化备考。</p>
+        <div class="btn-row">
+          <button class="btn btn-primary" data-jump="quiz">开始刷题
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+          <button class="btn btn-ghost" data-jump="exam">模拟考场</button>
+        </div>
+        <div class="hero-stats">
+          <div class="s"><div class="n" id="homeTotalQ">21+</div><div class="l">覆盖题目</div></div>
+          <div class="s"><div class="n" id="homeStreak">0</div><div class="l">连续打卡天数</div></div>
+          <div class="s"><div class="n" id="homeAcc">—</div><div class="l">整体正确率</div></div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="hc-head">
+          <span class="t">多源数据聚合</span>
+          <span class="tag">● 实时同步中</span>
+        </div>
+        <div class="src-list">
+          <div class="src">
+            <div class="ico" style="background:#3b5bdb">研</div>
+            <div class="meta"><div class="n">考研题库</div><div class="d">政治·英语·数学·专业课</div></div>
+            <div class="bar"><i style="width:82%;background:#3b5bdb"></i></div>
+          </div>
+          <div class="src">
+            <div class="ico" style="background:#0ca678">公</div>
+            <div class="meta"><div class="n">考公行测申论</div><div class="d">行测·申论·面试</div></div>
+            <div class="bar"><i style="width:64%;background:#0ca678"></i></div>
+          </div>
+          <div class="src">
+            <div class="ico" style="background:#7048e8">厂</div>
+            <div class="meta"><div class="n">大厂笔面试题</div><div class="d">算法·八股·系统设计</div></div>
+            <div class="bar"><i style="width:71%;background:#7048e8"></i></div>
+          </div>
+          <div class="src">
+            <div class="ico" style="background:#f08c00">错</div>
+            <div class="meta"><div class="n">跨平台错题本</div><div class="d">自动归集·智能复盘</div></div>
+            <div class="bar"><i style="width:48%;background:#f08c00"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="sec-head">
+        <div class="kicker">Core Features</div>
+        <h2>核心功能，一站式解决备考痛点</h2>
+        <p>从题库聚合到智能复盘，覆盖备考全流程的每一个关键环节</p>
+      </div>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="fi" style="background:var(--brand-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#3b5bdb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+          <h3>多源题库聚合</h3>
+          <p>打通考研、考公、大厂等 12+ 平台题库，一个入口统一刷题，消除切换成本与数据孤岛。</p>
+        </div>
+        <div class="feat">
+          <div class="fi" style="background:var(--rose-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#e8590c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9"/></svg></div>
+          <h3>跨平台错题本</h3>
+          <p>自动归集各平台错题，标注知识点与错因，支持智能复盘与针对性重做，不再遗漏薄弱环节。</p>
+        </div>
+        <div class="feat">
+          <div class="fi" style="background:var(--purple-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#7048e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>智能学习路径</h3>
+          <p>基于刷题数据分析知识掌握度，自动生成个性化复习计划与每日推荐，把有限时间用在刀刃上。</p>
+        </div>
+        <div class="feat">
+          <div class="fi" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#0ca678" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
+          <h3>进度可视化追踪</h3>
+          <p>刷题量、正确率、知识点掌握度全维度量化，趋势图 + 雷达图直观呈现，备考进度尽在掌握。</p>
+        </div>
+        <div class="feat">
+          <div class="fi" style="background:var(--amber-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#f08c00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5l-8-3Z"/></svg></div>
+          <h3>模拟考场</h3>
+          <p>按真实考试结构组卷，限时答题 + 全真模拟，提前适应考场节奏，考前冲刺更有底。</p>
+        </div>
+        <div class="feat">
+          <div class="fi" style="background:var(--brand-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#3b5bdb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <h3>多身份适配</h3>
+          <p>考研党、考公党、校招社招求职者，一套系统统筹多类考试复习计划，互不干扰。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:10px">
+    <div class="container">
+      <div class="pain-wrap">
+        <div class="sec-head" style="margin-bottom:32px">
+          <div class="kicker">Pain Points</div>
+          <h2>你是不是也被这些问题困扰</h2>
+        </div>
+        <div class="pain-grid">
+          <div class="pain"><div class="num">1</div><div class="txt"><strong>题库分散多平台</strong><span>反复切换 APP，资源无法统一管理</span></div></div>
+          <div class="pain"><div class="num">2</div><div class="txt"><strong>错题无法同步</strong><span>各平台错题各自为政，难以汇总复盘</span></div></div>
+          <div class="pain"><div class="num">3</div><div class="txt"><strong>缺个性化推荐</strong><span>盲目刷题，抓不住真正的薄弱点</span></div></div>
+          <div class="pain"><div class="num">4</div><div class="txt"><strong>进度无法量化</strong><span>不知道复习到哪了，心里没底</span></div></div>
+          <div class="pain"><div class="num">5</div><div class="txt"><strong>计划难以统筹</strong><span>多类考试并行，复习安排一团乱</span></div></div>
+          <div class="pain"><div class="num">6</div><div class="txt"><strong>数据无法互通</strong><span>学习数据割裂，无法形成系统策略</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ QUIZ ============ -->
+<div class="view" id="view-quiz">
+  <section>
+    <div class="container">
+      <div class="page-title">
+        <div>
+          <h2>智能刷题</h2>
+          <p>多源题库聚合 · 多题型交互 · 即时解析</p>
+        </div>
+        <div class="chip-row" id="catChips">
+          <button class="chip active" data-cat="all">全部(21)</button>
+          <button class="chip" data-cat="考研">考研(8)</button>
+          <button class="chip" data-cat="考公">考公(7)</button>
+          <button class="chip" data-cat="大厂">大厂笔面(6)</button>
+        </div>
+      </div>
+
+      <div class="quiz-layout">
+        <div class="quiz-card">
+          <div class="q-meta">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span class="q-type" id="qType">单选题</span>
+              <div class="q-tags" id="qTags"></div>
+            </div>
+            <span class="q-index" id="qIndex">第 1 / 21 题</span>
+          </div>
+          <div class="q-progress"><i id="qProg" style="width:5%"></i></div>
+          <div class="q-stem" id="qStem"></div>
+          <div class="opts" id="qOpts"></div>
+          <div class="explain" id="qExplain">
+            <div class="et"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2Z"/></svg> 答案解析</div>
+            <p id="qExplainText"></p>
+          </div>
+          <div class="q-actions">
+            <div class="left">
+              <button class="btn-sm btn-line" id="prevBtn" disabled>上一题</button>
+              <button class="btn-sm" id="aiExplainBtn" style="display:none;background:linear-gradient(135deg,var(--purple),var(--brand-2));color:#fff;font-weight:700;border-radius:10px;padding:11px 18px"><svg width="15" height="15" style="vertical-align:-2px;margin-right:5px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> AI 讲题</button>
+            </div>
+            <div class="left">
+              <button class="btn-sm btn-line" id="submitBtn">提交答案</button>
+              <button class="btn-sm btn-primary" id="nextBtn" style="background:var(--brand);color:#fff">下一题</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="side-card">
+            <h4><svg width="16" height="16" style="vertical-align:-3px;margin-right:5px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg> 本组进度</h4>
+            <div class="mini-stat"><span>已作答</span><span class="v" id="sAns">0</span></div>
+            <div class="mini-stat"><span>正确</span><span class="v good" id="sRight">0</span></div>
+            <div class="mini-stat"><span>错误</span><span class="v bad" id="sWrong">0</span></div>
+            <div class="mini-stat"><span>正确率</span><span class="v" id="sRate">—</span></div>
+          </div>
+          <div class="side-card">
+            <h4>🧭 答题卡</h4>
+            <div class="q-nav-grid" id="qNav"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ EXAM (考场) ============ -->
+<div class="view" id="view-exam">
+  <section>
+    <div class="container">
+      <div class="page-title">
+        <div><h2>模拟考场</h2><p>全真模拟 · 限时答题 · 自动评分</p></div>
+      </div>
+
+      <!-- 设置面板 -->
+      <div id="examSetup">
+        <div class="exam-setup">
+          <h3>⚙️ 考场设置</h3>
+          <div class="sub">选择考试类型与参数，开始一场全真模拟</div>
+          <div class="form-group">
+            <label>考试类型</label>
+            <div class="radio-row" id="examTypeSelect">
+              <button class="radio-btn selected" data-type="考研">考研</button>
+              <button class="radio-btn" data-type="考公">考公</button>
+              <button class="radio-btn" data-type="大厂">大厂</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>题目数量</label>
+            <div class="radio-row" id="examCountSelect">
+              <button class="radio-btn" data-count="10">10 题</button>
+              <button class="radio-btn selected" data-count="20">20 题</button>
+              <button class="radio-btn" data-count="30">30 题</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>考试时长</label>
+            <div class="radio-row" id="examDurationSelect">
+              <button class="radio-btn" data-dur="15">15 分钟</button>
+              <button class="radio-btn selected" data-dur="30">30 分钟</button>
+              <button class="radio-btn" data-dur="45">45 分钟</button>
+              <button class="radio-btn" data-dur="60">60 分钟</button>
+            </div>
+          </div>
+          <button class="btn-start" id="examStartBtn">开始考试</button>
+        </div>
+      </div>
+
+      <!-- 考试中 -->
+      <div id="examInProgress" style="display:none">
+        <div class="exam-header">
+          <div>
+            <div class="exam-timer-label">⏱ 剩余时间</div>
+            <div class="exam-timer" id="examTimer">30:00</div>
+          </div>
+          <div class="exam-info">
+            <span class="chip" style="background:var(--brand);color:#fff;border-color:var(--brand)" id="examTypeLabel">考研</span>
+            <span style="font-weight:700;color:var(--ink-2)" id="examProgress">1/20</span>
+          </div>
+        </div>
+        <div class="quiz-card">
+          <div class="q-meta">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span class="q-type" id="examQType">单选题</span>
+              <div class="q-tags" id="examQTags"></div>
+            </div>
+            <span class="q-index" id="examQIndex">第 1 / 20 题</span>
+          </div>
+          <div class="q-progress"><i id="examQProg" style="width:5%"></i></div>
+          <div class="q-stem" id="examQStem"></div>
+          <div class="opts" id="examQOpts"></div>
+          <div class="q-actions">
+            <div class="left">
+              <button class="btn-sm btn-line" id="examPrevBtn" disabled>上一题</button>
+            </div>
+            <div class="left">
+              <button class="btn-sm btn-line" id="examSubmitBtn">交卷</button>
+              <button class="btn-sm btn-primary" id="examNextBtn" style="background:var(--brand);color:#fff">下一题</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 成绩单 -->
+      <div id="examResult" style="display:none">
+        <div class="score-card">
+          <div class="score-big" id="resultScore">85</div>
+          <div class="score-label">分</div>
+          <div class="score-grid">
+            <div class="score-stat"><div class="sv" id="resultTotal" style="color:var(--brand)">20</div><div class="sl">总题数</div></div>
+            <div class="score-stat"><div class="sv" id="resultRight" style="color:var(--teal)">17</div><div class="sl">正确</div></div>
+            <div class="score-stat"><div class="sv" id="resultRate" style="color:var(--purple)">85%</div><div class="sl">正确率</div></div>
+            <div class="score-stat"><div class="sv" id="resultTime" style="color:var(--amber)">18:42</div><div class="sl">用时</div></div>
+          </div>
+          <div class="score-topic" id="resultTopics"></div>
+          <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+            <button class="btn btn-primary" id="resultRetry">再考一次</button>
+            <button class="btn btn-ghost" id="resultViewData">查看数据中心</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ DATA CENTER ============ -->
+<div class="view" id="view-data">
+  <section>
+    <div class="container">
+      <div class="page-title">
+        <div>
+          <h2>个人学习数据中心</h2>
+          <p>聚合全平台刷题数据 · 量化你的备考进度</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="clearDataBtn" style="font-size:13px">清除演示数据</button>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="ki" style="background:var(--brand-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#3b5bdb" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></div>
+          <div class="kn" id="kpiTotal">0</div>
+          <div class="kl">累计刷题</div>
+          <div class="kd up">▲ 多源聚合</div>
+        </div>
+        <div class="kpi">
+          <div class="ki" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#0ca678" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg></div>
+          <div class="kn" id="kpiRate">—</div>
+          <div class="kl">平均正确率</div>
+          <div class="kd up">▲ 持续进步</div>
+        </div>
+        <div class="kpi">
+          <div class="ki" style="background:var(--rose-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#e8590c" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+          <div class="kn" id="kpiWrong">0</div>
+          <div class="kl">错题待复盘</div>
+          <div class="kd down">▼ 薄弱点追踪</div>
+        </div>
+        <div class="kpi">
+          <div class="ki" style="background:var(--amber-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#f08c00" stroke-width="2" stroke-linecap="round"><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/><circle cx="12" cy="12" r="6"/></svg></div>
+          <div class="kn" id="kpiStreak">0<span style="font-size:16px">天</span></div>
+          <div class="kl">连续打卡</div>
+          <div class="kd up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3 4 4 4 8a4 4 0 0 1-8 0c0-1 .5-2 1-3 .5 2 2 2 3 1 0-3-2-4-4-6 4-1 6 1 4 5"/></svg> 保持势头</div>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="ch-head">
+            <div><h4>刷题量与正确率趋势</h4><div class="sub">近 14 天数据聚合</div></div>
+          </div>
+          <div class="chart-box"><canvas id="trendChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="ch-head">
+            <div><h4>知识点掌握度</h4><div class="sub">多模块雷达分析</div></div>
+          </div>
+          <div class="chart-box"><canvas id="radarChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="chart-grid" style="grid-template-columns:1fr 1.4fr">
+        <div class="chart-card">
+          <div class="ch-head"><div><h4>各平台刷题占比</h4><div class="sub">多源数据分布</div></div></div>
+          <div class="chart-box sm"><canvas id="pieChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="ch-head"><div><h4>📕 错题本 · 高频薄弱点</h4><div class="sub">按错误次数排序</div></div></div>
+          <div class="wrong-list" id="wrongList"></div>
+        </div>
+      </div>
+
+      <div class="chart-card" style="margin-top:20px">
+        <div class="ch-head"><div><h4><svg width="18" height="18" style="vertical-align:-3px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg> 知识点薄弱排行</h4><div class="sub">掌握度低于60%的知识点标红</div></div></div>
+        <div class="weak-list" id="weakList"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ RECOMMENDATION ============ -->
+<div class="view" id="view-rec">
+  <section>
+    <div class="container">
+      <div class="page-title">
+        <div>
+          <h2>智能推荐</h2>
+          <p>AI 分析掌握度 · 为你量身定制今日学习计划</p>
+        </div>
+      </div>
+
+      <div class="rec-hero" id="recHero">
+        <div class="rh-l">
+          <h3 id="recHeroTitle"><svg width="20" height="20" style="vertical-align:-3px;margin-right:6px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg> 备考同学，开始刷题获取推荐</h3>
+          <p id="recHeroDesc">系统将通过你的刷题记录分析薄弱点，智能推荐最适合你的题目。</p>
+        </div>
+        <div class="ring">
+          <div class="ring-val" id="recMastery">—</div>
+          <div class="ring-lbl">整体掌握度</div>
+        </div>
+      </div>
+
+      <div class="rec-grid">
+        <div class="rec-card">
+          <h4><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18 3 20V6l6-2 6 2 6-2v14l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg></span> 个性化学习路径</h4>
+          <div class="desc">基于你的目标岗位与当前掌握度自动规划</div>
+          <div id="pathList"></div>
+        </div>
+        <div class="rec-card">
+          <h4><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg></span> 今日智能推荐题</h4>
+          <div class="desc">优先攻克薄弱点，匹配度越高越值得刷</div>
+          <div id="recList"></div>
+        </div>
+      </div>
+
+      <div class="rec-card">
+        <h4><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></span> 多源题库聚合状态</h4>
+        <div class="desc">已接入以下平台，数据实时同步归集</div>
+        <div class="agg-strip">
+          <div class="agg"><div class="ai" style="background:#3b5bdb">研</div><div class="an">考研帮</div><div class="as"><span class="stat-dot"></span>已同步 8 题</div></div>
+          <div class="agg"><div class="ai" style="background:#0ca678">公</div><div class="an">粉笔行测</div><div class="as"><span class="stat-dot"></span>已同步 7 题</div></div>
+          <div class="agg"><div class="ai" style="background:#7048e8">码</div><div class="an">LeetCode</div><div class="as"><span class="stat-dot"></span>已同步 6 题</div></div>
+          <div class="agg"><div class="ai" style="background:#f08c00">牛</div><div class="an">牛客网</div><div class="as"><span class="stat-dot"></span>已同步 6 题</div></div>
+          <div class="agg"><div class="ai" style="background:#e8590c">题</div><div class="an">中公题库</div><div class="as"><span class="stat-dot"></span>已同步 7 题</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ REPORT (考前押题报告) ============ -->
+<div class="view" id="view-report">
+  <section>
+    <div class="container">
+      <div class="page-title">
+        <div>
+          <h2><svg width="24" height="24" style="vertical-align:-4px;margin-right:8px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>考前押题报告</h2>
+          <p>聚合你的全量刷题数据 · AI 生成冲刺押题与复习规划</p>
+        </div>
+        <button class="btn btn-primary btn-sm" id="genReportBtn"><svg width="16" height="16" style="vertical-align:-2px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-14 9V3Z"/></svg> 生成我的押题报告</button>
+      </div>
+
+      <div id="reportContent">
+        <div class="report-empty">
+          <div style="margin-bottom:14px"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg></div>
+          <div style="font-size:16px;font-weight:700;color:var(--ink-2);margin-bottom:8px">还没有生成押题报告</div>
+          <div style="font-size:14px">先去刷几道题，积累数据后，AI 会基于你的薄弱点为你在考前划重点。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ ABOUT ============ -->
+<div class="view" id="view-about">
+  <section>
+    <div class="container">
+      <div class="sec-head">
+        <div class="kicker">About</div>
+        <h2>关于专属刷题教练</h2>
+        <p>从想法到产品，一路走来的创作历程</p>
+      </div>
+
+      <div style="margin-bottom:56px">
+        <h3 style="text-align:center;font-size:22px;font-weight:800;margin-bottom:32px">📜 创作历程</h3>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-date">2026年 4月</div>
+            <div class="tl-title">💡 想法诞生</div>
+            <div class="tl-desc">在备考过程中发现考研、考公、大厂面试的题库分散在不同平台，反复切换效率极低。萌生了"能不能有一个平台统一管理所有刷题数据"的想法，开始绘制产品草图。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-date">2026年 5月</div>
+            <div class="tl-title">🛠️ 初赛 Demo</div>
+            <div class="tl-desc">参加 TRAE AI 创造力大赛初赛，完成了第一版原型——包含 6 道题的基础刷题功能、静态数据中心和简单的推荐页面。验证了"多源聚合"这一核心概念。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-date">2026年 6月</div>
+            <div class="tl-title">📊 数据层重构</div>
+            <div class="tl-desc">引入 localStorage 持久化机制，让刷题记录、错题本、打卡数据真正"活"了起来。智能推荐引擎从静态 mock 数据升级为基于真实错题数据的动态分析。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-date">2026年 7月</div>
+            <div class="tl-title">🚀 复赛成品</div>
+            <div class="tl-desc">全面升级题库至 21+ 题，新增模拟考场模式（限时答题+自动交卷+成绩单），打造完整的数据中心与智能推荐闭环。加入创作历程展示，让产品更具温度。</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:56px">
+        <h3 style="text-align:center;font-size:22px;font-weight:800;margin-bottom:32px">✨ 产品亮点</h3>
+        <div class="highlight-grid">
+          <div class="hl-card">
+            <div class="hl-icon" style="background:linear-gradient(135deg,var(--brand),var(--brand-2))"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></div>
+            <h3>多源聚合引擎</h3>
+            <p>打通考研帮、粉笔行测、LeetCode、牛客网、中公题库等主流平台，统一入口刷题，消灭数据孤岛。</p>
+          </div>
+          <div class="hl-card">
+            <div class="hl-icon" style="background:linear-gradient(135deg,var(--purple),#9b7cfc)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a4 4 0 0 0-4 4 4 4 0 0 0-1 7.9V17a3 3 0 0 0 5 2.2A3 3 0 0 0 17 17v-2.1A4 4 0 0 0 16 7a4 4 0 0 0-4-4Z"/><path d="M12 3v14"/></svg></div>
+            <h3>智能推荐算法</h3>
+            <p>基于错题记录分析薄弱知识点，按错误频次和掌握度动态排序，优先推荐最需要强化的题目。</p>
+          </div>
+          <div class="hl-card">
+            <div class="hl-icon" style="background:linear-gradient(135deg,var(--teal),#20c997)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
+            <h3>数据可视化</h3>
+            <p>趋势图、雷达图、饼图多维度呈现学习数据，知识点掌握度一目了然，备考进度心中有数。</p>
+          </div>
+          <div class="hl-card">
+            <div class="hl-icon" style="background:linear-gradient(135deg,var(--amber),#f59f00)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></div>
+            <h3>跨平台错题本</h3>
+            <p>自动归集各平台错题，按知识点+平台归类，记录错误次数与时间，支持智能复盘与针对性重做。</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:56px">
+        <h3 style="text-align:center;font-size:22px;font-weight:800;margin-bottom:32px">🛠️ 技术栈</h3>
+        <div class="tech-stack">
+          <span class="tech-tag">HTML5</span>
+          <span class="tech-tag">CSS3</span>
+          <span class="tech-tag">JavaScript (ES6+)</span>
+          <span class="tech-tag">Chart.js</span>
+          <span class="tech-tag">localStorage</span>
+          <span class="tech-tag">响应式设计</span>
+          <span class="tech-tag">CSS Grid</span>
+          <span class="tech-tag">CSS Animations</span>
+          <span class="tech-tag">SVG</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom:56px">
+        <h3 style="text-align:center;font-size:22px;font-weight:800;margin-bottom:32px">🔮 产品迭代规划</h3>
+        <div class="roadmap">
+          <div class="rm-item">
+            <div class="rm-phase" style="background:var(--teal)">1</div>
+            <div class="rm-c"><div class="rmt">AI 对话答疑</div><div class="rmd">接入大语言模型，支持题目解析对话、知识点追问、个性化辅导</div></div>
+          </div>
+          <div class="rm-item">
+            <div class="rm-phase" style="background:var(--brand)">2</div>
+            <div class="rm-c"><div class="rmt">社区互助</div><div class="rmd">搭建学习社区，分享刷题心得、讨论解题思路、互相督促进步</div></div>
+          </div>
+          <div class="rm-item">
+            <div class="rm-phase" style="background:var(--purple)">3</div>
+            <div class="rm-c"><div class="rmt">小程序版本</div><div class="rmd">推出微信小程序，随时随地碎片化刷题，与 Web 端数据同步</div></div>
+          </div>
+          <div class="rm-item">
+            <div class="rm-phase" style="background:var(--amber)">4</div>
+            <div class="rm-c"><div class="rmt">智能组卷</div><div class="rmd">基于历年真题和知识点分布，AI 自动生成高质量模拟卷</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:40px">
+        <h3 style="text-align:center;font-size:22px;font-weight:800;margin-bottom:32px">👤 关于作者</h3>
+        <div class="author-card">
+          <div class="avatar-lg">备</div>
+          <h3>备考路上的同行者</h3>
+          <div class="role">TRAE AI 创造力大赛 · 学习工作赛道</div>
+          <div class="bio">
+            作为一名同时准备考研、考公和求职的"多线作战"备考人，我深知在多个平台间反复切换的痛。<br>
+            这个项目诞生于真实的需求——希望用技术的手段，让碎片化的刷题变成系统化的备考。<br>
+            感谢 TRAE 平台提供的创作机会，让这个想法变成了现实。<br>
+            如果你也在备考路上，希望这个工具能帮到你。一起加油！
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="container foot">
+    <div class="logo" style="color:#fff">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="M2 8v6"/><path d="M6 10.5V15c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/></svg></span>
+      专属刷题教练
+    </div>
+    <small>多源数据聚合智能备考平台 · 让碎片化刷题变成系统化备考 · TRAE AI 创造力大赛复赛作品</small>
+  </div>
+</footer>
+
+<!-- Confetti container -->
+<div class="confetti-container" id="confettiContainer"></div>
+
+<!-- ============ AI 讲题弹层 ============ -->
+<div class="modal-mask" id="aiModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3><svg width="20" height="20" style="vertical-align:-3px;margin-right:6px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> AI 智能讲题 <span class="ai-badge" id="aiBadge">AI</span></h3>
+      <button class="modal-close" id="aiModalClose">×</button>
+    </div>
+    <div id="aiModalBody">
+      <div class="modal-loading"><div class="spinner"></div>AI 正在分析这道题，请稍候…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 登录/注册弹层 ============ -->
+<div class="modal-mask" id="authModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <h3 id="authTitle">登录</h3>
+      <button class="modal-close" id="authClose">×</button>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="authLoginTab">登录</div>
+      <div class="auth-tab" id="authRegisterTab">注册</div>
+    </div>
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-success" id="authSuccess"></div>
+    <form class="auth-form" id="authLoginForm" style="display:flex">
+      <input class="auth-input" id="loginUsername" placeholder="用户名" autocomplete="username">
+      <input class="auth-input" id="loginPassword" type="password" placeholder="密码" autocomplete="current-password">
+      <button class="auth-btn" type="submit">登 录</button>
+    </form>
+    <form class="auth-form" id="authRegisterForm" style="display:none">
+      <input class="auth-input" id="regUsername" placeholder="用户名" autocomplete="username">
+      <input class="auth-input" id="regPassword" type="password" placeholder="密码（至少4位）" autocomplete="new-password">
+      <input class="auth-input" id="regConfirm" type="password" placeholder="确认密码" autocomplete="new-password">
+      <button class="auth-btn" type="submit">注 册</button>
+    </form>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   专属刷题教练 · 多源数据聚合智能备考平台
+   ================================================================ */
+
+/* ---------------- API 配置 ---------------- */
+const API_BASE = 'http://localhost:8000/api';
+
+function getUserId() {
+  return sessionStorage.getItem('coach_user_id');
+}
+function isLoggedIn() {
+  return !!getUserId();
+}
+
+/* ---------------- 通用 API 请求 ---------------- */
+async function apiFetch(path, options = {}) {
+  const url = API_BASE + path;
+  const config = {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  };
+  if (config.body && typeof config.body === 'object') {
+    config.body = JSON.stringify(config.body);
+  }
+  let res;
+  try {
+    res = await fetch(url, config);
+  } catch(e) {
+    throw new Error('无法连接到服务器，请检查后端是否启动');
+  }
+  if (!res.ok) {
+    let errData = {};
+    try { errData = await res.json(); } catch(e) {}
+    throw new Error(errData.detail || '请求失败 (' + res.status + ')');
+  }
+  return await res.json();
+}
+
+/* ---------------- 题目数据加载 ---------------- */
+let questionsCache = [];
+
+function parseQuestion(q) {
+  return {
+    ...q,
+    opts: typeof q.opts === 'string' ? JSON.parse(q.opts) : q.opts,
+    answer: typeof q.answer === 'string' ? JSON.parse(q.answer) : q.answer,
+    _idx: q.id
+  };
+}
+
+async function loadQuestions(cat) {
+  cat = cat || 'all';
+  try {
+    const data = await apiFetch('/questions?cat=' + cat);
+    questionsCache = data.map(parseQuestion);
+    return questionsCache;
+  } catch(e) {
+    console.error('加载题库失败:', e.message);
+    toast(e.message, 'warning');
+    questionsCache = [];
+    return [];
+  }
+}
+
+/* ---------------- 数据持久化 API 封装 ---------------- */
+async function apiGetQuizHistory() {
+  if (!isLoggedIn()) return [];
+  try { return await apiFetch('/quiz/history/' + getUserId()); }
+  catch(e) { console.error(e); return []; }
+}
+
+async function apiAddQuizRecord(cat, total, correct) {
+  if (!isLoggedIn()) return;
+  try { await apiFetch('/quiz/record', { method: 'POST', body: { user_id: getUserId(), cat: cat, total: total, correct: correct } }); }
+  catch(e) { console.error(e); }
+}
+
+async function apiGetWrongBook() {
+  if (!isLoggedIn()) return [];
+  try { return await apiFetch('/wrong-book/' + getUserId()); }
+  catch(e) { console.error(e); return []; }
+}
+
+async function apiAddWrongQuestion(questionId) {
+  if (!isLoggedIn()) return;
+  try { await apiFetch('/wrong-book', { method: 'POST', body: { user_id: getUserId(), question_id: questionId } }); }
+  catch(e) { console.error(e); }
+}
+
+async function apiGetStreak() {
+  if (!isLoggedIn()) return { streak: 0, last_date: null, dates: [] };
+  try { return await apiFetch('/streak/' + getUserId()); }
+  catch(e) { console.error(e); return { streak: 0, last_date: null, dates: [] }; }
+}
+
+async function apiCheckIn() {
+  if (!isLoggedIn()) return;
+  try { await apiFetch('/checkin/' + getUserId(), { method: 'POST' }); }
+  catch(e) { console.error(e); }
+}
+
+async function apiGetExamRecords() {
+  if (!isLoggedIn()) return [];
+  try { return await apiFetch('/exam/records/' + getUserId()); }
+  catch(e) { console.error(e); return []; }
+}
+
+async function apiAddExamRecord(examType, total, correct, duration, timeUsed) {
+  if (!isLoggedIn()) return;
+  try { await apiFetch('/exam/record', { method: 'POST', body: { user_id: getUserId(), exam_type: examType, total: total, correct: correct, duration: duration, time_used: timeUsed } }); }
+  catch(e) { console.error(e); }
+}
+
+async function apiGetMastery() {
+  if (!isLoggedIn()) return {};
+  try { return await apiFetch('/mastery/' + getUserId()); }
+  catch(e) { console.error(e); return {}; }
+}
+
+/* ---------------- 登录/注册模态框 ---------------- */
+function initAuthModal() {
+  const modal = document.getElementById('authModal');
+  const loginTab = document.getElementById('authLoginTab');
+  const registerTab = document.getElementById('authRegisterTab');
+  const loginForm = document.getElementById('authLoginForm');
+  const registerForm = document.getElementById('authRegisterForm');
+  const authError = document.getElementById('authError');
+  const authSuccess = document.getElementById('authSuccess');
+
+  let mode = 'login';
+
+  function switchMode(m) {
+    mode = m;
+    loginTab.classList.toggle('active', m === 'login');
+    registerTab.classList.toggle('active', m === 'register');
+    loginForm.style.display = m === 'login' ? 'flex' : 'none';
+    registerForm.style.display = m === 'register' ? 'flex' : 'none';
+    authError.textContent = '';
+    authSuccess.textContent = '';
+    document.getElementById('authTitle').textContent = m === 'login' ? '登录' : '注册';
+  }
+
+  loginTab.addEventListener('click', function() { switchMode('login'); });
+  registerTab.addEventListener('click', function() { switchMode('register'); });
+
+  document.getElementById('authClose').addEventListener('click', function() {
+    modal.classList.remove('show');
+  });
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) modal.classList.remove('show');
+  });
+
+  loginForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    if (!username || !password) { authError.textContent = '请输入用户名和密码'; return; }
+    try {
+      const result = await apiFetch('/login', { method: 'POST', body: { username: username, password: password } });
+      sessionStorage.setItem('coach_user_id', result.user_id);
+      sessionStorage.setItem('coach_username', username);
+      authSuccess.textContent = '登录成功！';
+      authError.textContent = '';
+      updateAuthUI();
+      toast('登录成功，欢迎回来！');
+      setTimeout(async function() {
+        modal.classList.remove('show');
+        await refreshAllData();
+      }, 800);
+    } catch(e) {
+      authError.textContent = e.message;
+      authSuccess.textContent = '';
+    }
+  });
+
+  registerForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const username = document.getElementById('regUsername').value.trim();
+    const password = document.getElementById('regPassword').value.trim();
+    const confirmPwd = document.getElementById('regConfirm').value.trim();
+    if (!username || !password) { authError.textContent = '请输入用户名和密码'; return; }
+    if (password.length < 4) { authError.textContent = '密码至少需要4个字符'; return; }
+    if (password !== confirmPwd) { authError.textContent = '两次密码不一致'; return; }
+    try {
+      const result = await apiFetch('/register', { method: 'POST', body: { username: username, password: password } });
+      sessionStorage.setItem('coach_user_id', result.user_id);
+      sessionStorage.setItem('coach_username', username);
+      authSuccess.textContent = '注册成功！';
+      authError.textContent = '';
+      updateAuthUI();
+      toast('注册成功，欢迎加入！');
+      setTimeout(async function() {
+        modal.classList.remove('show');
+        await refreshAllData();
+      }, 800);
+    } catch(e) {
+      authError.textContent = e.message;
+      authSuccess.textContent = '';
+    }
+  });
+
+  return { show: function() { modal.classList.add('show'); switchMode('login'); } };
+}
+
+let authModalInstance;
+function showAuthModal() {
+  if (!authModalInstance) authModalInstance = initAuthModal();
+  authModalInstance.show();
+}
+
+function updateAuthUI() {
+  const avatarEl = document.getElementById('userAvatar');
+  const loginBtn = document.getElementById('loginBtn');
+  const userNameEl = document.getElementById('userNameDisplay');
+  if (isLoggedIn()) {
+    const name = (sessionStorage.getItem('coach_username') || '用户');
+    loginBtn.style.display = 'none';
+    avatarEl.style.display = 'grid';
+    avatarEl.textContent = name.charAt(0).toUpperCase();
+    userNameEl.textContent = name;
+    userNameEl.style.display = 'inline';
+  } else {
+    loginBtn.style.display = 'inline-flex';
+    avatarEl.style.display = 'none';
+    userNameEl.style.display = 'none';
+  }
+}
+
+async function refreshAllData() {
+  updateHomeStats();
+  await loadQuestions();
+  updateCatChips();
+  const activeView = document.querySelector('.view.active');
+  if (activeView) {
+    const vid = activeView.id.replace('view-', '');
+    if (vid === 'quiz') {
+      filtered = questionsCache.slice();
+      cur = 0;
+      Object.keys(answers).forEach(function(k) { delete answers[k]; });
+      renderQ();
+      buildNav();
+    }
+    if (vid === 'data') initCharts();
+    if (vid === 'rec') initRecommendation();
+  }
+}
+
+/* ---------------- 登录保护 ---------------- */
+function checkLoginRequired(viewName) {
+  const protectedViews = ['quiz', 'exam', 'data', 'rec', 'report'];
+  if (protectedViews.indexOf(viewName) !== -1 && !isLoggedIn()) {
+    document.getElementById('loginPrompt').style.display = 'block';
+    document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+    return false;
+  }
+  document.getElementById('loginPrompt').style.display = 'none';
+  return true;
+}
+
+/* ---------------- Toast 提示 ---------------- */
+function toast(msg, type) {
+  type = type || 'success';
+  const container = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type === 'warning' ? 'warning' : type === 'error' ? 'error' : '');
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(function() { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(function() { t.remove(); }, 300); }, 2800);
+}
+
+/* ---------------- Confetti 庆祝效果 ---------------- */
+function launchConfetti() {
+  const container = document.getElementById('confettiContainer');
+  const colors = ['#3b5bdb','#5c7cfa','#0ca678','#f08c00','#e8590c','#7048e8','#ff6b6b','#ffd93d'];
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < 80; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.top = -(Math.random() * 60 + 10) + 'px';
+    piece.style.width = (Math.random() * 8 + 6) + 'px';
+    piece.style.height = (Math.random() * 8 + 6) + 'px';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = (Math.random() * 1.5 + 2) + 's';
+    piece.style.animationDelay = Math.random() * 0.8 + 's';
+    frag.appendChild(piece);
+  }
+  container.appendChild(frag);
+  setTimeout(function() { container.innerHTML = ''; }, 3500);
+}
+
+/* ---------------- 视图切换 ---------------- */
+const tabs = document.querySelectorAll('.tabs button');
+const views = document.querySelectorAll('.view');
+function switchView(v) {
+  if (!checkLoginRequired(v)) return;
+  tabs.forEach(function(t) { t.classList.toggle('active', t.dataset.view === v); });
+  views.forEach(function(x) { x.classList.toggle('active', x.id === 'view-' + v); });
+  document.getElementById('tabs').classList.remove('open');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (v === 'data') initCharts();
+  if (v === 'rec') initRecommendation();
+  if (v === 'home') updateHomeStats();
+  if (v === 'quiz') updateCatChips();
+}
+tabs.forEach(function(t) { t.addEventListener('click', function() { switchView(t.dataset.view); }); });
+document.querySelectorAll('[data-jump]').forEach(function(b) { b.addEventListener('click', function() { switchView(b.dataset.jump); }); });
+document.getElementById('menuToggle').addEventListener('click', function() { document.getElementById('tabs').classList.toggle('open'); });
+
+/* ---------------- 刷新数据按钮 ---------------- */
+document.getElementById('clearDataBtn').addEventListener('click', async function() {
+  await refreshAllData();
+  toast('数据已刷新');
+});
+
+/* ---------------- 分类筛选 ---------------- */
+function updateCatChips() {
+  const counts = {};
+  questionsCache.forEach(function(q) { counts[q.cat] = (counts[q.cat] || 0) + 1; });
+  const total = questionsCache.length;
+  const chips = document.querySelectorAll('#catChips .chip');
+  chips.forEach(function(c) {
+    const cat = c.dataset.cat;
+    if (cat === 'all') c.textContent = '全部(' + total + ')';
+    else if (cat === '考研') c.textContent = '考研(' + (counts['考研'] || 0) + ')';
+    else if (cat === '考公') c.textContent = '考公(' + (counts['考公'] || 0) + ')';
+    else if (cat === '大厂') c.textContent = '大厂笔面(' + (counts['大厂'] || 0) + ')';
+  });
+}
+
+/* ---------------- 首页统计更新 ---------------- */
+async function updateHomeStats() {
+  if (!isLoggedIn()) {
+    const elStreak = document.getElementById('homeStreak');
+    if (elStreak) elStreak.textContent = '0天';
+    const elAcc = document.getElementById('homeAcc');
+    if (elAcc) elAcc.textContent = '—';
+    const elTotal = document.getElementById('homeTotalQ');
+    if (elTotal) elTotal.textContent = '0+';
+    return;
+  }
+  try {
+    const streak = await apiGetStreak();
+    const quizHistory = await apiGetQuizHistory();
+    const elStreak = document.getElementById('homeStreak');
+    if (elStreak) elStreak.textContent = (streak.streak || 0) + '天';
+    const total = quizHistory.reduce(function(s, r) { return s + (r.total || 0); }, 0);
+    const correct = quizHistory.reduce(function(s, r) { return s + (r.correct || 0); }, 0);
+    const elAcc = document.getElementById('homeAcc');
+    if (elAcc && total > 0) elAcc.textContent = Math.round(correct / total * 100) + '%';
+    else if (elAcc) elAcc.textContent = '—';
+    const elTotal = document.getElementById('homeTotalQ');
+    if (elTotal) elTotal.textContent = (total > 0 ? total : '0') + '+';
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+/* ================================================================
+   刷题模块
+   ================================================================ */
+let filtered = [];
+let cur = 0;
+const answers = {};
+
+document.querySelectorAll('#catChips .chip').forEach(function(c) {
+  c.addEventListener('click', async function() {
+    document.querySelectorAll('#catChips .chip').forEach(function(x) { x.classList.remove('active'); });
+    c.classList.add('active');
+    const cat = c.dataset.cat;
+    await loadQuestions(cat);
+    filtered = questionsCache.slice();
+    cur = 0;
+    Object.keys(answers).forEach(function(k) { delete answers[k]; });
+    updateCatChips();
+    renderQ();
+    buildNav();
+  });
+});
+
+const el = function(id) { return document.getElementById(id); };
+
+function renderQ() {
+  if (filtered.length === 0) {
+    el('qStem').textContent = '暂无题目，请检查网络连接或切换分类';
+    el('qOpts').innerHTML = '';
+    el('qIndex').textContent = '第 0 / 0 题';
+    el('qProg').style.width = '0%';
+    return;
+  }
+  const q = filtered[cur];
+  const st = answers[cur] || { picked: [], submitted: false };
+  el('qType').textContent = q.type;
+  el('qIndex').textContent = '第 ' + (cur + 1) + ' / ' + filtered.length + ' 题';
+  el('qProg').style.width = ((cur + 1) / filtered.length * 100) + '%';
+
+  const diffMap = { easy: '简单', medium: '中等', hard: '困难' };
+  el('qTags').innerHTML = '<span class="q-tag topic">' + q.topic + '</span><span class="q-tag diff-' + q.difficulty + '">' + (diffMap[q.difficulty] || q.difficulty) + '</span>';
+
+  el('qStem').innerHTML = q.stem + '<span class="src-tag">来源：' + (q.src || '') + '</span>';
+
+  const isMulti = q.type === '多选题';
+  el('qOpts').innerHTML = q.opts.map(function(o, i) {
+    const key = String.fromCharCode(65 + i);
+    let cls = 'opt';
+    if (st.submitted) {
+      cls += ' disabled';
+      if (q.answer.indexOf(i) !== -1) cls += ' correct';
+      else if (st.picked.indexOf(i) !== -1) cls += ' wrong';
+    } else if (st.picked.indexOf(i) !== -1) cls += ' selected';
+    return '<div class="' + cls + '" data-i="' + i + '"><div class="key">' + key + '</div><div class="lbl">' + o + '</div></div>';
+  }).join('');
+
+  el('qOpts').querySelectorAll('.opt').forEach(function(op) {
+    op.addEventListener('click', function() {
+      if (st.submitted) return;
+      const i = +op.dataset.i;
+      let picked = st.picked.slice();
+      if (isMulti) {
+        if (picked.indexOf(i) !== -1) picked = picked.filter(function(x) { return x !== i; });
+        else picked.push(i);
+      } else { picked = [i]; }
+      answers[cur] = { picked: picked, submitted: false };
+      renderQ();
+    });
+  });
+
+  const ex = el('qExplain');
+  if (st.submitted) { ex.classList.add('show'); el('qExplainText').textContent = q.explain || ''; }
+  else ex.classList.remove('show');
+
+  el('submitBtn').disabled = st.submitted || st.picked.length === 0;
+  el('submitBtn').style.opacity = (st.submitted || st.picked.length === 0) ? .5 : 1;
+  const aiBtn = el('aiExplainBtn');
+  if (st.submitted) { aiBtn.style.display = 'inline-flex'; aiBtn.dataset.idx = q._idx; }
+  else aiBtn.style.display = 'none';
+  el('prevBtn').disabled = cur === 0;
+  el('nextBtn').textContent = cur === filtered.length - 1 ? '完成' : '下一题';
+  updateStats();
+  buildNav();
+}
+
+el('submitBtn').addEventListener('click', async function() {
+  const st = answers[cur];
+  if (!st || st.picked.length === 0) return;
+  const q = filtered[cur];
+  const correct = JSON.stringify(st.picked.slice().sort()) === JSON.stringify(q.answer.slice().sort());
+  answers[cur] = { picked: st.picked, submitted: true, correct: correct };
+  if (!correct && isLoggedIn()) {
+    await apiAddWrongQuestion(q.id);
+  }
+  renderQ();
+  const opts = el('qOpts').querySelectorAll('.opt');
+  opts.forEach(function(o) {
+    if (o.classList.contains('correct')) o.classList.add('correct-pulse');
+    if (o.classList.contains('wrong')) o.classList.add('wrong-shake');
+  });
+});
+
+el('nextBtn').addEventListener('click', async function() {
+  if (cur < filtered.length - 1) { cur++; renderQ(); }
+  else {
+    const done = Object.values(answers).filter(function(a) { return a.submitted; });
+    const right = done.filter(function(a) { return a.correct; }).length;
+    const cat = filtered.length > 0 ? filtered[0].cat : '全部';
+    if (isLoggedIn()) {
+      await apiAddQuizRecord(cat, done.length, right);
+      await apiCheckIn();
+    }
+    const streak = isLoggedIn() ? await apiGetStreak() : { streak: 0 };
+    toast('本轮完成！' + (isLoggedIn() ? '已连续打卡 ' + (streak.streak || 0) + ' 天' : '登录后可保存记录'));
+    switchView('data');
+  }
+});
+el('prevBtn').addEventListener('click', function() { if (cur > 0) { cur--; renderQ(); } });
+
+function updateStats() {
+  const done = Object.values(answers).filter(function(a) { return a.submitted; });
+  const right = done.filter(function(a) { return a.correct; }).length;
+  const wrong = done.length - right;
+  el('sAns').textContent = done.length;
+  el('sRight').textContent = right;
+  el('sWrong').textContent = wrong;
+  el('sRate').textContent = done.length ? Math.round(right / done.length * 100) + '%' : '—';
+}
+function buildNav() {
+  el('qNav').innerHTML = filtered.map(function(q, i) {
+    const st = answers[i];
+    let cls = 'qn';
+    if (i === cur) cls += ' cur';
+    else if (st && st.submitted) cls += st.correct ? ' done' : ' err';
+    return '<div class="' + cls + '" data-n="' + i + '">' + (i + 1) + '</div>';
+  }).join('');
+  el('qNav').querySelectorAll('.qn').forEach(function(n) { n.addEventListener('click', function() { cur = +n.dataset.n; renderQ(); }); });
+}
+
+/* ================================================================
+   模拟考场模块
+   ================================================================ */
+let examConfig = { type: '考研', count: 20, duration: 30 };
+let examQuestions = [];
+let examCur = 0;
+let examAnswers = {};
+let examTimerInterval = null;
+let examSecondsLeft = 0;
+let examStartTime = null;
+
+document.querySelectorAll('#examTypeSelect .radio-btn').forEach(function(b) {
+  b.addEventListener('click', function() {
+    document.querySelectorAll('#examTypeSelect .radio-btn').forEach(function(x) { x.classList.remove('selected'); });
+    b.classList.add('selected');
+    examConfig.type = b.dataset.type;
+  });
+});
+document.querySelectorAll('#examCountSelect .radio-btn').forEach(function(b) {
+  b.addEventListener('click', function() {
+    document.querySelectorAll('#examCountSelect .radio-btn').forEach(function(x) { x.classList.remove('selected'); });
+    b.classList.add('selected');
+    examConfig.count = +b.dataset.count;
+  });
+});
+document.querySelectorAll('#examDurationSelect .radio-btn').forEach(function(b) {
+  b.addEventListener('click', function() {
+    document.querySelectorAll('#examDurationSelect .radio-btn').forEach(function(x) { x.classList.remove('selected'); });
+    b.classList.add('selected');
+    examConfig.duration = +b.dataset.dur;
+  });
+});
+
+document.getElementById('examStartBtn').addEventListener('click', function() {
+  startExam();
+});
+
+async function startExam() {
+  if (questionsCache.length === 0) {
+    await loadQuestions();
+  }
+  const pool = examConfig.type === '考研' ? questionsCache.filter(function(q) { return q.cat === '考研'; })
+    : examConfig.type === '考公' ? questionsCache.filter(function(q) { return q.cat === '考公'; })
+    : questionsCache.filter(function(q) { return q.cat === '大厂'; });
+  if (pool.length === 0) { toast('该类型暂无题目', 'warning'); return; }
+
+  examQuestions = [];
+  while (examQuestions.length < examConfig.count) {
+    const idx = Math.floor(Math.random() * pool.length);
+    examQuestions.push(pool[idx]);
+  }
+  examCur = 0;
+  examAnswers = {};
+  examSecondsLeft = examConfig.duration * 60;
+  examStartTime = Date.now();
+
+  document.getElementById('examSetup').style.display = 'none';
+  document.getElementById('examInProgress').style.display = 'block';
+  document.getElementById('examResult').style.display = 'none';
+  document.getElementById('examTypeLabel').textContent = examConfig.type;
+
+  renderExamQ();
+  startExamTimer();
+}
+
+function renderExamQ() {
+  if (examQuestions.length === 0) return;
+  const q = examQuestions[examCur];
+  const st = examAnswers[examCur] || { picked: [] };
+  const diffMap = { easy: '简单', medium: '中等', hard: '困难' };
+
+  el('examQType').textContent = q.type;
+  el('examQTags').innerHTML = '<span class="q-tag topic">' + q.topic + '</span><span class="q-tag diff-' + q.difficulty + '">' + (diffMap[q.difficulty] || q.difficulty) + '</span>';
+  el('examQIndex').textContent = '第 ' + (examCur + 1) + ' / ' + examQuestions.length + ' 题';
+  el('examQProg').style.width = ((examCur + 1) / examQuestions.length * 100) + '%';
+  el('examQStem').innerHTML = q.stem + '<span class="src-tag">来源：' + (q.src || '') + '</span>';
+  document.getElementById('examProgress').textContent = (examCur + 1) + '/' + examQuestions.length;
+
+  const isMulti = q.type === '多选题';
+  el('examQOpts').innerHTML = q.opts.map(function(o, i) {
+    const key = String.fromCharCode(65 + i);
+    let cls = 'opt';
+    if (st.picked.indexOf(i) !== -1) cls += ' selected';
+    return '<div class="' + cls + '" data-i="' + i + '"><div class="key">' + key + '</div><div class="lbl">' + o + '</div></div>';
+  }).join('');
+
+  el('examQOpts').querySelectorAll('.opt').forEach(function(op) {
+    op.addEventListener('click', function() {
+      const i = +op.dataset.i;
+      let picked = (examAnswers[examCur] ? examAnswers[examCur].picked.slice() : []);
+      if (isMulti) {
+        if (picked.indexOf(i) !== -1) picked = picked.filter(function(x) { return x !== i; });
+        else picked.push(i);
+      } else { picked = [i]; }
+      examAnswers[examCur] = { picked: picked };
+      renderExamQ();
+    });
+  });
+
+  el('examPrevBtn').disabled = examCur === 0;
+  el('examNextBtn').textContent = examCur === examQuestions.length - 1 ? '交卷' : '下一题';
+}
+
+el('examPrevBtn').addEventListener('click', function() { if (examCur > 0) { examCur--; renderExamQ(); } });
+el('examNextBtn').addEventListener('click', function() {
+  if (examCur < examQuestions.length - 1) { examCur++; renderExamQ(); }
+  else { submitExam(); }
+});
+el('examSubmitBtn').addEventListener('click', function() {
+  if (confirm('确定要交卷吗？交卷后不可修改。')) submitExam();
+});
+
+function startExamTimer() {
+  if (examTimerInterval) clearInterval(examTimerInterval);
+  updateTimerDisplay();
+  examTimerInterval = setInterval(function() {
+    examSecondsLeft--;
+    updateTimerDisplay();
+    if (examSecondsLeft <= 0) {
+      clearInterval(examTimerInterval);
+      examTimerInterval = null;
+      submitExam();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const mins = Math.floor(examSecondsLeft / 60);
+  const secs = examSecondsLeft % 60;
+  const timerEl = el('examTimer');
+  timerEl.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+  if (examSecondsLeft <= 300) { timerEl.classList.add('warning'); }
+  else { timerEl.classList.remove('warning'); }
+}
+
+async function submitExam() {
+  if (examTimerInterval) { clearInterval(examTimerInterval); examTimerInterval = null; }
+  const timeUsed = Math.round((Date.now() - examStartTime) / 1000);
+  const timeUsedStr = String(Math.floor(timeUsed / 60)).padStart(2, '0') + ':' + String(timeUsed % 60).padStart(2, '0');
+
+  let correct = 0;
+  const topicStats = {};
+  examQuestions.forEach(function(q, i) {
+    const st = examAnswers[i];
+    if (!st || !st.picked) return;
+    const isCorrect = JSON.stringify(st.picked.slice().sort()) === JSON.stringify(q.answer.slice().sort());
+    if (isCorrect) correct++;
+    if (!topicStats[q.topic]) topicStats[q.topic] = { total: 0, correct: 0 };
+    topicStats[q.topic].total++;
+    if (isCorrect) topicStats[q.topic].correct++;
+    if (!isCorrect && isLoggedIn()) {
+      apiAddWrongQuestion(q.id);
+    }
+  });
+
+  const totalQ = examQuestions.length;
+  const accuracy = Math.round(correct / totalQ * 100);
+  const score = accuracy;
+
+  if (isLoggedIn()) {
+    await apiAddExamRecord(examConfig.type, totalQ, correct, examConfig.duration, timeUsedStr);
+    await apiCheckIn();
+  }
+
+  document.getElementById('examSetup').style.display = 'none';
+  document.getElementById('examInProgress').style.display = 'none';
+  document.getElementById('examResult').style.display = 'block';
+
+  el('resultScore').textContent = score;
+  el('resultTotal').textContent = totalQ;
+  el('resultRight').textContent = correct;
+  el('resultRate').textContent = accuracy + '%';
+  el('resultTime').textContent = timeUsedStr;
+
+  const topicColors = { '政治': '#e8590c', '英语': '#3b5bdb', '数学': '#7048e8', '专业课': '#0ca678', '行测': '#f08c00', '申论': '#3b5bdb', '公共基础': '#0ca678', '算法': '#e8590c', '八股文': '#7048e8', '系统设计': '#f08c00', '前端': '#3b5bdb' };
+  el('resultTopics').innerHTML = '<h4><svg width="16" height="16" style="vertical-align:-3px;margin-right:5px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg> 各知识点得分分布</h4>' +
+    Object.entries(topicStats).map(function(entry) {
+      const topic = entry[0], stats = entry[1];
+      const rate = Math.round(stats.correct / stats.total * 100);
+      const color = topicColors[topic] || '#3b5bdb';
+      return '<div class="topic-row"><span style="min-width:60px;font-weight:700">' + topic + '</span><div class="bar-wrap"><i style="width:' + rate + '%;background:' + color + '"></i></div><span class="tr">' + stats.correct + '/' + stats.total + '(' + rate + '%)</span></div>';
+    }).join('');
+
+  if (accuracy >= 60) {
+    launchConfetti();
+    toast('🎉 考试完成！得分 ' + score + ' 分');
+  } else {
+    toast('考试完成，继续加油！得分 ' + score + ' 分', 'warning');
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.getElementById('resultRetry').addEventListener('click', function() {
+  document.getElementById('examSetup').style.display = 'block';
+  document.getElementById('examInProgress').style.display = 'none';
+  document.getElementById('examResult').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+document.getElementById('resultViewData').addEventListener('click', function() { switchView('data'); });
+
+/* ================================================================
+   数据中心模块
+   ================================================================ */
+let chartInstances = {};
+function destroyCharts() {
+  Object.values(chartInstances).forEach(function(c) { try { c.destroy(); } catch(e) {} });
+  chartInstances = {};
+}
+
+async function initCharts() {
+  if (typeof Chart === 'undefined') return;
+  if (!isLoggedIn()) {
+    updateDataKPIsEmpty();
+    destroyCharts();
+    el('wrongList').innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink-3);font-size:14px">请先登录以查看数据</div>';
+    el('weakList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:14px">请先登录以查看数据</div>';
+    return;
+  }
+  destroyCharts();
+
+  const quizHistory = await apiGetQuizHistory();
+  const wrongBook = await apiGetWrongBook();
+  const streak = await apiGetStreak();
+  const masteryData = await apiGetMastery();
+
+  updateDataKPIs(quizHistory, wrongBook, streak);
+  renderWrongList(wrongBook);
+  renderWeakList(wrongBook);
+
+  const ink = '#4a5578', grid = '#e8ecf5';
+  Chart.defaults.font.family = '"PingFang SC","Microsoft YaHei",sans-serif';
+  Chart.defaults.color = ink;
+
+  // 趋势图
+  const days = [];
+  const today = new Date();
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    days.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'));
+  }
+  const dailyTotals = days.map(function(d) { return quizHistory.filter(function(r) { return r.date === d; }).reduce(function(s, r) { return s + (r.total || 0); }, 0); });
+  const dailyCorrects = days.map(function(d) {
+    const recs = quizHistory.filter(function(r) { return r.date === d; });
+    const total = recs.reduce(function(s, r) { return s + (r.total || 0); }, 0);
+    const correct = recs.reduce(function(s, r) { return s + (r.correct || 0); }, 0);
+    return total > 0 ? Math.round(correct / total * 100) : null;
+  });
+
+  const trendCtx = el('trendChart');
+  if (trendCtx) {
+    chartInstances.trend = new Chart(trendCtx, {
+      data: {
+        labels: days.map(function(d) { return d.substring(5); }),
+        datasets: [
+          { type: 'bar', label: '刷题量', data: dailyTotals, backgroundColor: '#5c7cfa', borderRadius: 6, yAxisID: 'y', order: 2 },
+          { type: 'line', label: '正确率(%)', data: dailyCorrects, borderColor: '#0ca678', backgroundColor: 'rgba(12,166,120,.1)', borderWidth: 3, tension: .4, fill: false, pointRadius: 4, pointBackgroundColor: '#0ca678', yAxisID: 'y1', order: 1, spanGaps: true }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, padding: 16 } } },
+        scales: {
+          y: { position: 'left', grid: { color: grid }, title: { display: true, text: '题量' }, beginAtZero: true },
+          y1: { position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: '正确率%' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // 雷达图
+  const mastery = masteryData && typeof masteryData === 'object' ? masteryData : {};
+  const radarLabels = Object.keys(mastery).length > 0 ? Object.keys(mastery) : (questionsCache.length > 0 ? Array.from(new Set(questionsCache.map(function(q) { return q.topic; }))) : ['暂无数据']);
+  const radarData = radarLabels.map(function(t) {
+    if (typeof mastery[t] === 'number') return mastery[t];
+    const topicWrong = wrongBook.filter(function(w) { return w.topic === t; }).reduce(function(s, w) { return s + (w.wrong_count || 1); }, 0);
+    const total = questionsCache.filter(function(q) { return q.topic === t; }).length || 1;
+    return Math.max(0, Math.round((1 - topicWrong / (total * 3)) * 100));
+  });
+
+  const radarCtx = el('radarChart');
+  if (radarCtx) {
+    chartInstances.radar = new Chart(radarCtx, {
+      type: 'radar',
+      data: {
+        labels: radarLabels,
+        datasets: [{ label: '掌握度', data: radarData, borderColor: '#3b5bdb', backgroundColor: 'rgba(59,91,219,.18)', borderWidth: 2, pointBackgroundColor: '#3b5bdb' }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        scales: { r: { min: 0, max: 100, ticks: { stepSize: 20, backdropColor: 'transparent' }, grid: { color: grid }, angleLines: { color: grid }, pointLabels: { font: { size: 12, weight: '600' } } } }
+      }
+    });
+  }
+
+  // 饼图
+  const catMap = {};
+  quizHistory.forEach(function(r) { const c = r.cat || r.category || '其他'; catMap[c] = (catMap[c] || 0) + (r.total || 0); });
+  const platLabels = Object.keys(catMap);
+  const platData = Object.values(catMap);
+  const platColors = ['#3b5bdb', '#0ca678', '#f08c00', '#7048e8', '#e8590c'];
+
+  const pieCtx = el('pieChart');
+  if (pieCtx) {
+    chartInstances.pie = new Chart(pieCtx, {
+      type: 'doughnut',
+      data: { labels: platLabels.length > 0 ? platLabels : ['暂无数据'], datasets: [{ data: platData.length > 0 ? platData : [1], backgroundColor: platColors, borderWidth: 3, borderColor: '#fff' }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '62%',
+        plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, padding: 12, font: { size: 12 } } } }
+      }
+    });
+  }
+}
+
+function updateDataKPIsEmpty() {
+  el('kpiTotal').textContent = '0';
+  el('kpiRate').textContent = '—';
+  el('kpiWrong').textContent = '0';
+  el('kpiStreak').innerHTML = '0<span style="font-size:16px">天</span>';
+}
+
+function updateDataKPIs(quizHistory, wrongBook, streak) {
+  const total = quizHistory.reduce(function(s, r) { return s + (r.total || 0); }, 0);
+  const correct = quizHistory.reduce(function(s, r) { return s + (r.correct || 0); }, 0);
+  const rate = total > 0 ? Math.round(correct / total * 100) + '%' : '—';
+  el('kpiTotal').textContent = total;
+  el('kpiRate').textContent = rate;
+  el('kpiWrong').textContent = wrongBook.length;
+  el('kpiStreak').innerHTML = (streak.streak || 0) + '<span style="font-size:16px">天</span>';
+}
+
+function renderWrongList(wrongBook) {
+  const sorted = wrongBook.slice().sort(function(a, b) { return (b.wrong_count || 0) - (a.wrong_count || 0); });
+  const container = el('wrongList');
+  if (sorted.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink-3);font-size:14px">暂无错题记录，开始刷题吧！</div>';
+    return;
+  }
+  container.innerHTML = sorted.map(function(w) {
+    const text = w.question_text || w.stem || '';
+    const platform = w.platform || w.src || '';
+    const topic = w.topic || '';
+    const count = w.wrong_count || 1;
+    const time = w.last_wrong_time || w.lastWrongTime || '';
+    return '<div class="wrong-item"><div class="wt">×' + count + '<br>次</div><div class="wc"><div class="wq">' + text.substring(0, 60) + '</div><div class="wtags"><span class="plat">' + platform + '</span><span>' + topic + '</span><span>' + time + '</span></div></div><div class="wr"><span class="redo" onclick="switchView(\'quiz\')">重做 →</span></div></div>';
+  }).join('');
+}
+
+function renderWeakList(wrongBook) {
+  const topicErr = {};
+  wrongBook.forEach(function(w) {
+    const t = w.topic || '未知';
+    if (!topicErr[t]) topicErr[t] = { wrongCount: 0, platforms: new Set() };
+    topicErr[t].wrongCount += (w.wrong_count || 1);
+    if (w.platform || w.src) topicErr[t].platforms.add(w.platform || w.src);
+  });
+  const totalPerTopic = {};
+  questionsCache.forEach(function(q) { totalPerTopic[q.topic] = (totalPerTopic[q.topic] || 0) + 1; });
+
+  const sorted = Object.entries(topicErr).sort(function(a, b) { return b[1].wrongCount - a[1].wrongCount; });
+  const container = el('weakList');
+  if (sorted.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:14px">暂无薄弱知识点数据，多刷题后会显示分析结果</div>';
+    return;
+  }
+  container.innerHTML = sorted.map(function(entry, i) {
+    const topic = entry[0], info = entry[1];
+    const total = totalPerTopic[topic] || 1;
+    const mastery = Math.max(0, Math.round((1 - info.wrongCount / (total * 3)) * 100));
+    return '<div class="weak-item"><div class="rank" style="background:' + (mastery < 60 ? 'var(--rose)' : mastery < 80 ? 'var(--amber)' : 'var(--teal)') + '">' + (i + 1) + '</div><div class="w-info"><div class="wn">' + topic + '</div><div class="wm">错误 ' + info.wrongCount + ' 次 · 涉及 ' + Array.from(info.platforms).join('、') + '</div></div><div class="w-bar"><i style="width:' + mastery + '%;background:' + (mastery < 60 ? 'var(--rose)' : mastery < 80 ? 'var(--amber)' : 'var(--teal)') + '"></i></div><div class="w-rate">' + mastery + '%</div></div>';
+  }).join('');
+}
+
+/* ================================================================
+   智能推荐模块
+   ================================================================ */
+async function initRecommendation() {
+  if (!isLoggedIn()) {
+    el('recHeroTitle').textContent = '备考同学，请先登录';
+    el('recHeroDesc').textContent = '登录后系统将分析你的错题记录，智能推荐最适合你的题目。';
+    el('recMastery').textContent = '—';
+    el('pathList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:14px">请先登录以获取推荐</div>';
+    el('recList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:14px">登录后自动生成推荐</div>';
+    return;
+  }
+
+  const wrongBook = await apiGetWrongBook();
+  const quizHistory = await apiGetQuizHistory();
+  const masteryData = await apiGetMastery();
+
+  const total = quizHistory.reduce(function(s, r) { return s + (r.total || 0); }, 0);
+  const correct = quizHistory.reduce(function(s, r) { return s + (r.correct || 0); }, 0);
+  const mastery = total > 0 ? Math.round(correct / total * 100) : 0;
+  el('recMastery').textContent = mastery > 0 ? mastery + '%' : '—';
+
+  const topicErr = {};
+  wrongBook.forEach(function(w) { const t = w.topic || '未知'; topicErr[t] = (topicErr[t] || 0) + (w.wrong_count || 1); });
+  const totalPerTopic = {};
+  questionsCache.forEach(function(q) { totalPerTopic[q.topic] = (totalPerTopic[q.topic] || 0) + 1; });
+
+  const topicMastery = {};
+  Object.keys(totalPerTopic).forEach(function(t) {
+    const err = topicErr[t] || 0;
+    topicMastery[t] = Math.max(0, Math.round((1 - err / (totalPerTopic[t] * 3)) * 100));
+  });
+  if (masteryData && typeof masteryData === 'object') {
+    Object.keys(masteryData).forEach(function(t) {
+      if (typeof masteryData[t] === 'number') topicMastery[t] = masteryData[t];
+    });
+  }
+
+  const sortedTopics = Object.entries(topicMastery).sort(function(a, b) { return a[1] - b[1]; });
+
+  if (wrongBook.length === 0 && total === 0) {
+    el('recHeroTitle').textContent = '备考同学，开始刷题获取推荐';
+    el('recHeroDesc').textContent = '系统将通过你的刷题记录分析薄弱点，智能推荐最适合你的题目。';
+    el('pathList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:14px">暂无数据，先刷几道题吧！</div>';
+    el('recList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:14px">暂无推荐，刷题后自动生成</div>';
+    return;
+  }
+
+  el('recHeroTitle').textContent = '备考同学，检测到 ' + wrongBook.length + ' 个薄弱知识点';
+  el('recHeroDesc').textContent = '系统已分析你的错题记录，以下是最需要强化的知识点和推荐题目，优先攻克薄弱环节。';
+
+  const pathColors = ['#e8590c', '#f08c00', '#7048e8', '#3b5bdb', '#0ca678'];
+  el('pathList').innerHTML = sortedTopics.slice(0, 5).map(function(entry, i) {
+    const tp = entry[0], m = entry[1];
+    const level = m < 60 ? '紧急' : m < 80 ? '提升' : '保持';
+    const qCount = totalPerTopic[tp] || 0;
+    return '<div class="path-step"><div class="ps-dot" style="background:' + (pathColors[i] || pathColors[4]) + '">' + (i + 1) + '</div><div class="ps-c"><div class="pt">' + level + '：' + tp + '强化</div><div class="pd">当前掌握度 ' + m + '%，' + (m < 60 ? '建议优先攻克' : m < 80 ? '稳步提升中' : '保持状态') + '</div><div class="pmeta">' + qCount + ' 题 · 约 ' + (qCount * 2) + ' 分钟</div></div></div>';
+  }).join('');
+
+  const weakTopics = sortedTopics.slice(0, 5).map(function(t) { return t[0]; });
+  const recQuestions = questionsCache.filter(function(q) { return weakTopics.indexOf(q.topic) !== -1; }).slice(0, 5);
+  if (recQuestions.length === 0) {
+    el('recList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:14px">暂无匹配题目</div>';
+  } else {
+    el('recList').innerHTML = recQuestions.map(function(q) {
+      const m = topicMastery[q.topic] || 0;
+      const matchScore = Math.max(60, 100 - m);
+      const color = m < 60 ? '#e8590c' : m < 80 ? '#f08c00' : '#3b5bdb';
+      return '<div class="rec-q" onclick="switchView(\'quiz\');document.querySelector(\'#catChips .chip[data-cat=all]\').click();"><div class="rq-pri" style="background:' + color + '"></div><div class="rq-c"><div class="rqt">' + q.stem.substring(0, 30) + '...</div><div class="rqm">' + q.topic + ' · ' + (q.difficulty === 'hard' ? '高难度' : q.difficulty === 'medium' ? '中等' : '简单') + '</div></div><div class="rq-score">' + matchScore + '<span style="font-size:11px;color:var(--ink-3)">分</span></div></div>';
+    }).join('');
+  }
+}
+
+/* ================================================================
+   押题报告模块
+   ================================================================ */
+document.getElementById('genReportBtn').addEventListener('click', async function() {
+  if (!isLoggedIn()) {
+    toast('请先登录后生成押题报告', 'warning');
+    showAuthModal();
+    return;
+  }
+  const wrongBook = await apiGetWrongBook();
+  const quizHistory = await apiGetQuizHistory();
+  const masteryData = await apiGetMastery();
+
+  const total = quizHistory.reduce(function(s, r) { return s + (r.total || 0); }, 0);
+  const correct = quizHistory.reduce(function(s, r) { return s + (r.correct || 0); }, 0);
+  const overallMastery = total > 0 ? Math.round(correct / total * 100) : 0;
+
+  const topicErr = {};
+  wrongBook.forEach(function(w) { const t = w.topic || '未知'; topicErr[t] = (topicErr[t] || 0) + (w.wrong_count || 1); });
+  const sortedWeak = Object.entries(topicErr).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 5);
+
+  const mastery = masteryData && typeof masteryData === 'object' ? masteryData : {};
+  const allTopics = Object.keys(mastery).length > 0 ? Object.keys(mastery) : Array.from(new Set(questionsCache.map(function(q) { return q.topic; })));
+  const topicMastery = {};
+  allTopics.forEach(function(t) { topicMastery[t] = typeof mastery[t] === 'number' ? mastery[t] : 60; });
+
+  const reportContainer = document.getElementById('reportContent');
+  reportContainer.innerHTML = '<div class="report-hero">' +
+    '<div class="rh-l" style="position:relative;z-index:1">' +
+    '<h3><svg width="20" height="20" style="vertical-align:-3px;margin-right:6px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg> 考前押题冲刺报告</h3>' +
+    '<p>基于 ' + total + ' 道刷题数据、' + wrongBook.length + ' 个错题记录，AI 为你生成专属冲刺方案</p>' +
+    '</div>' +
+    '<div class="ring-wrap">' +
+    '<div class="report-ring" style="--p:' + overallMastery + '%">' +
+    '<div class="inner"><b>' + overallMastery + '</b><small>%</small></div>' +
+    '</div></div></div>' +
+    '<div class="report-grid">' +
+    '<div class="report-card"><h4><svg width="16" height="16" style="vertical-align:-3px;margin-right:5px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg>重点押题方向</h4><div class="desc">根据你的薄弱点，考前重点关注以下知识点</div>' +
+    '<div class="focus-chips">' + (sortedWeak.map(function(e) { return '<span class="focus-chip">' + e[0] + ' (错' + e[1] + '次)</span>'; }).join('') || '<span class="focus-chip">暂无数据</span>') + '</div></div>' +
+    '<div class="report-card"><h4><svg width="16" height="16" style="vertical-align:-3px;margin-right:5px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>考前复习计划</h4><div class="desc">按优先级排序的复习建议</div>' +
+    '<ol class="report-plan">' + (sortedWeak.map(function(e, i) { return '<li><span class="pn">' + (i + 1) + '</span>集中攻克「' + e[0] + '」相关题目，已错 ' + e[1] + ' 次</li>'; }).join('') || '<li>暂无数据，建议先刷题积累</li>') + '</ol></div></div>' +
+    '<div class="report-card" style="margin-bottom:20px"><h4><svg width="16" height="16" style="vertical-align:-3px;margin-right:5px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>各知识点掌握度</h4><div class="desc">掌握度低于60%需重点复习</div>' +
+    (Object.entries(topicMastery).map(function(entry) {
+      const t = entry[0], m = entry[1];
+      const color = m < 60 ? 'var(--rose)' : m < 80 ? 'var(--amber)' : 'var(--teal)';
+      return '<div class="topic-row"><span style="min-width:60px;font-weight:700">' + t + '</span><div class="bar-wrap"><i style="width:' + m + '%;background:' + color + '"></i></div><span class="tr">' + m + '%</span></div>';
+    }).join('') || '<div style="text-align:center;color:var(--ink-3);padding:20px">暂无数据</div>') + '</div>' +
+    '<div id="reportAiBlock" class="report-card" style="margin-bottom:20px"><h4><svg width="16" height="16" style="vertical-align:-3px;margin-right:5px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> AI 冲刺建议</h4><div class="modal-loading"><div class="spinner"></div>AI 正在生成考前建议…</div></div>' +
+    '<div class="report-enc">坚持刷题，查漏补缺，考前冲刺加油！</div>' +
+    '<div class="report-actions" style="margin-top:16px"><button class="btn btn-primary" onclick="switchView(\'quiz\')">去刷题 →</button></div>';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  toast('押题报告已生成！');
+
+  // 调用后端 /api/report 获取 AI 冲刺建议
+  try {
+    const ai = await apiFetch('/report', {
+      method: 'POST',
+      body: {
+        mastery: overallMastery,
+        total: total,
+        correct: correct,
+        weakTopics: sortedWeak.map(function(e) { return e[0]; })
+      }
+    });
+    const aiBlock = document.getElementById('reportAiBlock');
+    if (aiBlock) {
+      const pred = ai.prediction || '';
+      const plan = Array.isArray(ai.plan) ? ai.plan : [];
+      const enc = ai.encouragement || '';
+      aiBlock.innerHTML = '<h4><svg width="16" height="16" style="vertical-align:-3px;margin-right:5px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> AI 冲刺建议 ' + (ai.source === 'llm' ? '<span class="ai-badge">AI·真模型</span>' : '') + '</h4>' +
+        (ai.overall ? '<div class="report-line">' + ai.overall + '</div>' : '') +
+        (pred ? '<div class="report-line"><b>📌 得分预测：</b>' + pred + '</div>' : '') +
+        (plan.length ? '<ol class="report-plan">' + plan.map(function(p, i) { return '<li><span class="pn">' + (i + 1) + '</span>' + p + '</li>'; }).join('') + '</ol>' : '') +
+        (enc ? '<div class="report-enc" style="margin-top:12px">' + enc + '</div>' : '');
+    }
+  } catch (e) { console.error('[report AI]', e); }
+});
+
+/* ================================================================
+   AI 讲题弹层
+   ================================================================ */
+el('aiExplainBtn').addEventListener('click', function() {
+  const idx = el('aiExplainBtn').dataset.idx;
+  const q = questionsCache.find(function(x) { return x._idx == idx; }) || filtered.find(function(x) { return x._idx == idx; });
+  if (!q) return;
+  showAIExplain(q);
+});
+
+async function showAIExplain(q) {
+  const modal = document.getElementById('aiModal');
+  const body = document.getElementById('aiModalBody');
+  const badge = document.getElementById('aiBadge');
+  modal.classList.add('show');
+  body.innerHTML = '<div class="modal-loading"><div class="spinner"></div>AI 正在分析这道题，请稍候…</div>';
+
+  const payload = { question: { _idx: q._idx, stem: q.stem, opts: q.opts, answer: q.answer, topic: q.topic, explain: q.explain || '' } };
+
+  let explain, gen;
+  try {
+    explain = await apiFetch('/explain', { method: 'POST', body: payload });
+  } catch (e) { explain = null; }
+  try {
+    gen = await apiFetch('/gen', { method: 'POST', body: payload });
+  } catch (e) { gen = null; }
+
+  badge.textContent = (explain && explain.source === 'llm') ? 'AI·真模型' : 'AI·智能';
+
+  const correctLabels = q.answer.map(function(i) { return String.fromCharCode(65 + i) + '. ' + (q.opts[i] || ''); }).join('、');
+  const summary = (explain && explain.summary) ? explain.summary : ('正确答案：' + correctLabels);
+  const steps = (explain && Array.isArray(explain.steps) && explain.steps.length)
+    ? explain.steps
+    : ['识别题型：' + (q.type || '单选题'), '分析题干关键词：' + (q.stem || '').substring(0, 30) + '…', '结合知识点判断，正确答案为 ' + correctLabels, '巩固：' + (q.explain || '')];
+  const tips = (explain && explain.tips) ? explain.tips : '建议把本题加入错题本，按遗忘曲线复习。';
+
+  let genHtml = '<div class="gen-block"><h4>🔄 AI 生成同类变式题</h4>';
+  if (gen && Array.isArray(gen.variants) && gen.variants.length) {
+    genHtml += gen.variants.map(function(v) {
+      const opts = (v.opts || []).map(function(o, i) {
+        const ok = (v.answer || []).indexOf(i) !== -1;
+        return '<div class="gq-opt' + (ok ? ' ok' : '') + '">' + String.fromCharCode(65 + i) + '. ' + o + '</div>';
+      }).join('');
+      return '<div class="gen-q"><div class="gq-stem">' + (v.stem || '变式题') + '</div>' +
+        '<div class="gq-opts">' + opts + '</div>' +
+        '<div class="gq-exp">📝 解析：' + (v.explain || '') + '</div></div>';
+    }).join('');
+  } else {
+    genHtml += '<div class="gen-q"><div class="gq-stem">【变式】' + (q.stem || '').replace(/下列|以下/g, '以下') + '（变式练习）</div>' +
+      '<div class="gq-opts">' + q.opts.map(function(o, i) {
+        return '<div class="gq-opt' + (q.answer.indexOf(i) !== -1 ? ' ok' : '') + '">' + String.fromCharCode(65 + i) + '. ' + o + '</div>';
+      }).join('') + '</div><div class="gq-exp">📝 解析：' + (q.explain || '') + '</div></div>';
+  }
+  genHtml += '</div>';
+
+  body.innerHTML = '<div class="explain-summary">' + summary + '</div>' +
+    '<ul class="explain-steps">' + steps.map(function(s, i) { return '<li><span class="n">' + (i + 1) + '</span>' + s + '</li>'; }).join('') + '</ul>' +
+    '<div class="explain-tips"><svg width="15" height="15" style="vertical-align:-2px;margin-right:5px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2Z"/></svg> ' + tips + '</div>' + genHtml;
+}
+
+document.getElementById('aiModalClose').addEventListener('click', function() {
+  document.getElementById('aiModal').classList.remove('show');
+});
+document.getElementById('aiModal').addEventListener('click', function(e) {
+  if (e.target === document.getElementById('aiModal')) document.getElementById('aiModal').classList.remove('show');
+});
+
+/* ================================================================
+   页面加载初始化
+   ================================================================ */
+(async function init() {
+  updateAuthUI();
+  await loadQuestions();
+  updateCatChips();
+  filtered = questionsCache.slice();
+  updateHomeStats();
+  renderQ();
+  buildNav();
+})();
+</script>
+</body>
+</html>

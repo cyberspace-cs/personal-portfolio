@@ -1,0 +1,50 @@
+/* pages/index/index.wxss */
+.page { padding: 0 28rpx 60rpx; }
+.hero {
+  background: linear-gradient(135deg, rgba(59,91,219,.12), rgba(112,72,232,.08));
+  border-radius: 0 0 32rpx 32rpx; padding: 36rpx 32rpx 40rpx; margin: 0 -28rpx 32rpx;
+}
+.hero-top { display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 16rpx; }
+.mark {
+  width: 72rpx; height: 72rpx; border-radius: 20rpx; display: grid; place-items: center;
+  color: #fff; font-weight: 800; font-size: 38rpx;
+  background: linear-gradient(135deg, #3b5bdb, #5c7cfa); box-shadow: 0 8rpx 20rpx rgba(59,91,219,.35);
+}
+.logo-t .t1 { font-weight: 800; font-size: 34rpx; }
+.logo-t .t2 { font-size: 22rpx; color: var(--ink-3); }
+.streak-badge {
+  display: flex; align-items: center; gap: 6rpx; background: var(--amber-soft);
+  color: var(--amber); padding: 10rpx 20rpx; border-radius: 999rpx; font-weight: 700;
+}
+.streak-badge .fire { font-size: 28rpx; }
+.streak-badge .streak-n { font-size: 32rpx; }
+.streak-badge .streak-l { font-size: 22rpx; }
+.hero-sub { font-size: 26rpx; color: var(--ink-2); margin: 24rpx 0 24rpx; }
+.hero-cta { display: flex; gap: 16rpx; flex-wrap: wrap; }
+.hero-cta .btn { flex: 1; padding: 20rpx 0; }
+
+.stats { display: flex; justify-content: space-around; margin-bottom: 36rpx; }
+.stat { text-align: center; }
+.stat .n { font-size: 44rpx; font-weight: 800; color: var(--brand); }
+.stat .l { font-size: 22rpx; color: var(--ink-3); }
+
+.sec-title { font-size: 28rpx; font-weight: 800; margin: 12rpx 4rpx 20rpx; }
+.cats { display: flex; flex-direction: column; gap: 20rpx; }
+.cat-card {
+  display: flex; align-items: center; gap: 24rpx; background: var(--surface);
+  border-radius: var(--radius); padding: 28rpx; box-shadow: var(--shadow-sm);
+  border: 1rpx solid var(--line);
+}
+.cat-ico { width: 88rpx; height: 88rpx; border-radius: 20rpx; display: grid; place-items: center; font-size: 44rpx; }
+.cat-meta { flex: 1; }
+.cat-name { font-weight: 800; font-size: 32rpx; }
+.cat-desc { font-size: 24rpx; color: var(--ink-3); }
+.cat-count { font-size: 26rpx; font-weight: 700; color: var(--brand); }
+
+.deep { display: flex; align-items: center; justify-content: space-between; margin-top: 20rpx;
+  background: linear-gradient(135deg, #eaf0ff, #f0eaff); }
+.deep-t { font-weight: 800; font-size: 30rpx; }
+.deep-d { font-size: 24rpx; color: var(--ink-2); margin-top: 6rpx; }
+.deep-go { font-weight: 700; color: var(--brand); font-size: 28rpx; }
+.tip { text-align: center; font-size: 22rpx; color: var(--ink-3); margin-top: 40rpx; }

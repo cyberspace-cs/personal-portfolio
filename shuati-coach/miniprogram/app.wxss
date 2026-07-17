@@ -1,0 +1,38 @@
+/* app.wxss · 全局样式（与 H5 设计语言保持一致） */
+page {
+  --brand: #3b5bdb;
+  --brand-2: #5c7cfa;
+  --brand-soft: #eaf0ff;
+  --teal: #0ca678;
+  --teal-soft: #e3faf3;
+  --amber: #f08c00;
+  --amber-soft: #fff4e0;
+  --ink: #1a2340;
+  --ink-2: #4a5578;
+  --ink-3: #8a94b0;
+  --line: #e8ecf5;
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --radius: 16px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.6;
+}
+view, text, button { box-sizing: border-box; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8rpx;
+  padding: 22rpx 36rpx; border-radius: 14rpx; font-weight: 700; font-size: 30rpx;
+}
+.btn-primary { background: var(--brand); color: #fff; box-shadow: 0 8rpx 20rpx rgba(59,91,219,.3); }
+.btn-ghost { background: #fff; color: var(--ink); border: 1rpx solid var(--line); }
+.card {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: 0 8rpx 30rpx rgba(28,42,90,.08); padding: 32rpx;
+}
+.tag {
+  display: inline-block; font-size: 22rpx; font-weight: 700;
+  padding: 4rpx 16rpx; border-radius: 999rpx;
+}
+.tag-teal { background: var(--teal-soft); color: var(--teal); }
+.tag-amber { background: var(--amber-soft); color: var(--amber); }

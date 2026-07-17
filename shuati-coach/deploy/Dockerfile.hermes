@@ -1,0 +1,15 @@
+# Hermes Agent 镜像
+# 安装后通过 `hermes gateway` 拉起 OpenAI 兼容 API Server（默认端口 8642）
+FROM python:3.11-slim
+WORKDIR /root
+
+# 安装 Hermes Agent（若官方包名有变动，请以 NousResearch/hermes-agent 文档为准）
+RUN pip install --no-cache-dir hermes-agent || pip install --no-cache-dir "hermes-agent[all]"
+
+RUN mkdir -p /root/.hermes
+
+# 配置（.env / config.yaml）通过 docker-compose 的 volume 挂载进 /root/.hermes/
+# 首次若用 Nous Portal，请先在能交互的机器上 `hermes setup --portal` 完成 OAuth，
+# 再把生成的 ~/.hermes/{.env,config.yaml} 拷到 deploy/ 目录挂载。
+EXPOSE 8642
+CMD ["hermes", "gateway"]

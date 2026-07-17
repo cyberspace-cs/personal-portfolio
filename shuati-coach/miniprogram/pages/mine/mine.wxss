@@ -1,0 +1,39 @@
+/* pages/mine/mine.wxss */
+.page { padding: 28rpx; }
+.ucard { display: flex; align-items: center; gap: 24rpx; padding: 36rpx 28rpx; }
+.avatar {
+  width: 96rpx; height: 96rpx; border-radius: 28rpx; display: grid; place-items: center;
+  color: #fff; font-weight: 800; font-size: 44rpx;
+  background: linear-gradient(135deg, #7048e8, #5c7cfa); box-shadow: 0 8rpx 20rpx rgba(112,72,232,.3);
+}
+.u-name { font-size: 36rpx; font-weight: 800; }
+.u-id { font-size: 24rpx; color: var(--ink-3); }
+
+.streak-card { margin-top: 20rpx; }
+.sc-top { display: flex; align-items: center; justify-content: space-between; }
+.sc-n { font-size: 40rpx; font-weight: 800; color: var(--amber); }
+.sc-t { font-size: 24rpx; color: var(--ink-3); }
+.checkin-btn { padding: 16rpx 36rpx; font-size: 28rpx; }
+.checked { font-size: 26rpx; color: var(--teal); font-weight: 700; }
+.sc-days { display: flex; justify-content: space-between; margin-top: 28rpx; }
+.day {
+  width: 76rpx; height: 76rpx; border-radius: 16rpx; display: grid; place-items: center;
+  background: var(--line); color: var(--ink-3); font-size: 24rpx; font-weight: 700;
+}
+.day.on { background: var(--amber-soft); color: var(--amber); }
+
+.datacard { display: flex; justify-content: space-around; margin-top: 20rpx; }
+.d-item { text-align: center; }
+.dn { font-size: 44rpx; font-weight: 800; color: var(--brand); }
+.dl { font-size: 22rpx; color: var(--ink-3); }
+
+.menu { margin-top: 28rpx; display: flex; flex-direction: column; gap: 16rpx; }
+.m-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface); border-radius: var(--radius); padding: 30rpx 32rpx;
+  border: 1rpx solid var(--line); box-shadow: var(--shadow-sm);
+}
+.m-l { font-size: 30rpx; font-weight: 700; }
+.m-r { font-size: 26rpx; color: var(--ink-3); }
+
+.foot-note { text-align: center; font-size: 22rpx; color: var(--ink-3); margin-top: 48rpx; }

@@ -1,0 +1,22 @@
+<!-- pages/chat/chat.wxml · 问教练（Hermes Agent 驱动） -->
+<view class="page">
+  <view class="head">智能教练 · 由 Hermes Agent 驱动</view>
+
+  <scroll-view class="msgs" scroll-y="true" scroll-with-animation="true">
+    <view wx:if="{{messages.length === 0}}" class="empty">
+      试试问：「这道题的易错点在哪？」「帮我制定一周复习计划」「二叉树有哪几种遍历？」
+    </view>
+    <view wx:for="{{messages}}" wx:key="idx" class="msg {{item.role}}">
+      <view class="bubble">{{item.content}}</view>
+    </view>
+    <view wx:if="{{loading}}" class="msg assistant">
+      <view class="bubble">教练思考中…</view>
+    </view>
+  </scroll-view>
+
+  <view class="bar">
+    <input class="inp" value="{{input}}" bindinput="onInput"
+           placeholder="问任何备考问题…" confirm-type="send" bindconfirm="send" />
+    <button class="send" bindtap="send" disabled="{{loading}}">发送</button>
+  </view>
+</view>
