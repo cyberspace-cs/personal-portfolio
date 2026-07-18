@@ -8,6 +8,7 @@ export interface Translations {
   navProjects: string;
   navEducation: string;
   navContact: string;
+  navLearning: string;
 
   // Hero
   heroGreeting: string;
@@ -34,6 +35,11 @@ export interface Translations {
   projectsCode: string;
   projectsDemo: string;
 
+  // Learning
+  learningTitle: string;
+  learningSubtitle: string;
+  learningRead: string;
+
   // Education
   educationTitle: string;
 
@@ -58,6 +64,7 @@ export const translations: Record<Language, Translations> = {
     navProjects: 'Projects',
     navEducation: 'Education',
     navContact: 'Contact',
+    navLearning: 'Learning',
 
     // Hero
     heroGreeting: "Hello, I'm",
@@ -88,6 +95,11 @@ export const translations: Record<Language, Translations> = {
     projectsCode: 'Code',
     projectsDemo: 'Demo',
 
+    // Learning
+    learningTitle: 'Learning Resources',
+    learningSubtitle: 'Curated open-source courses and tutorials I am studying to deepen my LLM & Agent skills.',
+    learningRead: 'Read',
+
     // Education
     educationTitle: 'Education',
 
@@ -111,6 +123,7 @@ export const translations: Record<Language, Translations> = {
     navProjects: '项目',
     navEducation: '教育',
     navContact: '联系',
+    navLearning: '学习资料',
 
     // Hero
     heroGreeting: '你好，我是',
@@ -140,6 +153,11 @@ export const translations: Record<Language, Translations> = {
     projectsTitle: '精选项目',
     projectsCode: '代码',
     projectsDemo: '演示',
+
+    // Learning
+    learningTitle: '学习资料',
+    learningSubtitle: '我正在学习的开源课程与教程，用于深入大模型与智能体相关技能。',
+    learningRead: '阅读',
 
     // Education
     educationTitle: '教育背景',
