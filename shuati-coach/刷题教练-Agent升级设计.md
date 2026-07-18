@@ -166,7 +166,7 @@
 - **Phase A（已完成骨架）**：单 Agent + 工具调用（diagnose/wrongbook/plan/chat）+ 分层记忆 + `/api/agent/chat` 入口。
 - **Phase B（已落地）**：多轮对话深化 + 上下文预算（五段式）+ 长期记忆持久化（SQLite）。
 - **Phase C（已落地）**：RAG（知识点/考纲/错题检索 + 引用溯源 + 防幻觉）。
-- **Phase D**：多 Agent 编排（LangGraph Supervisor 路由）+ 反思 Agent 主动推送。
+- **Phase D（已落地）**：多 Agent 编排（LangGraph Supervisor 路由）+ 反思 Agent 主动推送。
 - **Phase E**：学习异常检测（AIOps 迁移）+ 评测闭环（命中率/引用率/幻觉率）。
 
 > 每个 Phase 完成后确认方向，再继续下一阶段（迭代沟通）。
@@ -234,4 +234,40 @@ Phase B 的 chat 仍是「纯生成」——基于单轮记忆自由作答，无
 - 冒烟（fallback，隔离 DB）：知识库 31 文档（28 知识点 + 3 考纲）；相关 query「概率统计 期望方差」命中且 top=topic 概率统计、带来源题 #1；无关 query「今天天气真好」正确拒答（bg_overlap=0）；用户错题动态注入成功；chat 分支 RAG 命中 + 五条引用 + 记忆落盘 2 轮 → 全部 PASS。
 
 ### 10.6 下一步建议
-Phase D（多 Agent 编排）：用 LangGraph 同构的 `StateGraph` 重写编排层，Supervisor 路由 diagnose/wrongbook/plan/rag_qa，并加「反思 Agent」在诊断/计划后主动补建议与预警。
+~~Phase D（多 Agent 编排）：用 LangGraph 同构的 `StateGraph` 重写编排层，Supervisor 路由 diagnose/wrongbook/plan/rag_qa，并加「反思 Agent」在诊断/计划后主动补建议与预警。~~（已在 Phase D 完成，见第 11 节）
+
+---
+
+## 11. Phase D 落地记录（2026-07-19）
+
+### 11.1 解决了什么
+Phase C 的编排仍是 `orchestrator.py` 里一段 `if/elif` 手写调度，子 Agent 之间无显式图关系、反思逻辑散落、无法扩展为多 Agent 协作。Phase D 引入 **LangGraph 同构的 StateGraph 编排层**：Supervisor 按意图路由子 Agent，统一进入「反思 Agent」做质量校验与主动建议。
+
+### 11.2 改动文件
+| 文件 | 改动 | 命中面试点 |
+|---|---|---|
+| `agent/supervisor.py`（新） | `StateGraph` / `CompiledGraph`：与 LangGraph **同构**的 API（`add_node`/`add_edge`/`add_conditional_edges`/`set_entry_point`/`set_finish_point`/`compile`/`invoke`）；节点为 `async fn(state)->dict`，引擎按边推进、条件边路由、带最大步数防环。生产可一键把 import 换为 `langgraph.graph.StateGraph` | Multi-Agent / Supervisor 编排 |
+| `agent/orchestrator.py` | `CoachAgent` 重构：意图分类/诊断/错题/计划/RAG问答/反思 拆成 6 个**节点**，用 `StateGraph` 组装（`classify → 条件边 → 子Agent → reflect`）；`handle` 只负责建 state + invoke + 记忆落盘 | 编排即代码 |
+| `main.py` | 版本升 `3.3.0-supervisor` | 部署可运维 |
+
+### 11.3 编排图（核心）
+```
+classify(Supervisor)
+   ├─ diagnose → reflect
+   ├─ wrongbook → reflect
+   ├─ plan → reflect
+   └─ chat → rag_qa → reflect
+reflect（反思 Agent）：按意图补一句主动建议/追问
+```
+- 反思 Agent 不是独立 LLM 调用，而是一个**确定性校验节点**：诊断后推计划、计划后推打卡、RAG 后推追问；保证每次响应都有「下一步动作」，符合 Step3「反思/校验」范式。
+- 真实场景可在 reflect 节点再挂一个 LLM 自评（如「回答是否基于引用、是否越界」），本实现以确定性规则保证零依赖可跑。
+
+### 11.4 关键修复（重要）
+初版 `invoke` 在循环**顶部**判断 `if cur == finish: break`，导致 finish 节点（reflect）**未执行即退出**——反思建议全部丢失。修正为「先执行节点、再判断终点」后，反思追加正常生效。该 bug 也提醒：编排引擎的「终点语义」必须区分「进入即停」与「执行后停」。
+
+### 11.5 验证
+- `py_compile` 全过。
+- 冒烟（fallback，隔离 DB）：四意图路由正确（diagnose/plan/chat→rag_qa/无关→rag_qa 拒答）；诊断/计划/答疑 三类响应均被反思节点成功追加建议；长期画像（last_diagnose/last_plan）落盘；短期记忆落盘 2 轮 → 全部 PASS。
+
+### 11.6 下一步建议
+Phase E（学习异常检测 + 评测闭环）：把 AIOps 的「指标突变/异常检测」迁移到「学习异常」（模块正确率骤降、连续断签、错题反复）；并建评测闭环（引用率/幻觉率/命中率），让 Agent 能力可量化。
