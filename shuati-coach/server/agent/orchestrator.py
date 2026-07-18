@@ -12,6 +12,7 @@ from agent.llm import call_llm, HAS_KEY
 from agent.tools import CoachTools
 from agent.memory import MemoryStore
 from agent.supervisor import StateGraph, END
+from agent.anomaly import LearningAnomalyDetector
 
 
 class CoachAgent:
@@ -53,8 +54,14 @@ class CoachAgent:
         diag = self.tools.diagnose(state["user_id"])
         mem.update_long("last_diagnose",
                         json.dumps([w["topic"] for w in diag["weak_topics"]], ensure_ascii=False))
-        return {"cards": {"weak": diag["weak_topics"]},
-                "reply": "已为你诊断出最薄弱的模块👇 建议优先吃透这些考点，再回来刷变式题巩固。"}
+        # 学习异常主动预警（AIOps 迁移）：诊断时一并扫描指标异常并主动推送
+        detector = LearningAnomalyDetector()
+        anomaly = detector.detect(state["user_id"])
+        alert = LearningAnomalyDetector.format_alert(anomaly)
+        return {"cards": {"weak": diag["weak_topics"], "anomaly": anomaly},
+                "anomaly_alert": alert,
+                "reply": ("已为你诊断出最薄弱的模块👇 建议优先吃透这些考点，再回来刷变式题巩固。\n\n"
+                          + alert)}
 
     async def _n_wrongbook(self, state):
         wb = self.tools.wrong_book(state["user_id"])
@@ -136,6 +143,8 @@ class CoachAgent:
         }
         if final.get("rag"):
             result["rag"] = final["rag"]
+        if final.get("anomaly_alert"):
+            result["anomaly_alert"] = final["anomaly_alert"]
         # 记忆落盘（短期多轮上下文，持久化）
         mem.add_turn("user", message)
         mem.add_turn("assistant", final.get("reply", ""))

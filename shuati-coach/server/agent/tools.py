@@ -95,7 +95,7 @@ class CoachTools:
         citations = self.retriever.format_citations(hits)
         if not res["relevant"]:
             # 防幻觉：检索相关性不足时明确拒答，绝不编造
-            return {
+            result = {
                 "source": "rag", "relevant": False,
                 "reply": ("抱歉，我在知识点库和你的错题里没找到足够相关的资料，"
                           "无法保证回答准确，先不瞎编啦～你可以换个更具体的问法，"
@@ -103,11 +103,15 @@ class CoachTools:
                 "citations": [],
                 "top_score": res["top_score"], "threshold": res["threshold"],
             }
+            self._record_rag(user_id, message, result)
+            return result
         if not HAS_KEY:
             reply = self._fallback_rag_answer(message, hits, citations)
-            return {"source": "rag-fallback", "relevant": True, "reply": reply,
-                    "citations": citations, "top_score": res["top_score"],
-                    "threshold": res["threshold"]}
+            result = {"source": "rag-fallback", "relevant": True, "reply": reply,
+                      "citations": citations, "top_score": res["top_score"],
+                      "threshold": res["threshold"]}
+            self._record_rag(user_id, message, result)
+            return result
         sys = ("你是「专属刷题教练」AI。下面是你检索到的知识点与用户错题（带编号引用）。"
                "请仅基于这些引用内容回答用户问题，在相关论断后标注 [n] 引用编号；"
                "若引用内容不足以回答，请明确说明，不要编造。语言通俗、面向备考学生。")
@@ -116,10 +120,21 @@ class CoachTools:
         )
         user = f"【检索到的参考知识】\n{knowledge}\n\n【上下文】\n{context}\n\n用户问题：{message}"
         text = await call_llm(sys, user, 800)
-        return {"source": "rag-llm", "relevant": True,
-                "reply": text or "教练开小差了，请稍后再问～",
-                "citations": citations, "top_score": res["top_score"],
-                "threshold": res["threshold"]}
+        result = {"source": "rag-llm", "relevant": True,
+                  "reply": text or "教练开小差了，请稍后再问～",
+                  "citations": citations, "top_score": res["top_score"],
+                  "threshold": res["threshold"]}
+        self._record_rag(user_id, message, result)
+        return result
+
+    @staticmethod
+    def _record_rag(user_id, message: str, result: dict) -> None:
+        """把每次 RAG 调用落入评测日志，形成可量化闭环（无 user_id 也记，便于离线评测）。"""
+        try:
+            from agent.eval import log_interaction
+            log_interaction(user_id, message, result)
+        except Exception:
+            pass  # 评测不应影响主链路
 
     def _fallback_rag_answer(self, message: str, hits: list, citations: list) -> str:
         top = hits[0]

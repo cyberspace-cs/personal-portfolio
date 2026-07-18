@@ -167,7 +167,7 @@
 - **Phase B（已落地）**：多轮对话深化 + 上下文预算（五段式）+ 长期记忆持久化（SQLite）。
 - **Phase C（已落地）**：RAG（知识点/考纲/错题检索 + 引用溯源 + 防幻觉）。
 - **Phase D（已落地）**：多 Agent 编排（LangGraph Supervisor 路由）+ 反思 Agent 主动推送。
-- **Phase E**：学习异常检测（AIOps 迁移）+ 评测闭环（命中率/引用率/幻觉率）。
+- **Phase E（已落地）**：学习异常检测（AIOps 迁移）+ 评测闭环（命中率/引用率/幻觉率）。
 
 > 每个 Phase 完成后确认方向，再继续下一阶段（迭代沟通）。
 
@@ -270,4 +270,46 @@ reflect（反思 Agent）：按意图补一句主动建议/追问
 - 冒烟（fallback，隔离 DB）：四意图路由正确（diagnose/plan/chat→rag_qa/无关→rag_qa 拒答）；诊断/计划/答疑 三类响应均被反思节点成功追加建议；长期画像（last_diagnose/last_plan）落盘；短期记忆落盘 2 轮 → 全部 PASS。
 
 ### 11.6 下一步建议
-Phase E（学习异常检测 + 评测闭环）：把 AIOps 的「指标突变/异常检测」迁移到「学习异常」（模块正确率骤降、连续断签、错题反复）；并建评测闭环（引用率/幻觉率/命中率），让 Agent 能力可量化。
+~~Phase E（学习异常检测 + 评测闭环）：把 AIOps 的「指标突变/异常检测」迁移到「学习异常」（模块正确率骤降、连续断签、错题反复）；并建评测闭环（引用率/幻觉率/命中率），让 Agent 能力可量化。~~（已在 Phase E 完成，见第 12 节）
+
+---
+
+## 12. Phase E 落地记录（2026-07-19）
+
+### 12.1 解决了什么
+Phase A-D 已具备「编排 + 工具 + 记忆 + RAG」，但仍是**被动响应**——用户问才答，且能力是黑盒无法量化。Phase E 补齐两块：
+- **主动性**：把 AIOps 的「指标异常检测」迁移到「学习异常」，Agent 在诊断时**主动扫描并预警**（正确率骤降 / 连续断签 / 错题反复）。
+- **可观测**：建评测闭环，把每次 RAG 调用落库聚合成「能力体检表」（命中率 / 引用率 / 拒答率 / 幻觉率），让 Agent 能力**可量化、可回归**。
+
+### 12.2 改动文件
+| 文件 | 改动 | 命中面试点 |
+|---|---|---|
+| `agent/anomaly.py`（新） | `LearningAnomalyDetector`：三类异常检测——① `accuracy_drop`（时间序列切 baseline/recent 比均值差，指标突降）② `streak_break`（打卡日期连续缺失天数，指标中断）③ `repeat_wrong`（error_count 阈值，指标反复抖动）；带 severity 分级 + 可解释建议 + `format_alert` 主动推送文案 | AIOps 异常检测迁移 / 主动 Agent |
+| `agent/eval.py`（新） | 评测闭环：`log_interaction` 每次 RAG 落库 → `evaluate` 聚合命中率/引用率/拒答率/幻觉率 + 分级 A/B/C；`run_self_eval` 内置样本自评估（无需真实流量即可演示） | LLM 评测 / 可观测性 |
+| `agent/tools.py` | `rag_qa` 三个返回点统一经 `_record_rag` 落评测日志（不影响主链路） | 埋点闭环 |
+| `agent/orchestrator.py` | `_n_diagnose` 节点接入异常检测，诊断即主动推送预警；`cards.anomaly` + `anomaly_alert` 随响应返回 | 主动编排 |
+| `agent/router.py` | 新增 `POST /api/agent/anomaly`（异常检测）、`POST /api/agent/eval?run_self=true`（评测闭环） | API 边界 |
+| `main.py` | 启动建 `agent_eval_log` 表；版本升 `3.4.0-anomaly` | 部署可运维 |
+
+### 12.3 AIOps → 学习异常 的迁移映射（核心讲法）
+| AIOps 指标异常 | 学习异常 | 检测手段 |
+|---|---|---|
+| 指标突降（如 QPS 骤跌） | 某知识点正确率骤降 | 时间序列切段比均值差，阈值+幅度分级 |
+| 指标中断/缺失 | 连续断签（打卡空窗） | 日期序列连续缺失天数（含当前空窗） |
+| 指标反复抖动 | 错题反复（顽固薄弱点） | error_count 阈值分级 |
+> 生产可无缝替换为 Z-score / EWMA / 孤立森林，`detect()` 接口保持同构。
+
+### 12.4 评测指标定义（可解释）
+- 命中率 `hit_rate` = 相关检索数 / 总调用；引用率 `citation_rate` = 带引用作答数 / 相关数；
+- 拒答率 `reject_rate` = 不相关拒答 / 总调用（防幻觉健康度）；
+- 幻觉率 `hallucination_rate` = 声称作答（source=rag-llm/rag-fallback）却不相关 / 总调用（设计目标 = 0）。
+
+### 12.5 关键修复（重要）
+初版幻觉判定把**拒答**样本（`source="rag"`，即未作答的正确防幻觉行为）误算为幻觉，导致 `hallucination_rate` 虚高。修正为**仅统计「声称作答却不相关」**（source ∈ {rag-llm, rag-fallback}），拒答不计。修复后自评估 `hallucination_rate=0`，符合防幻觉设计目标。这也提醒：评测指标的口径定义必须与「系统真实行为语义」严格对齐。
+
+### 12.6 验证
+- `py_compile` 全过、无 lint。
+- 冒烟（fallback，隔离 DB，造异常数据）：三类异常全部检出（正确率 90%→27% 骤降 high / 连续 7 天断签 high / 错 6 次反复 high）；诊断意图主动推送预警（`anomaly_alert` + `cards.anomaly`）；评测自评估 6 样本 → hit_rate=0.667、citation_rate=1.0、reject_rate=0.333、**hallucination_rate=0.0**、grade=C；评测日志持久化 → 全部 PASS。
+
+### 12.7 全 Phase 收官
+Phase A（Agent 基础包）→ B（SQLite 持久化记忆 + 五段式预算）→ C（RAG + 引用 + 防幻觉）→ D（LangGraph 同构编排 + 反思）→ E（学习异常检测 + 评测闭环）全部落地。项目已从「带 AI 的刷题工具」升级为**会编排、有记忆、能检索溯源、会反思、能主动预警、可量化评测**的定制化备考 Agent。
