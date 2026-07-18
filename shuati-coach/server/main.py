@@ -19,6 +19,10 @@ from models import (
     UserOut, UserRegister, WrongBookIn, WrongBookOut,
 )
 
+# 定制化备考 Agent（多智能体编排 / 工具调用 / 分层记忆）
+from agent.router import router as agent_router
+from agent.memory import ensure_tables as ensure_agent_tables
+
 # ---- AI 配置（全部来自环境变量，不写死任何密钥） ----
 AI_CONFIG = {
     "API_BASE": os.getenv("API_BASE", "https://api.openai.com/v1"),
@@ -97,9 +101,11 @@ from contextlib import asynccontextmanager
 async def lifespan(app):
     init_db()
     seed_questions()
+    ensure_agent_tables()   # 持久化 Agent 记忆表（长期画像 + 短期对话）
     yield
 
-app = FastAPI(title="专属刷题教练 API", version="2.0.0", lifespan=lifespan)
+app = FastAPI(title="专属刷题教练 API", version="3.1.0-agent-mem", lifespan=lifespan)
+app.include_router(agent_router)
 
 # CORS
 app.add_middleware(
