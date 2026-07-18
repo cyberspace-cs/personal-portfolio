@@ -84,3 +84,52 @@ class CoachTools:
                "不编造未提供的数据，不确定时诚实说明。")
         text = await call_llm(sys, context + "\n用户：" + message, 700)
         return {"source": "llm", "reply": text or "教练开小差了，请稍后再问～"}
+
+    # ⑤ RAG 问答：检索知识点/考纲/用户错题 → 引用溯源 → 低相关拒答（防幻觉）
+    async def rag_qa(self, message: str, context: str = "", user_id=None) -> dict:
+        if not hasattr(self, "retriever"):
+            from agent.retriever import KnowledgeRetriever
+            self.retriever = KnowledgeRetriever()
+        res = self.retriever.search(message, top_k=5, user_id=user_id)
+        hits = res["hits"]
+        citations = self.retriever.format_citations(hits)
+        if not res["relevant"]:
+            # 防幻觉：检索相关性不足时明确拒答，绝不编造
+            return {
+                "source": "rag", "relevant": False,
+                "reply": ("抱歉，我在知识点库和你的错题里没找到足够相关的资料，"
+                          "无法保证回答准确，先不瞎编啦～你可以换个更具体的问法，"
+                          "或先去刷几道相关题再来问。"),
+                "citations": [],
+                "top_score": res["top_score"], "threshold": res["threshold"],
+            }
+        if not HAS_KEY:
+            reply = self._fallback_rag_answer(message, hits, citations)
+            return {"source": "rag-fallback", "relevant": True, "reply": reply,
+                    "citations": citations, "top_score": res["top_score"],
+                    "threshold": res["threshold"]}
+        sys = ("你是「专属刷题教练」AI。下面是你检索到的知识点与用户错题（带编号引用）。"
+               "请仅基于这些引用内容回答用户问题，在相关论断后标注 [n] 引用编号；"
+               "若引用内容不足以回答，请明确说明，不要编造。语言通俗、面向备考学生。")
+        knowledge = "\n\n".join(
+            f"[{i+1}] {h['title']}\n{h['content']}" for i, h in enumerate(hits)
+        )
+        user = f"【检索到的参考知识】\n{knowledge}\n\n【上下文】\n{context}\n\n用户问题：{message}"
+        text = await call_llm(sys, user, 800)
+        return {"source": "rag-llm", "relevant": True,
+                "reply": text or "教练开小差了，请稍后再问～",
+                "citations": citations, "top_score": res["top_score"],
+                "threshold": res["threshold"]}
+
+    def _fallback_rag_answer(self, message: str, hits: list, citations: list) -> str:
+        top = hits[0]
+        snippet = top["content"]
+        if len(snippet) > 220:
+            snippet = snippet[:220] + "…"
+        head = (f"根据检索到的资料，关于「{top['topic']}」（{top['cat']}）"
+                f"可以这样理解：\n{snippet}\n")
+        tail = ("建议结合你的错题进一步练习，遇到具体题目可以让我帮你讲透。"
+                if top.get("kind") == "user_wrong" else
+                "建议把相关错题加入错题本，按遗忘曲线复习巩固。")
+        cite_block = "\n".join(citations)
+        return f"{head}\n{tail}\n\n📚 参考来源：\n{cite_block}"

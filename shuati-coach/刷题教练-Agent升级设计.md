@@ -165,7 +165,7 @@
 
 - **Phase A（已完成骨架）**：单 Agent + 工具调用（diagnose/wrongbook/plan/chat）+ 分层记忆 + `/api/agent/chat` 入口。
 - **Phase B（已落地）**：多轮对话深化 + 上下文预算（五段式）+ 长期记忆持久化（SQLite）。
-- **Phase C**：RAG（知识点/考纲/错题检索 + 引用溯源 + 防幻觉）。
+- **Phase C（已落地）**：RAG（知识点/考纲/错题检索 + 引用溯源 + 防幻觉）。
 - **Phase D**：多 Agent 编排（LangGraph Supervisor 路由）+ 反思 Agent 主动推送。
 - **Phase E**：学习异常检测（AIOps 迁移）+ 评测闭环（命中率/引用率/幻觉率）。
 
@@ -203,4 +203,35 @@ Phase A 的记忆是**纯内存**（dict/deque），服务重启即丢、跨会�
 - 冒烟测试（fallback 模式，无 Key）覆盖：持久化跨实例读取、滑窗截断、五段式上下文拼接、`CoachAgent.handle` 全意图（diagnose/plan/chat）并验证长期画像落盘 → 全部 PASS。
 
 ### 9.5 下一步建议
-Phase C（RAG）：把"讲题/答疑"从单题升级为检索知识点体系+考纲+错题后作答，并标注引用来源、低相关拒答（防幻觉）。这是命中「LLM 算法优化 / RAG / 事实核查」岗的最强单点。
+~~Phase C（RAG）：把"讲题/答疑"从单题升级为检索知识点体系+考纲+错题后作答，并标注引用来源、低相关拒答（防幻觉）。这是命中「LLM 算法优化 / RAG / 事实核查」岗的最强单点。~~（已在 Phase C 完成，见第 10 节）
+
+---
+
+## 10. Phase C 落地记录（2026-07-19）
+
+### 10.1 解决了什么
+Phase B 的 chat 仍是「纯生成」——基于单轮记忆自由作答，无法引用**知识点体系 / 考纲 / 用户错题**，且存在幻觉风险（无事实约束）。Phase C 引入 **RAG 检索 + 引用溯源 + 低相关拒答**，让答疑「有据可依、无据拒答」。
+
+### 10.2 改动文件
+| 文件 | 改动 | 命中面试点 |
+|---|---|---|
+| `agent/retriever.py`（新） | `TfidfIndex`（纯 Python TF-IDF + 2-gram 关键词召回 + **RRF 融合重排**）；`KnowledgeRetriever`（语料=知识点聚合+三套考纲+用户错题动态注入；`search` 返回 hits 含引用信息；`format_citations` 生成 [1][2] 引用） | RAG + 重排 + 引用溯源 |
+| `agent/tools.py` | 新增 `rag_qa()`：检索→若相关则注入引用让 LLM 作答（标注 [n]）/ 无 Key 走模板作答并附来源；**不相关则明确拒答，绝不编造** | Tool Use + 事实核查 |
+| `agent/orchestrator.py` | chat 分支改为走 `rag_qa`，回传 `rag={relevant,citations,top_score,threshold,source}` | 编排 + RAG 闭环 |
+| `agent/router.py` | 新增 `POST /api/agent/rag` 独立 RAG 端点（便于演示/评测） | API 边界 |
+| `main.py` | 版本升 `3.2.0-rag` | 部署可运维 |
+
+### 10.3 防幻觉设计（核心）
+- 相关判据**仅依赖中文 2-gram 关键词真实命中**（`bg_overlap >= 1`）；纯 TF-IDF 的 `sim` 仅用于 RRF 排序，**不单独触发相关**——彻底规避「常见字导致高相似度虚高误判」。
+- 无关键词重叠 → `relevant=False` → 返回拒答文案（"没找到足够相关资料，先不瞎编"），不调用 LLM 编造。
+- 有 Key 时，系统提示强制「仅基于引用内容作答，论断标 [n]，不足则明说」。
+
+### 10.4 RRF 融合重排
+两路召回各自排序后融合：`score = Σ 1/(K+rank)`，K=60。语义路（TF-IDF 余弦）+ 关键词路（2-gram 重叠）。生产可替换为「向量库 + BM25 + RRF」同构（设计稿第 5.2 节）。
+
+### 10.5 验证
+- `py_compile` 全过。
+- 冒烟（fallback，隔离 DB）：知识库 31 文档（28 知识点 + 3 考纲）；相关 query「概率统计 期望方差」命中且 top=topic 概率统计、带来源题 #1；无关 query「今天天气真好」正确拒答（bg_overlap=0）；用户错题动态注入成功；chat 分支 RAG 命中 + 五条引用 + 记忆落盘 2 轮 → 全部 PASS。
+
+### 10.6 下一步建议
+Phase D（多 Agent 编排）：用 LangGraph 同构的 `StateGraph` 重写编排层，Supervisor 路由 diagnose/wrongbook/plan/rag_qa，并加「反思 Agent」在诊断/计划后主动补建议与预警。
