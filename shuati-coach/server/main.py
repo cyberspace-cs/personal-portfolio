@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 
 from database import get_db, init_db, DB_DIR
 from models import (
-    ExamRecordIn, ExamRecordOut, ExplainIn, GenIn, MasteryOut, QuestionOut,
+    ChatIn, ExamRecordIn, ExamRecordOut, ExplainIn, GenIn, MasteryOut, QuestionOut,
     QuizRecordIn, QuizRecordOut, ReportIn, StreakOut, UserLogin,
     UserOut, UserRegister, WrongBookIn, WrongBookOut,
 )
@@ -27,6 +27,15 @@ AI_CONFIG = {
 }
 HAS_KEY = bool(AI_CONFIG["API_KEY"])
 print(f"[coach-ai] AI 模式： {'真实大模型' if HAS_KEY else '降级模式（无需 Key，前端功能不受影响）'}")
+
+# Hermes Agent（智能答疑转发，内网代理，绝不公网暴露）
+HERMES_CONFIG = {
+    "BASE": os.getenv("HERMES_BASE", ""),
+    "KEY": os.getenv("HERMES_KEY", "") or os.getenv("HERMES_API_KEY", ""),
+    "MODEL": os.getenv("HERMES_MODEL", "hermes-agent"),
+}
+HAS_HERMES = bool(HERMES_CONFIG["BASE"] and HERMES_CONFIG["KEY"])
+print(f"[coach-ai] Hermes 答疑： {'已接入' if HAS_HERMES else '未接入（/api/chat 走降级文案）'}")
 
 # 简易内存缓存（按 prompt 指纹）
 _AI_CACHE: dict[str, tuple[float, dict]] = {}
