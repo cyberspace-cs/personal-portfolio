@@ -46,6 +46,16 @@ export interface Education {
   research?: LocalizedString;
 }
 
+export interface LearningResource {
+  name: LocalizedString;
+  description: LocalizedString;
+  org: string;
+  topics: string[];
+  github: string;
+  website?: string;
+  icon: string;
+}
+
 export interface PersonalInfo {
   name: LocalizedString;
   title: LocalizedString;
@@ -219,5 +229,32 @@ export const education: Education[] = [
     major: { en: "Cybersecurity", zh: "网络空间安全" },
     period: { en: "2018.09 - 2022.06", zh: "2018.09 - 2022.06" },
     honors: { en: "National First Prize in Information Security Competition", zh: "全国大学生信息安全竞赛一等奖（国家级）" },
+  },
+];
+
+export const learningResources: LearningResource[] = [
+  {
+    name: { en: "Happy-LLM", zh: "Happy-LLM 大模型教程" },
+    description: {
+      en: "Datawhale's open-source course 'Build LLMs from Scratch' — from Transformer principles to pretraining, SFT, RLHF alignment and deployment.",
+      zh: "Datawhale 开源教程《从零开始构建大模型》——从 Transformer 原理到预训练、微调(SFT)、对齐(RLHF)与部署落地。",
+    },
+    org: "Datawhale",
+    topics: ["Transformer", "Pretraining", "SFT", "RLHF", "RAG", "Deployment"],
+    github: "https://github.com/datawhalechina/happy-llm",
+    website: "https://github.com/datawhalechina/happy-llm",
+    icon: "book-open",
+  },
+  {
+    name: { en: "Hello-Agents", zh: "Hello-Agents 智能体教程" },
+    description: {
+      en: "Datawhale's 'Build Agents from Scratch' — principles and practice of LLM-powered agents: tool use, memory, planning and multi-agent collaboration.",
+      zh: "Datawhale《从零开始构建智能体》——智能体原理与实践，覆盖工具调用、记忆机制、规划推理与多智能体协作。",
+    },
+    org: "Datawhale",
+    topics: ["Agent", "Tool Use", "Memory", "Planning", "Multi-Agent"],
+    github: "https://github.com/datawhalechina/hello-agents",
+    website: "https://github.com/datawhalechina/hello-agents",
+    icon: "bot",
   },
 ];
