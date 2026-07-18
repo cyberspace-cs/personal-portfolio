@@ -1,0 +1,8 @@
+[submodule "public/learning/happy-llm"]
+	path = public/learning/happy-llm
+	url = https://github.com/datawhalechina/happy-llm.git
+	branch = main
+[submodule "public/learning/hello-agents"]
+	path = public/learning/hello-agents
+	url = https://github.com/datawhalechina/hello-agents.git
+	branch = main

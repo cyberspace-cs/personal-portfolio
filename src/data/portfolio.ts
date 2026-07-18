@@ -242,7 +242,7 @@ export const learningResources: LearningResource[] = [
     org: "Datawhale",
     topics: ["Transformer", "Pretraining", "SFT", "RLHF", "RAG", "Deployment"],
     github: "https://github.com/datawhalechina/happy-llm",
-    website: "https://github.com/datawhalechina/happy-llm",
+    website: "/learning/happy-llm/README.md",
     icon: "book-open",
   },
   {
@@ -254,7 +254,7 @@ export const learningResources: LearningResource[] = [
     org: "Datawhale",
     topics: ["Agent", "Tool Use", "Memory", "Planning", "Multi-Agent"],
     github: "https://github.com/datawhalechina/hello-agents",
-    website: "https://github.com/datawhalechina/hello-agents",
+    website: "/learning/hello-agents/README.md",
     icon: "bot",
   },
 ];
