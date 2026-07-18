@@ -55,3 +55,24 @@ async def agent_rag(data: AgentChatIn):
         "source": rag.get("source"),
         "session_id": data.session_id,
     }
+
+
+@router.post("/api/agent/anomaly")
+async def agent_anomaly(data: AgentChatIn):
+    """学习异常检测（AIOps 迁移）：扫描正确率骤降/连续断签/错题反复，主动预警。"""
+    from agent.anomaly import LearningAnomalyDetector
+    detector = LearningAnomalyDetector()
+    result = detector.detect(data.user_id)
+    result["alert_text"] = LearningAnomalyDetector.format_alert(result)
+    return result
+
+
+@router.post("/api/agent/eval")
+async def agent_eval(data: AgentChatIn, run_self: bool = False):
+    """评测闭环：聚合 RAG 调用样本，输出引用率/幻觉率/命中率等能力体检表。
+
+    可选 ?run_self=true 先跑内置自评估样本再聚合（无需真实流量即可演示）。
+    """
+    from agent.eval import run_self_eval, evaluate
+    metrics = run_self_eval() if run_self else evaluate()
+    return {"eval": metrics, "ran_self_eval": run_self}

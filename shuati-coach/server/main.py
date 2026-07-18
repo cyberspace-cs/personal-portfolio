@@ -22,6 +22,7 @@ from models import (
 # 定制化备考 Agent（多智能体编排 / 工具调用 / 分层记忆）
 from agent.router import router as agent_router
 from agent.memory import ensure_tables as ensure_agent_tables
+from agent.eval import ensure_eval_table
 
 # ---- AI 配置（全部来自环境变量，不写死任何密钥） ----
 AI_CONFIG = {
@@ -102,9 +103,10 @@ async def lifespan(app):
     init_db()
     seed_questions()
     ensure_agent_tables()   # 持久化 Agent 记忆表（长期画像 + 短期对话）
+    ensure_eval_table()      # 评测闭环日志表
     yield
 
-app = FastAPI(title="专属刷题教练 API", version="3.3.0-supervisor", lifespan=lifespan)
+app = FastAPI(title="专属刷题教练 API", version="3.4.0-anomaly", lifespan=lifespan)
 app.include_router(agent_router)
 
 # CORS
