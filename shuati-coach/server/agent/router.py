@@ -33,3 +33,25 @@ async def agent_session_clear(data: AgentChatIn):
     from agent.memory import MemoryStore
     MemoryStore(data.user_id, data.session_id).clear_session()
     return {"ok": True, "session_id": data.session_id}
+
+
+@router.post("/api/agent/rag")
+async def agent_rag(data: AgentChatIn):
+    """RAG 问答：检索知识点/考纲/用户错题后作答，标注引用来源，低相关拒答（防幻觉）。"""
+    from agent.memory import MemoryStore
+    mem = MemoryStore(data.user_id, data.session_id)
+    last_diagnose = mem.get_long("last_diagnose") or ""
+    context = mem.build_context(data.message, last_diagnose)
+    rag = await _agent.tools.rag_qa(data.message, context, data.user_id)
+    mem.add_turn("user", data.message)
+    mem.add_turn("assistant", rag.get("reply", ""))
+    return {
+        "intent": "rag",
+        "reply": rag.get("reply", ""),
+        "relevant": rag.get("relevant"),
+        "citations": rag.get("citations", []),
+        "top_score": rag.get("top_score"),
+        "threshold": rag.get("threshold"),
+        "source": rag.get("source"),
+        "session_id": data.session_id,
+    }

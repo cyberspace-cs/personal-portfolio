@@ -74,16 +74,18 @@ class CoachAgent:
             result["cards"] = {"plan": plan}
             result["reply"] = "已基于你的真实掌握度生成冲刺计划👇 我会在后续对话里持续跟进你的进度。"
 
-        else:  # chat
-            # 五段式上下文预算拼接（持久化记忆注入）
-            tool_summary = last_diagnose
-            context = mem.build_context(message, tool_summary)
-            chat = await self.tools.chat(message, context)
-            result["reply"] = chat.get("reply", "")
-            if chat.get("source") == "llm":
-                result["source_detail"] = "llm"
-            else:
-                result["source_detail"] = "fallback"
+        else:  # chat → RAG 问答（检索知识点/考纲/错题 + 引用溯源 + 防幻觉）
+            context = mem.build_context(message, last_diagnose)
+            rag = await self.tools.rag_qa(message, context, user_id)
+            result["reply"] = rag.get("reply", "")
+            result["rag"] = {
+                "relevant": rag.get("relevant"),
+                "citations": rag.get("citations", []),
+                "top_score": rag.get("top_score"),
+                "threshold": rag.get("threshold"),
+                "source": rag.get("source"),
+            }
+            result["source_detail"] = rag.get("source", "rag")
 
         # 记忆更新（短期多轮上下文，持久化）
         mem.add_turn("user", message)
