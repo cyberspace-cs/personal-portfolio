@@ -104,7 +104,7 @@ async def lifespan(app):
     ensure_agent_tables()   # 持久化 Agent 记忆表（长期画像 + 短期对话）
     yield
 
-app = FastAPI(title="专属刷题教练 API", version="3.2.0-rag", lifespan=lifespan)
+app = FastAPI(title="专属刷题教练 API", version="3.3.0-supervisor", lifespan=lifespan)
 app.include_router(agent_router)
 
 # CORS
