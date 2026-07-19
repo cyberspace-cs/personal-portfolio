@@ -145,6 +145,7 @@ Audit-AIOPS/
 │   ├── parallel.py           # ★算法侧概念仿真：企业级并行（模型/流水/上下文/GPU显存）+蒸馏压缩组合预算
 │   ├── graph_rag.py          # ★检索侧真实实测：图 RAG（LightRAG 思路：实体共现图+双层检索），三层 RRF 融合
 │   ├── prompt_cache.py       # ★算法侧真实实测：Prompt/前缀 KV-Cache 强化（命中率/省 token/省 prefill 时延），纯numpy/CPU
+│   ├── rl_alignment.py        # ★强化学习对齐：DPO/PPO/GRPO 偏好优化 numpy 仿真（上下游关系+策略对比），纯numpy/CPU
 │   └── evaluate.py           #   意图识别评测（数据飞轮）
 ├── docs/optimization.md      # 推理优化技术栈（逐条对应代码/实测数据）
 ├── docs/enterprise-parallel-compression.md  # ★企业级并行+蒸馏压缩核心主线（算法核心）

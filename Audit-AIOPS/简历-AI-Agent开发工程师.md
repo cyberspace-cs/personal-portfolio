@@ -15,7 +15,7 @@
 - **语言/框架**：Python、FastAPI、Pydantic、异步（asyncio/httpx）、TypeScript/原生前端
 - **Agent / LLM**：Agent 编排（ReAct 式意图识别→拆单→路由→记忆）、可插拔 LLM（混元 / 通义千问 OpenAI 兼容）、Prompt Engineering
 - **检索 / RAG**：混合检索（TF-IDF + FAISS 向量 + RRF 融合）、**图 RAG（实体共现图 + 双层检索，第三路）**、**多模态 RAG（表格/截图统一检索，RAG-Anything 思路）**、可溯源生成、离线确定性向量
-- **模型优化**：LoRA/QLoRA 微调、4/8-bit 量化、知识蒸馏、应用层 KV/Prompt Cache、前缀 KV-Cache 强化、请求路由
+- **模型优化**：LoRA/QLoRA 微调、4/8-bit 量化、知识蒸馏、应用层 KV/Prompt Cache、前缀 KV-Cache 强化、请求路由、强化学习对齐（PPO/DPO/GRPO）
 - **工程化**：Docker / docker-compose、Nginx + HTTPS、MCP 适配、OA/MCP 打通、CI 友好
 - **工具链**：Git、Linux、Postman/curl、pytest、数据飞轮（dataset→train→evaluate）
 
@@ -55,8 +55,9 @@
    - **Prompt/前缀 KV-Cache 强化（呼应黄超成本控制，吸收 nanobot）**（`sft/prompt_cache.py`，纯 numpy/CPU）：仿真审计运维「长稳定系统前缀 + 短多变 query」流量，同一前缀二次起复用 prefill KV、跳过前缀重算；实测 **5 业务域 × 2000 请求：命中率 99.75%、省 token 占全量 92.4%、TTFT（首字延迟）↓87.7%、月省 ¥1,496 prefill 算力**；与 `cache.py` 应用层精确+语义响应缓存构成**两层缓存架构**（`/api/opt/prompt-cache-report`、实验台 §9 命中率/省 token/累计节省曲线）。
    - **Agent 技能中心（吸收 OpenSpace「skill 进化」）**（`app/skills/registry.py`）：领域技能注册表（9 技能：审批路由/工单拆单/知识问答/监控告警/服务目录/工单推进/审计留痕/语音入口/OA-CLI 原生工具），每技能含触发意图、是否需双人审批、工具、版本与演进来源；编排层 `resolve_skills()` 实时映射、零改动增删能力；审批技能与双人审批+Checkpoint 对齐（`/api/skills`、演示页 `/agent-demo.html` 🧩 技能中心面板）。
    - **CLI-native OA 工具层（吸收 CLI-Anything）**（`app/services/oa_mcp.py` 的 `OA_TOOLS`）：把 OA 审批/工单/目录/告警封装为 6 个 CLI 式命令（如 `oa approval submit --type ukey --applicant 张三`），Agent 像在终端敲命令一样原生驱动 OA，比 GUI 自动化更稳、更省 token、可审计；`call_oa_tool(name,args)` 即一次 CLI 调用，背后由 OA-MCP 适配层（MockOAClient/McpOAClient）执行；新增 `oa_cli` 技能（演进来源 `CLI-Anything`），端点 `/api/tools`、`POST /api/tools/invoke`、演示页 `/agent-demo.html` ⌨️ 面板（详见 `docs/cli-native.md`）。
-   - 大模型上线路线：训练侧 **QLoRA**、推理侧 **4/8-bit 量化**（`quantize.py`）、**大模型蒸馏模板**（`distill.py`）。
-   - 一句话：**蒸馏 / 量化 / 剪枝 / 投机解码 / 缓存 五条优化线全部端到端真跑、可当场复现**（纯 numpy / CPU 秒级），非 GPU 模板或概念。
+   - **强化学习对齐讲解（PPO→DPO→GRPO，呼应对齐上下游关系）**（`sft/rl_alignment.py`，纯 numpy/CPU 秒级）：在一张统一 2D 偏好测试台上真跑三法并比较——DPO 100%/3 步收敛最稳（离线偏好+隐式奖励、只 2 模型）、GRPO 92.5%/5 步（去 value 网络、适合可验证奖励）、PPO 85%/15 步（在线 RL 需 4 模型、本玩具未激发其探索上限）；讲清 `Pretrain→SFT→(RM)→对齐→部署优化` 单向依赖链，定位本项目在最下游（把对齐好的模型低成本 serve）；端点 `/api/opt/rl-report`、讲解页 `/rl-alignment.html`（上下游流水线图+策略对比表+仿真曲线，详见 `docs/rl-alignment.md`）。
+   - 大模型上线路线：训练侧 **QLoRA**、推理侧 **4/8-bit 量化**（`quantize.py`）、**大模型蒸馏模板**（`distill.py`）、**RLHF 对齐（PPO/DPO/GRPO）**。
+   - 一句话：**蒸馏 / 量化 / 剪枝 / 投机解码 / 缓存 / 强化学习对齐 六条线全部端到端真跑、可当场复现**（纯 numpy / CPU 秒级），非 GPU 模板或概念。
 5. **语音 + OA 真实打通**：ASR 适配层（FunASR 预留）+ OA/MCP 适配层（适配器模式，可切真实 OA），
    审批流从"对话"直达"责任人与截止时间"。
 6. **一键部署与可演示**：FastAPI + Dockerfile + docker-compose；政务蓝白前端原型 6 个演示页
