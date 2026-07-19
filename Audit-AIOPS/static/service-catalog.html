@@ -41,6 +41,11 @@
   .card p{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
   .card .badge{position:absolute;top:13px;right:13px;font-size:10px;background:#fff;border:1px solid var(--line);color:var(--muted);padding:2px 8px;border-radius:10px}
   .card .badge.auto{color:#0e7490;border-color:#b6e8f0;background:#e3f7fb}
+  .card .kv{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+  .card .kv span{font-size:10.5px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);padding:2px 7px;border-radius:7px}
+  .card .pp{font-size:11.5px;color:#b45309;background:#fef9ee;border-radius:8px;padding:8px 10px;margin-top:10px;line-height:1.5}
+  .card .ai{font-size:11.5px;color:#0e4a8c;background:#eef7ff;border-radius:8px;padding:8px 10px;margin-top:8px;line-height:1.5}
+  .card .ai b{color:var(--c-primary)}
   .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:26px}
 </style>
 </head>
@@ -70,19 +75,32 @@ const ICONS={"ukey":"🔑","perm":"👤","mail":"✉️","resource":"💾","ups"
 async function load(){
   try{
     const d=await (await fetch("/api/catalog")).json();
-    document.getElementById("total").textContent=`共 ${d.total} 项服务 · 覆盖 10 类审计支持 + 3 类运维`;
+    document.getElementById("total").textContent=`共 ${d.total} 项服务 · 覆盖 10 类审计支持 + 3 类运维（蓝鲸经验细化）`;
     const groups={};
     d.items.forEach(it=>{(groups[it.group]=groups[it.group]||[]).push(it);});
     const host=document.getElementById("groups");
     host.innerHTML=Object.entries(groups).map(([g,items])=>`
       <div class="group"><h3>${g}<span class="tag">${items.length} 项</span></h3>
-      <div class="grid">${items.map(it=>`
-        <div class="card" onclick="location.href='/'">
-          <span class="badge ${it.automated?'auto':''}">${it.automated?'自动化':'需审批'}</span>
+      <div class="grid">${items.map(it=>{
+        const sla=it.sla_hours?Object.entries(it.sla_hours).map(([k,v])=>`${k}≤${v}h`).join(' / '):'—';
+        const mon=(it.monitor_metrics||[]).map(m=>`<span>${m}</span>`).join('');
+        const link=it.category==='ops'?"location.href='/ops-console.html'":"location.href='/'";
+        return `
+        <div class="card" onclick="${link}">
+          <span class="badge ${it.automated?'auto':''}">${it.automated?'可自动化':'需审批'}</span>
           <div class="ic">${ICONS[it.id]||'📋'}</div>
           <h4>${it.name}</h4>
           <p>${it.desc}</p>
-        </div>`).join("")}</div></div>`).join("");
+          <div class="kv">
+            <span class="${it.self_service?'':''}" style="${it.self_service?'background:#e3f7fb;color:#0e7490;border-color:#b6e8f0':''}">${it.self_service?'门户自助':'人工分派'}</span>
+            ${it.monthly_volume?`<span style="background:#f1ebfd;color:#7c3aed;border-color:#ddd6fe">月单 ${it.monthly_volume}</span>`:''}
+            <span>SLA ${sla}</span>
+          </div>
+          ${mon?`<div class="kv">${mon}</div>`:''}
+          ${it.pain_point?`<div class="pp"><b>痛点：</b>${it.pain_point}</div>`:''}
+          ${it.ai_value?`<div class="ai"><b>AI 价值：</b>${it.ai_value}</div>`:''}
+        </div>`;
+      }).join("")}</div></div>`).join("");
   }catch(e){console.error(e);}
 }
 load();

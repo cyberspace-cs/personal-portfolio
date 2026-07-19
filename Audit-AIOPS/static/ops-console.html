@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>审计智能运维 · 运维控制台</title>
+<style>
+  :root{
+    --c-primary:#1858c9; --c-primary-deep:#0e3a8c; --c-primary-hover:#2e6fd6;
+    --c-accent:#22b8cf; --c-accent-2:#38bdf8;
+    --bg:#eef3f9; --surface:#ffffff; --surface-2:#f6f9fd;
+    --line:#e3ebf5; --text:#16243a; --muted:#64748b;
+    --ok:#16a34a; --warn:#f59e0b; --err:#e11d48; --purple:#7c3aed;
+    --shadow:0 6px 22px rgba(20,52,108,.08); --shadow-sm:0 2px 8px rgba(20,52,108,.06);
+    --radius:14px; --font:"PingFang SC","Microsoft YaHei",-apple-system,"Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--text);background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(56,189,248,.10), transparent 60%),
+      radial-gradient(900px 400px at 0% 0%, rgba(24,88,201,.08), transparent 55%), var(--bg);
+    min-height:100vh;font-size:14px}
+  .top{height:60px;background:linear-gradient(100deg,var(--c-primary-deep) 0%,var(--c-primary) 55%,#1f6fdc 100%);
+    color:#fff;display:flex;align-items:center;padding:0 22px;position:sticky;top:0;z-index:20;
+    box-shadow:0 2px 16px rgba(14,58,140,.25)}
+  .top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--c-accent-2),var(--c-accent),transparent);opacity:.8}
+  .brand{display:flex;align-items:center;gap:12px}
+  .emblem{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center;
+    border:1px solid rgba(255,255,255,.25)}
+  .brand h1{font-size:16px;font-weight:700}
+  .brand p{font-size:11px;opacity:.82;letter-spacing:2px;margin-top:2px}
+  .top a.back{margin-left:auto;color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,.14);
+    padding:8px 15px;border-radius:9px;border:1px solid rgba(255,255,255,.2)}
+  .top .live{margin-left:16px;display:flex;align-items:center;gap:7px;font-size:12px;background:rgba(255,255,255,.12);
+    padding:6px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.2)}
+  .live .d{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(22,163,74,.18);animation:p2 2s infinite}
+  @keyframes p2{0%{box-shadow:0 0 0 0 rgba(22,163,74,.4)}70%{box-shadow:0 0 0 7px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
+
+  .wrap{max-width:1480px;margin:18px auto;padding:0 22px}
+
+  /* KPI 条 */
+  .kpis{display:grid;grid-template-columns:repeat(9,1fr);gap:12px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 14px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(var(--c-primary),var(--c-accent))}
+  .kpi .k{font-size:11.5px;color:var(--muted)}
+  .kpi .v{font-size:21px;font-weight:800;margin-top:5px}
+  .kpi .v small{font-size:12px;font-weight:600;color:var(--muted)}
+  .kpi .s{font-size:10.5px;color:var(--muted);margin-top:2px}
+  .kpi.g::before{background:linear-gradient(var(--ok),#4ade80)}
+  .kpi.w::before{background:linear-gradient(var(--warn),#fbbf24)}
+  .kpi.e::before{background:linear-gradient(var(--err),#fb7185)}
+
+  /* 区块卡 */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-top:16px;overflow:hidden}
+  .card-h{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .card-h .t{font-size:15px;font-weight:700;display:flex;align-items:center;gap:9px}
+  .tag{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600}
+  .tag.blue{background:#e8f0fe;color:var(--c-primary)} .tag.green{background:#e7f7ee;color:var(--ok)}
+  .tag.cyan{background:#e3f7fb;color:#0e7490} .tag.gray{background:#eef2f7;color:var(--muted)}
+
+  /* 多用户智能体 */
+  .agents{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;padding:16px}
+  .agent{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:15px;position:relative;transition:.18s}
+  .agent:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:#c7dbff}
+  .agent .av{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:16px;
+    background:linear-gradient(135deg,var(--c-primary),var(--c-accent-2))}
+  .agent .nm{font-size:14px;font-weight:700;margin-top:10px;display:flex;align-items:center;gap:7px}
+  .agent .on{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+  .agent .on.off{background:var(--muted)}
+  .agent .tm{font-size:11px;color:var(--muted)}
+  .agent .row{display:flex;justify-content:space-between;font-size:12px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+  .agent .row b{font-size:15px}
+  .agent .sc{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+  .agent .sc span{font-size:10px;background:#e8f0fe;color:var(--c-primary);padding:2px 7px;border-radius:8px}
+
+  /* tabs */
+  .tabs{display:flex;gap:6px;padding:14px 18px 0}
+  .tabs .tb{font-size:13.5px;padding:9px 16px;border-radius:10px 10px 0 0;cursor:pointer;color:var(--muted);border:1px solid transparent;border-bottom:none;font-weight:600}
+  .tabs .tb.active{color:var(--c-primary);background:var(--surface-2);border-color:var(--line)}
+  .panel{display:none;padding:18px}
+  .panel.active{display:block;background:var(--surface-2)}
+
+  /* filters */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .filters select,.filters input{font-size:13px;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);outline:none}
+  .filters .reset{background:var(--c-primary);color:#fff;border:none;padding:8px 14px;border-radius:9px;cursor:pointer;font-weight:600}
+
+  /* ticket / alert list */
+  .list{display:flex;flex-direction:column;gap:10px}
+  .item{background:#fff;border:1px solid var(--line);border-radius:11px;padding:13px 15px;display:flex;gap:14px;align-items:flex-start;box-shadow:var(--shadow-sm)}
+  .item .pri{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;flex:none}
+  .pri.P0{background:var(--err)} .pri.P1{background:#f97316} .pri.P2{background:var(--c-primary)} .pri.P3{background:var(--muted)}
+  .item .main{flex:1;min-width:0}
+  .item .ti{font-size:14px;font-weight:700}
+  .item .me{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+  .item .me .tr{font-family:ui-monospace,Menlo,monospace;color:#0e7490}
+  .item .mt{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+  .badge{font-size:10.5px;padding:2px 8px;border-radius:8px;font-weight:600}
+  .b-grey{background:#eef2f7;color:var(--muted)} .b-blue{background:#e8f0fe;color:var(--c-primary)}
+  .b-green{background:#e7f7ee;color:var(--ok)} .b-cyan{background:#e3f7fb;color:#0e7490}
+  .b-warn{background:#fef3e2;color:#b45309} .b-err{background:#fde8ee;color:var(--err)}
+  .b-purple{background:#f1ebfd;color:var(--purple)} .b-radius{background:#eef2f7;color:var(--muted)}
+  .item .side{text-align:right;flex:none;font-size:12px;color:var(--muted);min-width:96px}
+  .item .side .st{font-weight:700}
+
+  /* charts */
+  .charts{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-bottom:16px}
+  .chartbox{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px}
+  .chartbox h4{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--c-primary)}
+  .bar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:12px}
+  .bar .lab{width:120px;color:var(--muted);flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar .track{flex:1;height:14px;background:var(--surface-2);border-radius:7px;overflow:hidden}
+  .bar .fill{height:100%;background:linear-gradient(90deg,var(--c-primary),var(--c-accent-2));border-radius:7px}
+  .bar .num{width:34px;text-align:right;font-weight:700;flex:none}
+  canvas{display:block;width:100%}
+
+  /* pain */
+  .pains{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:16px}
+  .pain{background:var(--surface-2);border:1px solid var(--line);border-left:4px solid var(--c-accent);border-radius:10px;padding:15px}
+  .pain h4{font-size:14px;font-weight:700;display:flex;align-items:center;gap:9px}
+  .pain .v{font-size:13px;font-weight:800;color:var(--c-primary);background:#fff;border:1px solid var(--line);padding:2px 9px;border-radius:8px}
+  .pain .d{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.6}
+  .pain .r{font-size:12.5px;margin-top:9px;padding:9px 11px;background:#eef7ff;border-radius:8px;color:#0e4a8c;line-height:1.6}
+  .pain .r b{color:var(--c-primary)}
+
+  /* 细化服务目录 */
+  .catgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:16px}
+  .sc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px;transition:.18s;position:relative;overflow:hidden}
+  .sc:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:#c7dbff}
+  .sc .hd{display:flex;align-items:center;gap:10px}
+  .sc .ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:19px;background:linear-gradient(135deg,var(--c-primary),var(--c-accent-2));color:#fff;flex:none}
+  .sc h4{font-size:14px;font-weight:700}
+  .sc .gr{font-size:11px;color:var(--muted);margin-top:2px}
+  .sc .desc{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .sc .kv{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .sc .kv span{font-size:10.5px;background:var(--surface-2);border:1px solid var(--line);padding:2px 8px;border-radius:8px;color:var(--text)}
+  .sc .pp{font-size:11.5px;color:#b45309;margin-top:10px;line-height:1.5;background:#fef9ee;padding:8px 10px;border-radius:8px}
+  .sc .ai{font-size:11.5px;color:#0e4a8c;margin-top:8px;line-height:1.5;background:#eef7ff;padding:8px 10px;border-radius:8px}
+  .sc .mt{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .sc .group-head{grid-column:1/-1;font-size:13px;font-weight:700;color:var(--c-primary);margin:6px 0 2px;display:flex;align-items:center;gap:8px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;background:var(--surface-2)}
+  tr:hover td{background:#fafcff}
+  .foot{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 24px}
+
+  /* 智能分析 */
+  .ainalyze-bar{display:flex;align-items:center;gap:12px;padding:12px 4px 6px}
+  .btn-primary{background:linear-gradient(100deg,var(--c-primary),var(--c-accent-2));color:#fff;border:none;
+    padding:9px 16px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:var(--shadow-sm)}
+  .btn-primary:hover{filter:brightness(1.05)}
+  .btn-primary:disabled{opacity:.6;cursor:wait}
+  .ainfo{font-size:12px;color:var(--muted)}
+  .analysis{background:linear-gradient(180deg,#f1f8ff,#eaf3ff);border:1px solid #cfe2ff;border-radius:12px;
+    padding:14px 16px;margin:8px 0 14px;white-space:pre-wrap;font-size:13px;color:#1e3354;line-height:1.7}
+  .analysis .llm{margin-top:10px;padding-top:10px;border-top:1px dashed #bcd6ff;color:#0e3a8c}
+  .analysis .badge{display:inline-block;font-size:11px;background:var(--c-primary);color:#fff;padding:2px 9px;border-radius:10px;margin-bottom:8px}
+  .err{color:var(--err);padding:20px;text-align:center}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="emblem">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/></svg>
+    </div>
+    <div><h1>审计智能一体化运维平台</h1><p>审计技术支持 · 日常运维 · 控制台</p></div>
+  </div>
+  <div class="live"><span class="d"></span>真实数据驱动 · 多用户协作 · AdventureX 参赛</div>
+  <a class="back" href="/">← 返回工作台</a>
+</header>
+
+<div class="wrap">
+  <!-- 实时 KPI 条 -->
+  <div class="kpis" id="kpis">
+    <div class="kpi"><div class="k">工单总量</div><div class="v" id="k-total">—</div><div class="s" id="k-open">—</div></div>
+    <div class="kpi g"><div class="k">已解决率</div><div class="v" id="k-res">—<small>%</small></div><div class="s">闭环工单</div></div>
+    <div class="kpi g"><div class="k">自动化率</div><div class="v" id="k-auto">—<small>%</small></div><div class="s">零人工处置</div></div>
+    <div class="kpi w"><div class="k">SLA 达标率</div><div class="v" id="k-sla">—<small>%</small></div><div class="s" id="k-csat">CSAT —</div></div>
+    <div class="kpi e"><div class="k">MTTR</div><div class="v" id="k-mttr">—<small>h</small></div><div class="s">平均解决时长</div></div>
+    <div class="kpi"><div class="k">主机在线率</div><div class="v" id="k-online">—<small>%</small></div><div class="s" id="k-hosts">— 台</div></div>
+    <div class="kpi"><div class="k">告警收敛率</div><div class="v" id="k-conv">—<small>%</small></div><div class="s">降噪后有效告警</div></div>
+    <div class="kpi g"><div class="k">自愈率</div><div class="v" id="k-heal">—<small>%</small></div><div class="s">自动处置占比</div></div>
+    <div class="kpi w"><div class="k">双人审批率</div><div class="v" id="k-da">—<small>%</small></div><div class="s">变更全程留痕</div></div>
+  </div>
+
+  <!-- 多用户智能体 -->
+  <div class="card">
+    <div class="card-h"><div class="t">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1858c9" stroke-width="1.9"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0112 0"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20a5 5 0 018-4"/></svg>
+      多用户运维智能体 · 协同处置</div><span class="tag blue" id="agentTotal">— 个在线</span></div>
+    <div class="agents" id="agents"></div>
+  </div>
+
+  <!-- 工作台主区 -->
+  <div class="card">
+    <div class="tabs">
+      <div class="tb active" data-tab="support">审计技术支持</div>
+      <div class="tb" data-tab="ops">日常运维</div>
+      <div class="tb" data-tab="pain">痛点洞察</div>
+      <div class="tb" data-tab="catalog">服务目录（细化）</div>
+    </div>
+
+    <!-- 审计技术支持 -->
+    <div class="panel active" id="tab-support">
+      <div class="charts">
+        <div class="chartbox"><h4>各服务工单量（Top）</h4><div id="catBars"></div></div>
+        <div class="chartbox"><h4>优先级分布</h4><div id="priBars"></div>
+          <div style="margin-top:12px"><canvas id="trend" height="90"></canvas>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">近 14 天工单趋势</div></div>
+        </div>
+      </div>
+      <div class="filters">
+        <select id="f-service"><option value="">全部服务</option></select>
+        <select id="f-status"><option value="">全部状态</option><option value="resolved">已解决</option><option value="closed">已关闭</option><option value="processing">处理中</option><option value="pending">待受理</option><option value="waiting_user">待用户确认</option></select>
+        <select id="f-priority"><option value="">全部优先级</option><option value="P0">P0 致命</option><option value="P1">P1 严重</option><option value="P2">P2 一般</option><option value="P3">P3 咨询</option></select>
+        <select id="f-auto"><option value="">全部处置</option><option value="1">仅自动化</option><option value="0">仅人工</option></select>
+        <button class="reset" id="f-reset">重置</button>
+      </div>
+      <div class="list" id="ticketList"></div>
+    </div>
+
+    <!-- 日常运维 -->
+    <div class="panel" id="tab-ops">
+      <div class="charts">
+        <div class="chartbox"><h4>告警按严重级</h4><div id="sevBars"></div></div>
+        <div class="chartbox"><h4>资源水位（在线率 / 自愈率 / 收敛率）</h4>
+          <div id="resBars"></div></div>
+      </div>
+      <div class="filters">
+        <select id="a-service"><option value="">全部运维域</option></select>
+        <select id="a-sev"><option value="">全部严重级</option><option value="致命">致命</option><option value="严重">严重</option><option value="预警">预警</option><option value="提示">提示</option></select>
+        <select id="a-status"><option value="">全部状态</option><option value="自动处置">自动处置</option><option value="人工介入">人工介入</option><option value="已收敛(降噪)">已收敛(降噪)</option></select>
+        <button class="reset" id="a-reset">重置</button>
+      </div>
+      <div class="list" id="alertList"></div>
+
+      <div style="margin-top:18px"><h4 style="font-size:14px;font-weight:700;color:var(--c-primary);margin-bottom:8px">变更记录（双人审批 · 全程留痕）</h4>
+        <table id="changeTable"><thead><tr><th>单号</th><th>类型</th><th>标题</th><th>风险</th><th>审批链</th><th>状态</th><th>trace</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <!-- 痛点洞察 + 智能分析 -->
+    <div class="panel" id="tab-pain">
+      <div class="ainalyze-bar">
+        <button class="btn-primary" id="btnAnalyze" onclick="runAnalyze()">🤖 智能分析（LLM 解读 KPI）</button>
+        <span class="ainfo" id="analyzeInfo">基于真实数据，可插拔 LLM 解读</span>
+      </div>
+      <div class="analysis" id="analysis" style="display:none"></div>
+      <div class="pains" id="pains"></div>
+    </div>
+
+    <!-- 服务目录细化 -->
+    <div class="panel" id="tab-catalog">
+      <div class="catgrid" id="catGrid"></div>
+    </div>
+  </div>
+
+  <div class="foot">审计智能一体化运维平台 · 运维控制台 · 数据由确定性种子生成并落盘，重启不丢 · 基座：混元/千问（可插拔，当前 Mock）</div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+async function getJSON(url){ const r = await fetch(url); if(!r.ok) throw new Error(url+" "+r.status); return r.json(); }
+
+const STATUS_LABEL = {resolved:"已解决",closed:"已关闭",processing:"处理中",pending:"待受理",waiting_user:"待用户确认",
+  "自动处置":"自动处置","人工介入":"人工介入","已收敛(降噪)":"已收敛(降噪)"};
+const STATUS_CLASS = {resolved:"b-green",closed:"b-green",processing:"b-blue",pending:"b-warn",waiting_user:"b-cyan",
+  "自动处置":"b-green","人工介入":"b-warn","已收敛(降噪)":"b-grey"};
+
+function setText(id,v){ const e=$(id); if(e) e.textContent=v; }
+
+async function loadSummary(){
+  const s = await getJSON("/api/ops/summary");
+  const t=s.ticket_metrics, o=s.ops_metrics, c=s.change_metrics;
+  setText("k-total", t.total); setText("k-open", t.open+" 在办");
+  setText("k-res", t.resolved_rate); setText("k-auto", t.automation_rate);
+  setText("k-sla", t.sla_compliance); setText("k-csat","CSAT "+t.csat);
+  setText("k-mttr", t.mttr_h);
+  setText("k-online", o.online_rate); setText("k-hosts", o.hosts_total+" 台纳管");
+  setText("k-conv", o.convergence_rate); setText("k-heal", o.self_heal_rate);
+  setText("k-da", c.dual_approval_rate);
+
+  renderAgents(s.agents);
+  renderCatBars(t.by_category);
+  renderPriBars(t.by_priority);
+  drawTrend(t.trend);
+  renderSevBars(o.by_severity);
+  renderResBars(o);
+  renderPains(s.pain_points);
+  return s;
+}
+
+function renderAgents(agents){
+  setText("agentTotal", agents.filter(a=>a.online).length+" 个在线 / 共 "+agents.length);
+  $("agents").innerHTML = agents.map(a=>`
+    <div class="agent">
+      <div class="av">${a.name[0]}</div>
+      <div class="nm">${a.name} <span class="on ${a.online?'':'off'}"></span></div>
+      <div class="tm">${a.team}</div>
+      <div class="row"><div>承接<b>${a.handled}</b></div><div>在办<b>${a.active}</b></div></div>
+      <div class="row"><div>自动化<b>${a.auto_rate}%</b></div><div>CSAT<b>${a.csat||'—'}</b></div></div>
+      <div class="sc">${a.scope.map(x=>`<span>${x}</span>`).join("")}</div>
+    </div>`).join("");
+}
+
+function renderCatBars(byCat){
+  const top = Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const max = top.length?top[0][1]:1;
+  $("catBars").innerHTML = top.map(([k,v])=>`
+    <div class="bar"><div class="lab" title="${k}">${k}</div>
+    <div class="track"><div class="fill" style="width:${v/max*100}%"></div></div>
+    <div class="num">${v}</div></div>`).join("") || "<div class='muted'>无数据</div>";
+}
+
+function renderPriBars(byPri){
+  const order=["P0","P1","P2","P3"]; const max=Math.max(1,...order.map(p=>byPri[p]||0));
+  const cls={"P0":"b-err","P1":"b-warn","P2":"b-blue","P3":"b-grey"};
+  $("priBars").innerHTML = order.map(p=>`
+    <div class="bar"><div class="lab">${p}</div>
+    <div class="track"><div class="fill" style="width:${(byPri[p]||0)/max*100}%"></div></div>
+    <div class="num">${byPri[p]||0}</div></div>`).join("");
+}
+
+function drawTrend(trend){
+  const cv=$("trend"); const W=cv.clientWidth||520, H=90; cv.width=W; cv.height=H;
+  const ctx=cv.getContext("2d"); ctx.clearRect(0,0,W,H);
+  const vals=trend.map(d=>d.count); const max=Math.max(1,...vals);
+  const step=W/(vals.length-1);
+  ctx.beginPath();
+  vals.forEach((v,i)=>{ const x=i*step, y=H-8-(v/max)*(H-20); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+  ctx.strokeStyle="#1858c9"; ctx.lineWidth=2; ctx.stroke();
+  ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
+  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,"rgba(24,88,201,.22)"); g.addColorStop(1,"rgba(24,88,201,0)");
+  ctx.fillStyle=g; ctx.fill();
+}
+
+function renderSevBars(bySev){
+  const order=["致命","严重","预警","提示"]; const max=Math.max(1,...order.map(s=>bySev[s]||0));
+  const cls={"致命":"b-err","严重":"b-warn","预警":"b-cyan","提示":"b-grey"};
+  $("sevBars").innerHTML = order.map(s=>`
+    <div class="bar"><div class="lab">${s}</div>
+    <div class="track"><div class="fill" style="width:${(bySev[s]||0)/max*100}%"></div></div>
+    <div class="num">${bySev[s]||0}</div></div>`).join("");
+}
+
+function renderResBars(o){
+  const data=[["主机在线率",o.online_rate],["告警收敛率",o.convergence_rate],["自愈率",o.self_heal_rate]];
+  $("resBars").innerHTML = data.map(([k,v])=>`
+    <div class="bar"><div class="lab">${k}</div>
+    <div class="track"><div class="fill" style="width:${v}%"></div></div>
+    <div class="num">${v}%</div></div>`).join("");
+}
+
+function renderPains(pains){
+  $("pains").innerHTML = pains.map(p=>`
+    <div class="pain"><h4>${p.title} <span class="v">${p.value}</span></h4>
+    <div class="d">${p.detail}</div>
+    <div class="r"><b>建议：</b>${p.reco}</div></div>`).join("");
+}
+
+async function runAnalyze(){
+  const btn=$("btnAnalyze"); btn.disabled=true; btn.textContent="分析中…";
+  try{
+    const d = await (await fetch("/api/ops/analyze",{method:"POST"})).json();
+    let html=`<span class="badge">智能分析 · 基座 ${d.provider}</span>\n${d.grounded_analysis}`;
+    if(d.llm_analysis){
+      html+=`<div class="llm"><b>🧠 LLM 解读：</b><br>${d.llm_analysis}</div>`;
+    } else {
+      html+=`<div class="llm" style="color:#64748b"><b>🧠 提示：</b>当前为 Mock 基座，已用结构化模板解读；配置 HUNYUAN/QWEN API Key 后将转为真实大模型自然语言分析。</div>`;
+    }
+    $("analysis").innerHTML=html; $("analysis").style.display="block";
+    $("analyzeInfo").textContent="分析完成 · 基于真实 KPI";
+  }catch(e){
+    $("analyzeInfo").textContent="分析失败："+e.message;
+  }finally{ btn.disabled=false; btn.textContent="🤖 智能分析（LLM 解读 KPI）"; }
+}
+
+// ---- 工单列表 ----
+async function loadTickets(){
+  const s=$("f-service").value, st=$("f-status").value, pr=$("f-priority").value, au=$("f-auto").value;
+  let url="/api/ops/tickets?"; const qs=[];
+  if(s) qs.push("service="+encodeURIComponent(s));
+  if(st) qs.push("status="+st); if(pr) qs.push("priority="+pr);
+  if(au!=="") qs.push("auto="+au);
+  const d = await getJSON(url+qs.join("&"));
+  $("ticketList").innerHTML = d.items.map(t=>`
+    <div class="item">
+      <div class="pri ${t.priority}">${t.priority}</div>
+      <div class="main"><div class="ti">${t.title}</div>
+        <div class="me">${t.service_name} · 申请人：${t.requester} · 承办：${t.assignee} · <span class="tr">${t.trace_id}</span></div>
+        <div class="mt">
+          <span class="badge b-blue">${STATUS_LABEL[t.status]||t.status}</span>
+          ${t.auto_resolved?'<span class="badge b-green">自动化处置</span>':''}
+          ${t.sla_met===true?'<span class="badge b-green">SLA 达标</span>':t.sla_met===false?'<span class="badge b-err">SLA 超时</span>':''}
+          ${t.csat?`<span class="badge b-purple">CSAT ${t.csat}</span>`:''}
+          <span class="badge b-radius">${t.source}</span>
+        </div></div>
+      <div class="side"><div class="st">${t.priority}</div><div>${t.created_at.slice(5,16)}</div></div>
+    </div>`).join("") || "<div class='err'>无匹配工单</div>";
+}
+
+// ---- 告警列表 ----
+async function loadAlerts(){
+  const s=$("a-service").value, sv=$("a-sev").value, st=$("a-status").value;
+  let url="/api/ops/alerts?"; const qs=[];
+  if(s) qs.push("service="+encodeURIComponent(s));
+  if(sv) qs.push("severity="+sv); if(st) qs.push("status="+st);
+  const d = await getJSON(url+qs.join("&"));
+  $("alertList").innerHTML = d.items.slice(0,60).map(a=>`
+    <div class="item">
+      <div class="pri ${a.severity==='致命'?'P0':a.severity==='严重'?'P1':a.severity==='预警'?'P2':'P3'}">${a.severity[0]}</div>
+      <div class="main"><div class="ti">${a.host} · ${a.metric}</div>
+        <div class="me">${a.service_name} · ${a.rca} · <span class="tr">${a.trace_id}</span></div>
+        <div class="mt">
+          <span class="badge ${STATUS_CLASS[a.status]||'b-grey'}">${STATUS_LABEL[a.status]||a.status}</span>
+          ${a.auto_handled?'<span class="badge b-green">自愈</span>':a.converged?'<span class="badge b-grey">降噪收敛</span>':''}
+          <span class="badge b-cyan">${a.runbook}</span>
+        </div></div>
+      <div class="side"><div class="st">${a.severity}</div><div>${a.created_at.slice(5,16)}</div></div>
+    </div>`).join("") || "<div class='err'>无匹配告警</div>";
+}
+
+// ---- 变更表 ----
+async function loadChanges(){
+  const d = await getJSON("/api/ops/changes");
+  document.querySelector("#changeTable tbody").innerHTML = d.items.slice(0,40).map(c=>`
+    <tr><td>${c.id}</td><td>${c.type}</td><td>${c.title}</td>
+    <td><span class="badge ${c.risk==='高'?'b-err':c.risk==='中'?'b-warn':'b-grey'}">${c.risk}</span></td>
+    <td>${c.approvers.join(' → ')}</td>
+    <td><span class="badge ${c.status==='已完成'?'b-green':c.status==='已回滚'?'b-err':'b-blue'}">${c.status}</span></td>
+    <td><span class="tr" style="font-family:ui-monospace,monospace;color:#0e7490">${c.trace_id}</span></td></tr>`).join("");
+}
+
+// ---- 服务目录（细化） ----
+async function loadCatalog(){
+  const d = await getJSON("/api/catalog");
+  const groups={};
+  d.items.forEach(it=>{(groups[it.group]=groups[it.group]||[]).push(it);});
+  const order=["审计支持服务","日常运维服务"];
+  let html="";
+  order.forEach(g=>{
+    if(!groups[g]) return;
+    html += `<div class="group-head">${g} · ${groups[g].length} 项</div>`;
+    html += groups[g].map(it=>{
+      const sla = it.sla_hours? Object.entries(it.sla_hours).map(([k,v])=>`${k}≤${v}h`).join(' / '):'—';
+      const mon = (it.monitor_metrics||[]).map(m=>`<span>${m}</span>`).join('');
+      const rf = (it.request_fields||[]).map(m=>`<span>${m}</span>`).join('');
+      return `<div class="sc">
+        <div class="hd"><div class="ic">${it.icon}</div><div><h4>${it.name}</h4><div class="gr">${it.desc}</div></div></div>
+        <div class="desc">${it.pain_point}</div>
+        <div class="mt">
+          <span class="badge ${it.automated?'b-green':'b-warn'}">${it.automated?'可自动化':'需审批'}</span>
+          <span class="badge ${it.self_service?'b-cyan':'b-grey'}">${it.self_service?'门户自助':'人工分派'}</span>
+          ${it.monthly_volume?`<span class="badge b-purple">月单 ${it.monthly_volume}</span>`:''}
+          <span class="badge b-radius">SLA ${sla}</span>
+        </div>
+        ${rf?`<div class="kv" style="margin-top:8px">${rf}</div>`:''}
+        ${mon?`<div class="kv" style="margin-top:6px">${mon}</div>`:''}
+        <div class="ai"><b>AI 价值：</b>${it.ai_value}</div>
+      </div>`;
+    }).join("");
+  });
+  $("catGrid").innerHTML = html;
+}
+
+// ---- 初始化 ----
+async function init(){
+  try{
+    const s = await loadSummary();
+    // 服务下拉
+    const cat = await getJSON("/api/catalog");
+    const supOpts = cat.items.map(it=>`<option value="${it.id}">${it.name}</option>`).join("");
+    $("f-service").insertAdjacentHTML("beforeend", supOpts);
+    $("a-service").insertAdjacentHTML("beforeend", cat.items.filter(i=>i.category==='ops').map(it=>`<option value="${it.id}">${it.name}</option>`).join(""));
+    await loadTickets(); await loadAlerts(); await loadChanges(); await loadCatalog();
+  }catch(e){ console.error(e); document.body.insertAdjacentHTML("beforeend",`<div class="err">加载失败：${e.message}</div>`); }
+}
+["f-service","f-status","f-priority","f-auto"].forEach(id=>$(id).addEventListener("change",loadTickets));
+$("f-reset").onclick=()=>{["f-service","f-status","f-priority","f-auto"].forEach(id=>$(id).value="");loadTickets();};
+["a-service","a-sev","a-status"].forEach(id=>$(id).addEventListener("change",loadAlerts));
+$("a-reset").onclick=()=>{["a-service","a-sev","a-status"].forEach(id=>$(id).value="");loadAlerts();};
+document.querySelectorAll(".tabs .tb").forEach(tb=>tb.onclick=()=>{
+  document.querySelectorAll(".tabs .tb").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+  tb.classList.add("active"); $("tab-"+tb.dataset.tab).classList.add("active");
+});
+window.addEventListener("resize",()=>{ loadSummary().then(s=>drawTrend(s.ticket_metrics.trend)); });
+init();
+</script>
+</body>
+</html>

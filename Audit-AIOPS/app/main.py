@@ -6,6 +6,8 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.routers import router
 from app.api.extra import extra_router
+from app.api.experiments import exp_router
+from app.api.ops import ops_router
 from app.config import settings
 
 app = FastAPI(title=settings.app_name, version=settings.version)
@@ -19,6 +21,8 @@ app.add_middleware(
 
 app.include_router(router)
 app.include_router(extra_router)
+app.include_router(exp_router)
+app.include_router(ops_router)
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 STATIC = os.path.join(os.path.dirname(BASE), "static")

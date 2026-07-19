@@ -53,7 +53,8 @@
    - **多模态 RAG（真实落地，吸收 RAG-Anything）**（`retrieval_hybrid.py`）：把文档附带的「表格 / 截图描述」作为多模态元数据纳入统一检索，命中返回 image/table 模态；本环境以描述文本代理、零依赖可复现，复现 RAG-Anything「any modality 统一进 RAG」思想（端点 `/api/knowledge/multimodal`、演示页 `/knowledge-hybrid.html` 多模态区块）。
    - **单轮 token 成本量化（呼应黄超成本控制）**：`/api/opt/cost-report` + 实验台 §8「降本计算器」，纯 Teacher(API)→INT8 学生→学生+投机+缓存，单轮 ¥0.042→¥4.9e-5，月调用 500 万次可省约 99.9%（压缩比/加速为真实实测，单价/命中率为演示假设）。
    - **Prompt/前缀 KV-Cache 强化（呼应黄超成本控制，吸收 nanobot）**（`sft/prompt_cache.py`，纯 numpy/CPU）：仿真审计运维「长稳定系统前缀 + 短多变 query」流量，同一前缀二次起复用 prefill KV、跳过前缀重算；实测 **5 业务域 × 2000 请求：命中率 99.75%、省 token 占全量 92.4%、TTFT（首字延迟）↓87.7%、月省 ¥1,496 prefill 算力**；与 `cache.py` 应用层精确+语义响应缓存构成**两层缓存架构**（`/api/opt/prompt-cache-report`、实验台 §9 命中率/省 token/累计节省曲线）。
-   - **Agent 技能中心（吸收 OpenSpace「skill 进化」）**（`app/skills/registry.py`）：领域技能注册表（8 技能：审批路由/工单拆单/知识问答/监控告警/服务目录/工单推进/审计留痕/语音入口），每技能含触发意图、是否需双人审批、工具、版本与演进来源；编排层 `resolve_skills()` 实时映射、零改动增删能力；审批技能与双人审批+Checkpoint 对齐（`/api/skills`、演示页 `/agent-demo.html` 🧩 技能中心面板）。
+   - **Agent 技能中心（吸收 OpenSpace「skill 进化」）**（`app/skills/registry.py`）：领域技能注册表（9 技能：审批路由/工单拆单/知识问答/监控告警/服务目录/工单推进/审计留痕/语音入口/OA-CLI 原生工具），每技能含触发意图、是否需双人审批、工具、版本与演进来源；编排层 `resolve_skills()` 实时映射、零改动增删能力；审批技能与双人审批+Checkpoint 对齐（`/api/skills`、演示页 `/agent-demo.html` 🧩 技能中心面板）。
+   - **CLI-native OA 工具层（吸收 CLI-Anything）**（`app/services/oa_mcp.py` 的 `OA_TOOLS`）：把 OA 审批/工单/目录/告警封装为 6 个 CLI 式命令（如 `oa approval submit --type ukey --applicant 张三`），Agent 像在终端敲命令一样原生驱动 OA，比 GUI 自动化更稳、更省 token、可审计；`call_oa_tool(name,args)` 即一次 CLI 调用，背后由 OA-MCP 适配层（MockOAClient/McpOAClient）执行；新增 `oa_cli` 技能（演进来源 `CLI-Anything`），端点 `/api/tools`、`POST /api/tools/invoke`、演示页 `/agent-demo.html` ⌨️ 面板（详见 `docs/cli-native.md`）。
    - 大模型上线路线：训练侧 **QLoRA**、推理侧 **4/8-bit 量化**（`quantize.py`）、**大模型蒸馏模板**（`distill.py`）。
    - 一句话：**蒸馏 / 量化 / 剪枝 / 投机解码 / 缓存 五条优化线全部端到端真跑、可当场复现**（纯 numpy / CPU 秒级），非 GPU 模板或概念。
 5. **语音 + OA 真实打通**：ASR 适配层（FunASR 预留）+ OA/MCP 适配层（适配器模式，可切真实 OA），
@@ -65,7 +66,7 @@
 **知识蒸馏 +5pt（95%→100%）、INT8 压缩 3.95× 且 0 掉点、Teacher→INT8 学生 63× 体积 / 10.8× 提速 / 100% 精度保持**；
 **幅度剪枝 98% 稀疏 0 掉点 / 50× 乘加削减；投机解码接受率 39.5% / 2.14× 加速 / 无损一致**；
 图 RAG 17 实体/108 边、6/6 查询图扩散多召回 +2.33 篇；多模态 RAG（表格/截图）跨模态命中；单轮 token 成本 纯 Teacher ¥0.042→优化 ¥4.9e-5（月省 99.9%）；
-Prompt/前缀 KV-Cache 命中率 99.75%、TTFT↓87.7%、月省 ¥1,496 prefill；Agent 技能中心 8 技能注册表、编排层零改动增删、审批技能对齐双人审批；
+Prompt/前缀 KV-Cache 命中率 99.75%、TTFT↓87.7%、月省 ¥1,496 prefill；Agent 技能中心 9 技能注册表（含 OA-CLI）、编排层零改动增删、审批技能对齐双人审批；CLI-native OA 工具层 6 个 CLI 式命令、Agent 原生调用、可审计；
 语义缓存二次命中耗时 ~2ms vs 首次 ~800ms；4-bit 量化 7B 显存 ~14GB→~5GB。
 
 ---

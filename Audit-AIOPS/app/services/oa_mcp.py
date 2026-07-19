@@ -103,3 +103,132 @@ def build_oa_client(backend: str = "mock", server_endpoint: str = "") -> OAClien
     if backend == "mcp":
         return McpOAClient(server_endpoint)
     return MockOAClient()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CLI-native OA 工具层（呼应 HKUDS / CLI-Anything）
+# -----------------------------------------------------------------------------
+# 设计（面试可讲）：
+# - CLI 是 Agent 的「原生接口」——文本命令无歧义、省 token、可脚本化、可审计。
+#   把 OA 的内部操作暴露为**统一的 CLI 式命令**，Agent 就能像人在终端里敲命令一样
+#   原生驱动 OA，而不必依赖 GUI 自动化或硬编码 HTTP 拼装。
+# - 每个工具同时有：结构化 schema（name/params）+ 一个 `cli` 自然语言命令模板。
+#   编排层既可按 schema 精确调用，也可把 `cli` 直接拼成命令回显给用户，体现「CLI-native」。
+# - 真实落地：McpOAClient 即这些命令背后的 MCP server（部署时绑定）；本层用 MockOAClient
+#   让整条链路零依赖可演示、可当场跑通。
+# ─────────────────────────────────────────────────────────────────────────────
+
+OA_TOOLS: List[Dict] = [
+    {
+        "name": "oa_approval_submit",
+        "summary": "提交一个审批节点到 OA（如 Ukey 制作、权限变更）",
+        "cli": "oa approval submit --type <审批类型> --applicant <申请人> --owner <审批责任人> --due <YYYY-MM-DD>",
+        "params": [
+            {"name": "type", "required": True, "desc": "审批类型，如 ukey / 权限变更 / 资产签收"},
+            {"name": "applicant", "required": True, "desc": "申请人姓名"},
+            {"name": "owner", "required": True, "desc": "审批责任人"},
+            {"name": "due", "required": False, "desc": "截止日期 YYYY-MM-DD"},
+        ],
+        "_handler": "submit",
+    },
+    {
+        "name": "oa_approval_query",
+        "summary": "查询 OA 审批单状态",
+        "cli": "oa approval query --ticket <OA-xxxxx>",
+        "params": [
+            {"name": "ticket", "required": True, "desc": "OA 单据号，如 OA-00001"},
+        ],
+        "_handler": "query",
+    },
+    {
+        "name": "oa_approval_approve",
+        "summary": "审批/驳回一个 OA 审批单（双人审批第二人）",
+        "cli": "oa approval approve --ticket <OA-xxxxx> --approver <审批人> --decision <approve|reject>",
+        "params": [
+            {"name": "ticket", "required": True, "desc": "OA 单据号"},
+            {"name": "approver", "required": True, "desc": "审批人"},
+            {"name": "decision", "required": True, "desc": "approve 或 reject"},
+        ],
+        "_handler": "approve",
+    },
+    {
+        "name": "oa_workorder_advance",
+        "summary": "推进工单状态机到指定步骤",
+        "cli": "oa workorder advance --id <WO-xxx> --step <步骤序号>",
+        "params": [
+            {"name": "id", "required": True, "desc": "工单号"},
+            {"name": "step", "required": True, "desc": "目标步骤序号"},
+        ],
+        "_handler": "advance",
+    },
+    {
+        "name": "oa_catalog_list",
+        "summary": "列出审计支持 / 运维服务目录",
+        "cli": "oa catalog list",
+        "params": [],
+        "_handler": "catalog",
+    },
+    {
+        "name": "oa_alert_raise",
+        "summary": "上报一条运维监控告警",
+        "cli": "oa alert raise --level <warn|crit> --msg <告警内容>",
+        "params": [
+            {"name": "level", "required": True, "desc": "warn 或 crit"},
+            {"name": "msg", "required": True, "desc": "告警内容"},
+        ],
+        "_handler": "alert",
+    },
+]
+
+
+# 工单/告警的轻量内存状态（演示用，零依赖）
+_WORKORDERS: Dict[str, Dict] = {}
+_ALERTS: List[Dict] = []
+
+
+def _dispatch(name: str, args: Dict, oa: Optional[OAClient] = None) -> Dict:
+    oa = oa or MockOAClient()
+    tool = next((t for t in OA_TOOLS if t["name"] == name), None)
+    if not tool:
+        return {"ok": False, "error": f"unknown tool: {name}"}
+    h = tool["_handler"]
+    if h == "submit":
+        node = {"name": args.get("type"), "applicant": args.get("applicant"),
+                "owner": args.get("owner"), "due": args.get("due")}
+        return {"ok": True, "result": oa.submit_approval(node)}
+    if h == "query":
+        return {"ok": True, "result": oa.query_status(args.get("ticket", ""))}
+    if h == "approve":
+        return {"ok": True, "result": oa.approve(args.get("ticket", ""),
+                                                 args.get("approver", ""), args.get("decision", ""))}
+    if h == "advance":
+        wid = args.get("id", "")
+        _WORKORDERS[wid] = {"id": wid, "step": args.get("step"), "status": "advanced"}
+        return {"ok": True, "result": _WORKORDERS[wid]}
+    if h == "catalog":
+        try:
+            from app.services.catalog import CATALOG  # 懒加载，避免循环依赖
+            items = [{"id": getattr(c, "id", None), "name": getattr(c, "name", None),
+                      "group": getattr(c, "group", None)} for c in CATALOG]
+        except Exception:  # noqa: BLE001
+            items = []
+        return {"ok": True, "result": {"count": len(items), "items": items}}
+    if h == "alert":
+        rec = {"level": args.get("level"), "msg": args.get("msg"), "status": "raised"}
+        _ALERTS.append(rec)
+        return {"ok": True, "result": rec}
+    return {"ok": False, "error": f"no handler for {name}"}
+
+
+def list_oa_tools() -> List[Dict]:
+    """返回可序列化工具清单（去掉私有 _handler，附带 cli 命令模板）。"""
+    out = []
+    for t in OA_TOOLS:
+        d = {k: v for k, v in t.items() if not k.startswith("_")}
+        out.append(d)
+    return out
+
+
+def call_oa_tool(name: str, args: Dict, oa: Optional[OAClient] = None) -> Dict:
+    """Agent 原生调用 OA 工具（CLI-Anything 思路：name + args 即一次 CLI 调用）。"""
+    return _dispatch(name, args or {}, oa)

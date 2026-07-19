@@ -10,8 +10,10 @@
 
 import io
 import json
+import os
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -22,7 +24,7 @@ from app.services.knowledge_base import KB
 from app.services.retrieval_hybrid import HybridRetriever, GraphRAGRetriever, MultimodalRetriever
 from app.services.multimodal_encoder import encoder_status
 from app.services.asr import build_asr_provider
-from app.services.oa_mcp import build_oa_client
+from app.services.oa_mcp import build_oa_client, list_oa_tools, call_oa_tool
 from app.llm.cache import llm_cache
 from app.skills import list_skills, resolve_skills, approval_required_skills, to_payload
 
@@ -436,6 +438,49 @@ def prompt_cache_report():
         raise HTTPException(status_code=500, detail=f"读取报告失败：{e}")
 
 
+# ---------- 算法侧：强化学习对齐（PPO → DPO → GRPO）报告 ----------
+_RL_REPORT = Path(__file__).resolve().parents[2] / "sft" / "data" / "rl_report.json"
+
+
+@extra_router.get("/api/opt/rl-report")
+def rl_report():
+    """返回「强化学习对齐（PPO/DPO/GRPO 偏好优化）」的真实可复现指标（由 python sft/rl_alignment.py 生成，纯 numpy/CPU）。
+
+    在一张统一的 2D 偏好分类测试台上，真跑三种对齐方法并比较：最终准确率、收敛步数、稳定性、
+    以及各自所需的「在线采样 / 额外模型（value/RM）」。面试可直接讲清 PPO→DPO→GRPO 的演进、
+    策略优劣与上游（Pretrain/SFT/RM）下游（部署优化）关系。
+    """
+    if not _RL_REPORT.exists():
+        try:
+            from sft.rl_alignment import run_alignment
+            rep = run_alignment()
+            os.makedirs(_RL_REPORT.parent, exist_ok=True)
+            _RL_REPORT.write_text(json.dumps(rep, ensure_ascii=False, indent=2), encoding="utf-8")
+            return rep
+        except Exception as e:  # noqa: BLE001
+            raise HTTPException(
+                status_code=404,
+                detail="尚未生成 RL 对齐报告，请先运行 python sft/rl_alignment.py",
+            )
+    try:
+        return json.loads(_RL_REPORT.read_text(encoding="utf-8"))
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=f"读取报告失败：{e}")
+
+
+@extra_router.post("/api/opt/rl-run")
+def rl_run():
+    """重算 RL 对齐仿真报告（纯 numpy/CPU，秒级）。"""
+    try:
+        from sft.rl_alignment import run_alignment
+        rep = run_alignment()
+        os.makedirs(_RL_REPORT.parent, exist_ok=True)
+        _RL_REPORT.write_text(json.dumps(rep, ensure_ascii=False, indent=2), encoding="utf-8")
+        return {"ok": True, "saved": str(_RL_REPORT)}
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=f"重算失败：{e}")
+
+
 # ---------- Agent 技能中心（HKUDS / OpenSpace「skill 进化」哲学） ----------
 class SkillResolveRequest(BaseModel):
     text: str = ""
@@ -462,3 +507,37 @@ def skills_resolve(req: SkillResolveRequest):
     """把用户输入解析为命中的技能（供编排层 / 前端技能中心高亮）。"""
     hits = [to_payload(s) for s in resolve_skills(req.text)]
     return {"text": req.text, "matched": hits}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CLI-native OA 工具层（呼应 HKUDS / CLI-Anything）
+# ─────────────────────────────────────────────────────────────────────────────
+class ToolInvokeRequest(BaseModel):
+    name: str
+    args: Dict[str, Any] = {}
+
+
+@extra_router.get("/api/tools")
+def tools_list():
+    """CLI-native OA 工具清单：每个工具带 `cli` 命令模板（Agent 原生接口）。
+
+    呼应 CLI-Anything：把 OA 操作暴露为统一 CLI 式命令，Agent 像在终端敲命令一样
+    原生驱动 OA，省 token、无 GUI 自动化、可审计；背后由 OA-MCP 适配层执行。
+    """
+    tools = list_oa_tools()
+    return {
+        "total": len(tools),
+        "backend": settings.oa_backend,
+        "philosophy": "CLI 是 Agent 的原生接口：文本命令无歧义、省 token、可脚本化、可审计；"
+                      "每个 OA 操作都先定义成一条 CLI 命令，再由 MCP 适配层执行。",
+        "tools": tools,
+    }
+
+
+@extra_router.post("/api/tools/invoke")
+def tools_invoke(req: ToolInvokeRequest):
+    """原生调用一个 OA CLI 工具（name + args 即一次 CLI 调用）。"""
+    try:
+        return call_oa_tool(req.name, req.args, _oa)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail=f"工具调用失败：{e}")

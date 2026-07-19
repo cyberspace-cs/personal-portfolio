@@ -92,6 +92,14 @@ SKILL_DEFS: list[Skill] = [
         triggers=["语音", "说话", "录音", "口述"],
         tools=["ASR 转写"], version="1.0",
     ),
+    Skill(
+        id="oa_cli", name="OA-CLI 原生工具", category="集成",
+        description="把 OA 审批/工单/目录/监控操作封装为统一 CLI 式命令（oa approval submit / oa workorder advance / oa catalog list …），Agent 像在终端敲命令一样原生驱动 OA，无 GUI 自动化、省 token、可审计。",
+        triggers=["oa", "提交审批", "查审批", "推进工单", "服务目录", "告警", "命令", "cli"],
+        tools=["oa_approval_submit", "oa_approval_query", "oa_approval_approve",
+               "oa_workorder_advance", "oa_catalog_list", "oa_alert_raise"],
+        version="1.0", evolved_from="CLI-Anything（HKUDS）",
+    ),
 ]
 
 

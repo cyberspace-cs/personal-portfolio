@@ -14,6 +14,7 @@ export interface Translations {
   heroGreeting: string;
   heroDownloadResume: string;
   heroGetInTouch: string;
+  heroViewDemos: string;
   heroScroll: string;
 
   // About
@@ -70,6 +71,7 @@ export const translations: Record<Language, Translations> = {
     heroGreeting: "Hello, I'm",
     heroDownloadResume: 'Download Resume',
     heroGetInTouch: 'Get in Touch',
+    heroViewDemos: 'View Live Demos',
     heroScroll: 'Scroll',
 
     // About
@@ -129,6 +131,7 @@ export const translations: Record<Language, Translations> = {
     heroGreeting: '你好，我是',
     heroDownloadResume: '下载简历',
     heroGetInTouch: '联系我',
+    heroViewDemos: '查看实时 Demo',
     heroScroll: '滚动',
 
     // About

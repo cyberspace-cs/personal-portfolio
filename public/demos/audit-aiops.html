@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Audit-AIOPS · Demo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{background:radial-gradient(1200px 600px at 80% -10%,#7c3aed33,transparent),#0f172a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  .glass{background:rgba(30,41,59,.6);border:1px solid rgba(148,163,184,.18)}
+  .chip{background:rgba(167,139,250,.12);color:#c4b5fd;border:1px solid rgba(167,139,250,.28)}
+  .stage{transition:all .35s;opacity:.35}
+  .stage.on{opacity:1;transform:translateY(-2px)}
+  .stage.on .dot{background:#a78bfa;box-shadow:0 0 12px #a78bfa}
+  .dot{width:14px;height:14px;border-radius:9999px;background:#475569;transition:all .35s}
+  .wo{border-left:3px solid #a78bfa}
+</style>
+</head>
+<body class="text-slate-200 min-h-screen">
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <header class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-violet-400 to-sky-400 bg-clip-text text-transparent">Audit-AIOPS</h1>
+      <p class="text-slate-400 text-sm mt-1">企业审计日志异常检测 Agent · 意图识别 → 智能拆单 → 审批路由 → 记忆沉淀</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-xs px-3 py-1 rounded-full chip">● 纯前端规则演示</span>
+      <a href="index.html" class="text-xs text-slate-400 hover:text-violet-400">← 全部 Demo</a>
+    </div>
+  </header>
+
+  <section class="glass rounded-2xl p-6 mb-6">
+    <label class="text-sm text-slate-300">用工请求（自然语言）</label>
+    <textarea id="req" rows="3" class="w-full mt-2 bg-slate-900/70 border border-slate-700 rounded-lg p-3 text-sm" placeholder="例如：为审计三组开通远程邮件账号，并临时借用一台会议终端用于周五客户汇报">为审计三组开通远程邮件账号，并临时借用一台会议终端用于周五的客户汇报，另外给新同事配发 UKey。</textarea>
+    <div class="flex flex-wrap gap-2 mt-3">
+      <button class="sample text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700" data-q="申请一台笔记本和数据库只读权限，用于季度审计">资产+权限</button>
+      <button class="sample text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700" data-q="下周一要做营销抽奖活动，需要云算力资源和活动备案">抽奖+资源</button>
+      <button id="run" class="ml-auto px-5 py-2 rounded-lg bg-violet-500 hover:bg-violet-400 text-white text-sm font-medium">运行 Agent 编排演示 ▶</button>
+    </div>
+  </section>
+
+  <!-- 编排流水线 -->
+  <section class="glass rounded-2xl p-6 mb-6">
+    <h2 class="text-sm text-slate-400 mb-4">Agent 编排流水线</h2>
+    <div class="grid grid-cols-4 gap-2 text-center">
+      <div class="stage" id="s1"><div class="dot mx-auto mb-2"></div><div class="text-xs font-medium">① 意图识别</div><div class="text-[10px] text-slate-500 mt-1" id="s1d">—</div></div>
+      <div class="stage" id="s2"><div class="dot mx-auto mb-2"></div><div class="text-xs font-medium">② 智能拆单</div><div class="text-[10px] text-slate-500 mt-1" id="s2d">—</div></div>
+      <div class="stage" id="s3"><div class="dot mx-auto mb-2"></div><div class="text-xs font-medium">③ 审批路由</div><div class="text-[10px] text-slate-500 mt-1" id="s3d">—</div></div>
+      <div class="stage" id="s4"><div class="dot mx-auto mb-2"></div><div class="text-xs font-medium">④ 记忆沉淀</div><div class="text-[10px] text-slate-500 mt-1" id="s4d">—</div></div>
+    </div>
+  </section>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <!-- 工单 -->
+    <section class="glass rounded-2xl p-6">
+      <h2 class="text-sm text-slate-400 mb-3">生成工单（拆单结果）</h2>
+      <div id="orders" class="space-y-3 text-sm"></div>
+    </section>
+    <!-- 工具调用 + 记忆 -->
+    <section class="space-y-6">
+      <div class="glass rounded-2xl p-6">
+        <h2 class="text-sm text-slate-400 mb-3">MCP 工具调用链</h2>
+        <div id="tools" class="space-y-2 text-xs font-mono text-violet-300"></div>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h2 class="text-sm text-slate-400 mb-3">分层记忆（Memory）</h2>
+        <div id="mem" class="text-xs text-slate-300 leading-relaxed"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="mt-8 text-center">
+    <a href="http://localhost:8001" target="_blank" rel="noopener" class="inline-block px-5 py-2.5 rounded-lg border border-violet-400/40 text-violet-300 text-sm hover:bg-violet-500/10">启动完整后端体验（Audit-AIOPS :8001）→</a>
+    <p class="text-[11px] text-slate-500 mt-2">完整版含：异常检测 / 根因分析 / 告警收敛 / 可解释报告，需先运行 <code class="text-slate-400">python -m uvicorn app.main:app --port 8001</code></p>
+  </div>
+</div>
+
+<script>
+const SERVICES = {
+  ukey:  { name:"UKey / USBKey 申领", level:"组长审批", tools:["工单系统","IAM 身份"], kw:["ukey","usbkey","电脑钥匙","key","配发"] },
+  mail:  { name:"邮箱 / 邮件账号开通", level:"处长审批", tools:["工单系统","邮件网关","IAM"], kw:["邮件","邮箱","mail","email","账号开通","开通远程"] },
+  asset: { name:"固定资产领用", level:"处长审批", tools:["资产 CMDB","工单系统"], kw:["资产","笔记本","电脑","服务器","领用","申请一台"] },
+  term:  { name:"终端 / 会议终端", level:"组长审批", tools:["终端管理","工单系统"], kw:["终端","手机","会议终端","工位","设备"] },
+  perm:  { name:"权限 / 访问开通", level:"分管领导审批", tools:["IAM","审批流","数据库网关"], kw:["权限","访问","vpn","数据库只读","数据库权限"] },
+  site:  { name:"网站 / 域名备案", level:"处长审批", tools:["WEB 部署","备案系统"], kw:["网站","域名","备案","上线"] },
+  ups:   { name:"UPS / 电源申请", level:"组长审批", tools:["机房管理","工单系统"], kw:["ups","电源","机房","供电"] },
+  luck:  { name:"抽奖 / 营销活动", level:"党委会审批", tools:["风控","合规","营销平台"], kw:["抽奖","营销","红包","活动","优惠"] },
+  res:   { name:"云资源 / 算力", level:"分管领导审批", tools:["云管平台","预算系统","审批流"], kw:["资源","云","算力","预算","服务器资源"] },
+};
+const ROUTE = {
+  "组长审批":"申请人 → 组长（审批） → 自动开通",
+  "处长审批":"申请人 → 组长 → 处长（审批）",
+  "分管领导审批":"申请人 → 组长 → 处长 → 分管领导（审批）",
+  "党委会审批":"申请人 → 组长 → 处长 → 分管领导 → 党委会（会议决议）",
+};
+
+function detect(text){
+  const t = text.toLowerCase();
+  const hit = [];
+  for(const [k,s] of Object.entries(SERVICES)){
+    if(s.kw.some(w=> t.includes(w))) hit.push(k);
+  }
+  if(!hit.length) hit.push("mail"); // 兜底：综合咨询走邮件通道
+  return hit;
+}
+
+document.querySelectorAll(".sample").forEach(b=>b.onclick=()=>{document.getElementById("req").value=b.dataset.q;});
+
+function setStage(id,on,desc){const e=document.getElementById(id);e.classList.toggle("on",on);if(desc)document.getElementById(id+"d").textContent=desc;}
+
+async function run(){
+  const req = document.getElementById("req").value.trim();
+  if(!req) return;
+  ["s1","s2","s3","s4"].forEach(s=>setStage(s,false,"—"));
+  document.getElementById("orders").innerHTML="";document.getElementById("tools").innerHTML="";document.getElementById("mem").innerHTML="";
+
+  const keys = detect(req);
+  const n = keys.length;
+  setStage("s1",true,`命中 ${n} 类服务`); await wait(450);
+  setStage("s2",true,`拆为 ${n} 张工单`); await wait(450);
+
+  // 审批路由
+  const levels = [...new Set(keys.map(k=>SERVICES[k].level))];
+  setStage("s3",true, levels.join(" / ")); await wait(450);
+  setStage("s4",true,"已沉淀场景记忆"); await wait(200);
+
+  // 渲染工单
+  const orders = document.getElementById("orders");
+  keys.forEach((k,i)=>{
+    const s = SERVICES[k];
+    const card = document.createElement("div");
+    card.className = "wo bg-slate-900/50 rounded-lg p-3";
+    card.innerHTML = `<div class="flex justify-between"><span class="font-medium text-slate-100">WO-${(i+1).toString().padStart(3,"0")} ${s.name}</span><span class="text-[10px] px-2 py-0.5 rounded chip">${s.level}</span></div>
+      <div class="text-[11px] text-slate-400 mt-1">审批流：${ROUTE[s.level]}</div>
+      <div class="text-[11px] text-slate-500 mt-1">MCP：${s.tools.join(" → ")}</div>`;
+    orders.appendChild(card);
+  });
+
+  // 工具调用链
+  const tools = document.getElementById("tools");
+  keys.forEach((k,i)=>{
+    SERVICES[k].tools.forEach(tp=>{
+      const d=document.createElement("div");d.textContent=`→ [WO-${(i+1).toString().padStart(3,"0")}] call_tool(${tp}) ✓`;tools.appendChild(d);
+    });
+  });
+  const root=document.createElement("div");root.className="text-slate-400";root.textContent=`→ 审计日志写入：${n} 条操作留痕（防篡改）`;tools.appendChild(root);
+
+  // 记忆
+  const scene = req.includes("汇报")||req.includes("客户") ? "客户汇报" : (req.includes("审计")?"季度审计":"日常办公");
+  document.getElementById("mem").innerHTML =
+    `场景识别：<b class="text-violet-300">${scene}</b><br/>`+
+    `历史偏好：审计三组「远程办公类」需求默认 组长 + UKey 双因子校验。<br/>`+
+    `本次关联：${keys.map(k=>SERVICES[k].name).join("、")} → 已写入 profile / short_term 记忆，下次同类请求自动复用审批模板。`;
+}
+function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+document.getElementById("run").onclick = run;
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "resume-generator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node generate.js"
+  },
+  "dependencies": {
+    "docx": "^9.7.1"
+  }
+}

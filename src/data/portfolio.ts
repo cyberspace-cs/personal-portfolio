@@ -87,15 +87,15 @@ export const personalInfo: PersonalInfo = {
     en: "San Francisco, CA",
     zh: "中国 · 北京",
   },
-  email: "tao.xie@example.dev",
+  email: "2252125665@qq.com",
   resumeUrl: "/resume.pdf",
 };
 
 export const socialLinks: SocialLink[] = [
-  { name: "GitHub", url: "https://github.com", icon: "github" },
-  { name: "LinkedIn", url: "https://linkedin.com", icon: "linkedin" },
-  { name: "Twitter", url: "https://twitter.com", icon: "twitter" },
-  { name: "Email", url: "mailto:tao.xie@example.dev", icon: "mail" },
+  { name: "GitHub", url: "https://github.com/cyberspace-cs/personal-portfolio", icon: "github" },
+  { name: "LinkedIn", url: "https://github.com/cyberspace-cs", icon: "linkedin" },
+  { name: "Twitter", url: "https://github.com/cyberspace-cs", icon: "twitter" },
+  { name: "Email", url: "mailto:2252125665@qq.com", icon: "mail" },
 ];
 
 export const skillCategories: SkillCategory[] = [
@@ -156,50 +156,74 @@ export const experiences: Experience[] = [
   },
 ];
 
+const REPO = "https://github.com/cyberspace-cs/personal-portfolio";
+
 export const projects: Project[] = [
   {
     name: { en: "LLM Fine-tuning Platform", zh: "大模型微调平台" },
     description: {
-      en: "End-to-end platform for LLM fine-tuning with LoRA/QLoRA support, covering data processing to deployment.",
-      zh: "端到端大模型微调平台，支持LoRA/QLoRA，涵盖数据处理到部署全流程。",
+      en: "End-to-end platform for LLM fine-tuning with LoRA/QLoRA support: data ingestion, live training curves, adapter export and vLLM deployment.",
+      zh: "端到端大模型微调平台，支持LoRA/QLoRA：数据接入、实时训练曲线、Adapter导出与vLLM部署全流程。",
     },
-    tech: ["PyTorch", "LoRA", "vLLM", "FastAPI", "Docker"],
-    github: "https://github.com",
-    demo: "https://demo.com",
+    tech: ["PyTorch", "LoRA", "QLoRA", "vLLM", "FastAPI", "Docker"],
+    github: REPO,
+    demo: "/demos/finetune.html",
     icon: "sparkles",
   },
   {
     name: { en: "Enterprise RAG System", zh: "企业级RAG系统" },
     description: {
-      en: "Knowledge-based Q&A system with hybrid search, multi-document understanding, and citation support.",
-      zh: "基于知识库的问答系统，支持混合搜索、多文档理解和引用溯源。",
+      en: "Knowledge-based Q&A with hybrid search (BM25 + vector), multi-document understanding and citation tracing.",
+      zh: "基于知识库的问答系统，支持混合检索（BM25+向量）、多文档理解与引用溯源。",
     },
-    tech: ["LangChain", "ChromaDB", "BGE", "FastAPI", "PostgreSQL"],
-    github: "https://github.com",
-    demo: "https://demo.com",
+    tech: ["Hybrid Search", "BM25", "FastAPI", "Citation", "Context"],
+    github: REPO,
+    demo: "/demos/rag.html",
     icon: "search",
   },
   {
     name: { en: "AI Code Assistant", zh: "AI代码助手" },
     description: {
-      en: "Intelligent coding assistant with code generation, completion, and refactoring capabilities.",
-      zh: "智能代码助手，支持代码生成、补全和重构功能。",
+      en: "Coding assistant with generation / completion / refactoring / explanation, driven by Skill routing and an MCP tool connector.",
+      zh: "代码助手，支持生成/补全/重构/解释，由 Skill 路由与 MCP 工具连接器驱动。",
     },
-    tech: ["CodeLlama", "Tree-sitter", "VS Code", "LSP"],
-    github: "https://github.com",
-    demo: "https://demo.com",
+    tech: ["AST", "Skill Routing", "MCP", "FastAPI"],
+    github: REPO,
+    demo: "/demos/code.html",
     icon: "code",
   },
   {
     name: { en: "Multi-modal Dialogue Bot", zh: "多模态对话机器人" },
     description: {
-      en: "Conversational AI supporting text, image, and voice interactions with emotional awareness.",
-      zh: "支持文本、图像和语音交互的对话AI，具备情感感知能力。",
+      en: "Conversational AI with text emotion awareness, image understanding and voice transcription in one Context Harness Loop.",
+      zh: "对话AI，集成文本情感感知、图像理解与语音转录，统一于 Context Harness Loop。",
     },
-    tech: ["GPT-4V", "Whisper", "LangChain", "Redis"],
-    github: "https://github.com",
-    demo: "https://demo.com",
+    tech: ["Emotion NLP", "FastAPI", "Context Loop"],
+    github: REPO,
+    demo: "/demos/multimodal.html",
     icon: "message-circle",
+  },
+  {
+    name: { en: "AI Customer Service", zh: "智能客服" },
+    description: {
+      en: "Intent-routed customer service agent combining Skill routing, MCP external tool calls and FAQ RAG over a Context loop.",
+      zh: "意图路由智能客服，融合 Skill 路由、MCP 外部工具调用与 FAQ 知识库 RAG，闭环对话。",
+    },
+    tech: ["Skill", "MCP", "RAG", "FastAPI"],
+    github: REPO,
+    demo: "/demos/chatbot.html",
+    icon: "bot",
+  },
+  {
+    name: { en: "Audit-AIOPS", zh: "Audit-AIOPS 审计异常检测" },
+    description: {
+      en: "Enterprise audit-log anomaly detection Agent: log template parsing, LLM-based anomaly detection, root-cause analysis, alert convergence and explainable reporting, with MCP tool integration.",
+      zh: "企业审计日志异常检测 Agent：日志模板解析、大模型异常检测、根因分析、告警收敛与可解释报告，集成 MCP 工具调用。",
+    },
+    tech: ["Log Parse", "LLM Anomaly", "Root-Cause", "MCP", "FastAPI"],
+    github: REPO,
+    demo: "/demos/audit-aiops.html",
+    icon: "activity",
   },
   {
     name: { en: "AI Quiz Coach", zh: "专属刷题教练" },
@@ -208,7 +232,7 @@ export const projects: Project[] = [
       zh: "面向考研、考公、大厂面试备考的多源题库聚合智能刷题平台，支持个性化推荐、错题复盘与学习进度可视化分析。",
     },
     tech: ["React", "Chart.js", "Tailwind CSS", "SPA"],
-    github: "https://github.com/cyberspace-cs/personal-portfolio",
+    github: REPO,
     demo: "/shuati-coach.html",
     icon: "graduation-cap",
   },

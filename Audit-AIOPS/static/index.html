@@ -29,11 +29,12 @@
     border:1px solid rgba(255,255,255,.25);box-shadow:inset 0 0 12px rgba(56,189,248,.35)}
   .brand h1{font-size:17px;font-weight:700;letter-spacing:.5px;line-height:1.1}
   .brand p{font-size:11px;opacity:.82;letter-spacing:2px;margin-top:2px}
-  .nav{display:flex;gap:6px;margin-left:34px;flex:1}
-  .nav a{color:rgba(255,255,255,.85);text-decoration:none;padding:9px 16px;border-radius:9px;font-size:14px;transition:.18s;position:relative}
+  .nav{display:flex;gap:6px;margin-left:34px;flex:1;overflow-x:auto}
+  .nav a{color:rgba(255,255,255,.85);text-decoration:none;padding:9px 16px;border-radius:9px;font-size:14px;transition:.18s;position:relative;white-space:nowrap}
   .nav a:hover{background:rgba(255,255,255,.12);color:#fff}
   .nav a.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
   .nav a.active::after{content:"";position:absolute;left:16px;right:16px;bottom:-9px;height:3px;border-radius:3px;background:var(--c-accent-2)}
+  .nav a .hot{font-size:9px;background:var(--c-accent);color:#05323b;border-radius:8px;padding:1px 5px;margin-left:6px;vertical-align:middle;font-weight:700}
   .top-right{display:flex;align-items:center;gap:16px}
   .search{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);padding:7px 12px;border-radius:10px;min-width:210px}
   .search input{background:transparent;border:none;outline:none;color:#fff;font-size:13px;width:100%}
@@ -43,6 +44,21 @@
   .dot{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--c-accent-2);box-shadow:0 0 0 2px var(--c-primary)}
   .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#7dd3fc,#1858c9);display:grid;place-items:center;font-weight:700;color:#fff;font-size:13px;border:2px solid rgba(255,255,255,.4)}
   .layout{display:grid;grid-template-columns:248px 1fr 320px;gap:18px;padding:18px 22px;max-width:1640px;margin:0 auto}
+  /* AdventureX 参赛横幅 */
+  .ax-banner{margin:16px 22px 0;max-width:1640px;border-radius:var(--radius);overflow:hidden;
+    background:linear-gradient(110deg,#062a3a 0%,#0e4a5e 45%,#0e7490 100%);color:#eafdff;
+    box-shadow:0 10px 28px rgba(14,116,144,.28);position:relative}
+  .ax-banner::after{content:"";position:absolute;right:-40px;top:-50px;width:240px;height:240px;
+    background:radial-gradient(circle,rgba(56,189,248,.3),transparent 70%)}
+  .ax-inner{display:flex;align-items:center;gap:18px;padding:16px 22px;position:relative;z-index:2}
+  .ax-medal{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;flex:none;
+    background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);font-size:22px}
+  .ax-banner .ax-t{font-size:16px;font-weight:800;display:flex;align-items:center;gap:10px}
+  .ax-banner .ax-t .pill{font-size:11px;background:var(--c-accent);color:#05323b;padding:2px 10px;border-radius:20px;font-weight:700}
+  .ax-banner .ax-d{font-size:12.5px;opacity:.9;margin-top:5px;max-width:980px;line-height:1.6}
+  .ax-banner .ax-go{margin-left:auto;background:#fff;color:#0e4a5e;border:none;padding:10px 18px;border-radius:11px;
+    font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+  .ax-banner .ax-go:hover{filter:brightness(.96)}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
   .card-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
   .card-h .t{font-size:15px;font-weight:700;display:flex;align-items:center;gap:9px}
@@ -131,6 +147,33 @@
   .footer{text-align:center;color:var(--muted);font-size:12px;padding:8px 0 22px}
   .toast{position:fixed;left:50%;top:74px;transform:translateX(-50%);background:var(--c-primary-deep);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;box-shadow:var(--shadow);z-index:50;opacity:0;transition:.3s;pointer-events:none}
   .toast.show{opacity:1;top:84px}
+
+  /* ===== 新增：实时状态条 + 能力全景 ===== */
+  .ribbon{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 22px;background:rgba(255,255,255,.72);
+    backdrop-filter:blur(6px);border-bottom:1px solid var(--line);max-width:1640px;margin:0 auto;box-shadow:var(--shadow-sm)}
+  .ribbon .rk{display:flex;align-items:center;gap:7px;font-size:12.5px;background:var(--surface);border:1px solid var(--line);
+    border-radius:20px;padding:6px 13px;box-shadow:var(--shadow-sm);white-space:nowrap}
+  .ribbon .rk b{color:var(--c-primary);font-weight:700}
+  .ribbon .dot-live{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(22,163,74,.18);animation:pulse2 2s infinite}
+  @keyframes pulse2{0%{box-shadow:0 0 0 0 rgba(22,163,74,.4)}70%{box-shadow:0 0 0 7px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
+  .ribbon .rk.upd{margin-left:auto;color:var(--muted);box-shadow:none;border-color:transparent;background:transparent;font-size:11px}
+  .cap-head{display:flex;align-items:center;justify-content:space-between;margin:2px 0 0}
+  .cap-head .t{font-size:16px;font-weight:800;display:flex;align-items:center;gap:9px}
+  .cap-head .sub{font-size:12px;color:var(--muted)}
+  .cap-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .cap-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 16px;cursor:pointer;
+    transition:.18s;position:relative;overflow:hidden;box-shadow:var(--shadow-sm);text-decoration:none;color:inherit;display:block}
+  .cap-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:#c7dbff}
+  .cap-card .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:#fff;
+    background:linear-gradient(135deg,var(--c-primary),var(--c-accent-2));margin-bottom:10px}
+  .cap-card h4{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px}
+  .cap-card p{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.5;min-height:34px}
+  .cap-card .stat{margin-top:10px;font-size:12px;font-weight:600;color:var(--c-primary);background:var(--surface-2);
+    border:1px solid var(--line);border-radius:8px;padding:6px 10px;display:inline-block}
+  .cap-card .arrow{position:absolute;top:14px;right:14px;color:var(--muted);opacity:.45;font-size:16px}
+  .cap-card.feature{border-color:var(--c-accent);background:linear-gradient(180deg,#f3fbfd,#ffffff)}
+  .cap-card.feature .badge{position:absolute;top:12px;right:12px;font-size:10px;background:var(--c-accent);color:#05323b;
+    border-radius:8px;padding:2px 7px;font-weight:700}
 </style>
 </head>
 <body>
@@ -145,7 +188,7 @@
     <div><h1>审计智能一体化运维平台</h1><p>数字审计 · 智慧运维 · 新时代</p></div>
   </div>
   <nav class="nav">
-    <a class="active" href="/">工作台</a><a href="/agent-demo.html">Agent编排</a><a href="/knowledge-hybrid.html">混合检索</a><a href="/voice.html">语音入口</a><a href="/optimization.html">算法优化</a><a href="/monitor.html">运维监控</a><a href="/service-catalog.html">服务目录</a>
+    <a class="active" href="/">工作台</a><a href="/agent-demo.html">Agent编排</a><a href="/knowledge-hybrid.html">混合检索</a><a href="/experiment-agent.html">实验记录<span class="hot">NEW</span></a><a href="/ops-console.html">运维控制台<span class="hot">HOT</span></a><a href="/voice.html">语音入口</a><a href="/optimization.html">算法优化</a><a href="/rl-alignment.html">强化对齐</a><a href="/monitor.html">运维监控</a><a href="/service-catalog.html">服务目录</a>
   </nav>
   <div class="top-right">
     <div class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
@@ -155,6 +198,31 @@
     <div class="avatar">审</div>
   </div>
 </header>
+
+<!-- 实时平台状态条 -->
+<div class="ribbon" id="ribbon">
+  <span class="rk"><span class="dot-live"></span>服务：<b id="rk-status">检测中…</b></span>
+  <span class="rk">基座：<b id="rk-llm">—</b></span>
+  <span class="rk">缓存命中：<b id="rk-cache">—</b></span>
+  <span class="rk">技能：<b id="rk-skill">—</b></span>
+  <span class="rk">CLI 工具：<b id="rk-cli">—</b></span>
+  <span class="rk">实验记录：<b id="rk-exp">—</b> 条</span>
+  <span class="rk">运维工单：<b id="rk-ops">—</b> 单</span>
+  <span class="rk">自动化率：<b id="rk-auto">—</b></span>
+  <span class="rk upd" id="rk-upd">实时</span>
+</div>
+
+<!-- AdventureX 黑客松参赛主线横幅 -->
+<div class="ax-banner">
+  <div class="ax-inner">
+    <div class="ax-medal">🏆</div>
+    <div>
+      <div class="ax-t">真实数据驱动的审计运维智能体 <span class="pill">AdventureX 黑客松</span></div>
+      <div class="ax-d">审计技术支持 + 日常运维的<strong>真实大量数据</strong>，由<strong>多用户运维智能体</strong>协同处置：工单自动化工单流转、告警收敛降噪与自愈、变更双人审批留痕——全部 KPI 由真实数据实时计算，<strong>不编造、可回溯</strong>，可直接拖入你自己的数据演示。</div>
+    </div>
+    <button class="ax-go" onclick="location.href='/ops-console.html'">进入运维控制台 →</button>
+  </div>
+</div>
 
 <div class="layout">
   <aside>
@@ -183,6 +251,90 @@
         <span class="chip">？ 我的工单到哪了</span>
       </div>
       <div class="chat-log" id="chatLog"></div>
+    </section>
+
+    <!-- 平台能力全景：真实数据驱动的模块入口 -->
+    <section class="card" style="padding:16px 16px 18px">
+      <div class="cap-head">
+        <div class="t">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1858c9" stroke-width="1.9"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+          平台能力全景</div>
+        <span class="sub">八条能力主线 · 数据实时联动</span>
+      </div>
+      <div class="cap-grid" id="capGrid" style="margin-top:14px">
+        <a class="cap-card" href="/agent-demo.html">
+          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 2a4 4 0 014 4 4 4 0 010 8 4 4 0 01-8 0 4 4 0 010-8 4 4 0 014-4z"/><path d="M12 22v-6"/></svg></div>
+          <h4>智能问答 · 工单助理</h4>
+          <p>意图识别→拆单→审批路由→记忆（ReAct 编排）</p>
+          <span class="stat" id="m-agent-stat">在线</span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="cap-card" href="/knowledge-hybrid.html">
+          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></div>
+          <h4>混合检索 · 图RAG·多模态</h4>
+          <p>关键词+向量+RRF+图索引+多模态 四路融合</p>
+          <span class="stat" id="m-ret-stat">四路融合</span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="cap-card" href="/optimization.html">
+          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>
+          <h4>算法优化实验台</h4>
+          <p>蒸馏/量化/剪枝/投机解码/缓存/企业级并行</p>
+          <span class="stat" id="m-opt-stat">降本 —</span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="cap-card feature" href="/experiment-agent.html">
+          <span class="badge">AdventureX</span>
+          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M9 2v6l-5 9a2 2 0 002 3h12a2 2 0 002-3l-5-9V2"/><path d="M7 2h10"/></svg></div>
+          <h4>科研实验记录 Agent</h4>
+          <p>真实数据接入 · 跨实验关联 · 潜在重复预警</p>
+          <span class="stat" id="m-exp-stat">— 条记录</span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="cap-card feature" href="/ops-console.html">
+          <span class="badge">HOT</span>
+          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+          <h4>审计运维控制台</h4>
+          <p>审计技术支持 + 日常运维真实数据 · 多用户智能体</p>
+          <span class="stat" id="m-ops-stat">— 工单 · —% 自动化</span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="cap-card" href="/rl-alignment.html">
+          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 18 L9 11 L13 14 L20 5"/><circle cx="4" cy="18" r="1.6"/><circle cx="9" cy="11" r="1.6"/><circle cx="13" cy="14" r="1.6"/><circle cx="20" cy="5" r="1.6"/></svg></div>
+          <h4>强化学习对齐 · PPO→DPO→GRPO</h4>
+          <p>上下游关系 · 策略优劣对比 · 纯 numpy 仿真可视化</p>
+          <span class="stat" id="m-rl-stat">DPO 收敛最快</span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="cap-card" href="/agent-demo.html">
+          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 2l3 7h7l-5.5 4 2 7L12 17l-6.5 3 2-7L2 9h7z"/></svg></div>
+          <h4>Agent 技能中心</h4>
+          <p>可演进 skill 沉淀 · 编排层零改动增删</p>
+          <span class="stat" id="m-skill-stat">— 项技能</span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="cap-card" href="/agent-demo.html">
+          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 17l6-6-6-6M12 19h8"/></svg></div>
+          <h4>CLI-native OA 工具</h4>
+          <p>OA 操作即 CLI 命令 · Agent 原生驱动</p>
+          <span class="stat" id="m-cli-stat">— 个工具</span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="cap-card" href="/voice.html">
+          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 2a3 3 0 013 3v6a3 3 0 01-6 0V5a3 3 0 013-3z"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></div>
+          <h4>语音入口</h4>
+          <p>ASR 转写 → 工单直达（无障碍接入）</p>
+          <span class="stat" id="m-voice-stat">在线</span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="cap-card" href="/monitor.html">
+          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></div>
+          <h4>智能运维监控</h4>
+          <p>异常检测 · 自动处置 · 设备健康度</p>
+          <span class="stat" id="m-mon-stat">— 台在线</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
     </section>
 
     <div class="row">
@@ -262,5 +414,64 @@
 <div class="toast" id="toast"></div>
 
 <script src="app.js"></script>
+<script>
+// ===== 主页增强：实时状态条 + 能力全景（复用 app.js 的全局 api()） =====
+function setText(id, v){ const e = document.getElementById(id); if (e) e.textContent = v; }
+
+async function loadPlatformOverview(){
+  try{
+    const [health, cache, skills, tools, exp, cost, enc, mon, ops] = await Promise.allSettled([
+      api("/api/health"),
+      api("/api/llm/cache/stats"),
+      api("/api/skills"),
+      api("/api/tools"),
+      api("/api/experiments/metrics"),
+      api("/api/opt/cost-report"),
+      api("/api/knowledge/multimodal-encoder-status"),
+      api("/api/monitor"),
+      api("/api/ops/summary")
+    ]);
+
+    if (health.status === "fulfilled"){
+      setText("rk-status", health.value.status === "ok" ? "正常" : "异常");
+      setText("rk-llm", health.value.llm_provider || "—");
+    }
+    if (cache.status === "fulfilled"){
+      const s = cache.value;
+      const rate = s.requests ? (100 * (s.hits || 0) / s.requests).toFixed(1) : "—";
+      setText("rk-cache", rate + "%");
+    }
+    if (skills.status === "fulfilled") setText("rk-skill", skills.value.total);
+    if (tools.status === "fulfilled") setText("rk-cli", tools.value.total);
+    if (exp.status === "fulfilled") setText("rk-exp", exp.value.records);
+
+    if (exp.status === "fulfilled")
+      setText("m-exp-stat", exp.value.records + " 条记录 · " + exp.value.entities + " 实体");
+    if (skills.status === "fulfilled")
+      setText("m-skill-stat", skills.value.total + " 项技能（" + skills.value.requires_approval_count + " 需审批）");
+    if (tools.status === "fulfilled")
+      setText("m-cli-stat", tools.value.total + " 个 CLI 工具");
+    if (cost.status === "fulfilled")
+      setText("m-opt-stat", "单轮降本 " + (cost.value.monthly_default.saved_pct * 100).toFixed(1) + "%");
+    if (mon.status === "fulfilled")
+      setText("m-mon-stat", mon.value.online_devices + " 台在线 · 自动处置 " + mon.value.auto_rate + "%");
+    if (enc.status === "fulfilled")
+      setText("m-ret-stat", "视觉编码：" + enc.value.mode);
+    if (ops.status === "fulfilled"){
+      const t = ops.value.ticket_metrics, o = ops.value.ops_metrics, c = ops.value.change_metrics;
+      setText("rk-ops", t.total);
+      setText("rk-auto", t.automation_rate + "%");
+      setText("m-ops-stat", t.total + " 工单 · " + t.automation_rate + "% 自动化");
+    }
+
+    setText("rk-upd", "实时 · " + new Date().toLocaleTimeString("zh-CN"));
+  }catch(e){ /* 单点失败不阻塞整页 */ }
+}
+
+if (typeof api === "function"){
+  loadPlatformOverview();
+  setInterval(loadPlatformOverview, 30000);
+}
+</script>
 </body>
 </html>
