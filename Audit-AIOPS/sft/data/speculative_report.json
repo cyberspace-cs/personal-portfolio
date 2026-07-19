@@ -1,0 +1,25 @@
+{
+  "method": "投机解码 / 推测解码（Speculative Decoding）",
+  "framework": "纯 numpy 字符级 n-gram 模拟，无 GPU / 无框架，CPU 秒级复现",
+  "models": {
+    "target": "字符 trigram（order-2，更准更贵）",
+    "draft": "字符 bigram（order-1，更省更快）"
+  },
+  "config": {
+    "prompts": 60,
+    "n_new_per_prompt": 24,
+    "draft_k": 4,
+    "assumed_draft_cost_ratio": 0.125
+  },
+  "result": {
+    "autoregressive_target_calls": 410,
+    "speculative_target_calls": 192,
+    "speculative_draft_calls": 768,
+    "accept_rate": 0.3945,
+    "speedup_target_calls_only": 2.14,
+    "speedup_effective_with_draft_cost": 1.42,
+    "output_identical_ratio": 1.0
+  },
+  "note": "投机解码是「无损」加速：输出分布与 Target 单独解码一致（本模拟中 argmax 完全一致）。接受率越高、加速越大；草稿模型越接近目标（可用蒸馏得到的小模型当 Draft），命中率越高。",
+  "generated_at": "2026-07-19 04:42:08"
+}

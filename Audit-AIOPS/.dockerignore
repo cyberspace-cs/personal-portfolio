@@ -1,0 +1,27 @@
+# 版本控制与本地环境
+.git
+.gitignore
+.venv
+venv
+__pycache__/
+*.pyc
+.env
+
+# WorkBuddy 工作区数据
+.workbuddy
+
+# 本地开发缓存
+uvicorn.log
+*.log
+.pytest_cache
+
+# 训练产物（按需保留，镜像内可重新生成）
+sft/checkpoints
+sft/data
+
+# 不需要进镜像的临时脚本
+extract_pdf.py
+filter_core.py
+extract_sections.py
+core_*.txt
+focus_*.txt

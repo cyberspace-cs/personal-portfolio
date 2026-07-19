@@ -9,6 +9,7 @@
 import json
 
 from agent.llm import call_llm, HAS_KEY
+from agent.inference import optimized_call_llm
 from agent.tools import CoachTools
 from agent.memory import MemoryStore
 from agent.supervisor import StateGraph, END
@@ -38,7 +39,7 @@ class CoachAgent:
         try:
             sys = ("你是意图分类器。可选意图：diagnose(薄弱度诊断), wrongbook(查错题本), "
                    "plan(制定学习计划), chat(自由答疑/RAG)。只输出 JSON {intent: 其一}。")
-            text = await call_llm(sys, "用户学习概况：" + ctx_summary + "\n用户说：" + message, 200, json_mode=True)
+            text = await optimized_call_llm(sys, "用户学习概况：" + ctx_summary + "\n用户说：" + message, 200, json_mode=True)
             data = json.loads(text)
             return data.get("intent", "chat") if data.get("intent") in ("diagnose", "wrongbook", "plan", "chat") else "chat"
         except Exception:
@@ -54,6 +55,8 @@ class CoachAgent:
         diag = self.tools.diagnose(state["user_id"])
         mem.update_long("last_diagnose",
                         json.dumps([w["topic"] for w in diag["weak_topics"]], ensure_ascii=False))
+        mem.record_event("diagnose",
+                         f"诊断薄弱模块：{', '.join(w['topic'] for w in diag['weak_topics'])}")
         # 学习异常主动预警（AIOps 迁移）：诊断时一并扫描指标异常并主动推送
         detector = LearningAnomalyDetector()
         anomaly = detector.detect(state["user_id"])
@@ -64,7 +67,9 @@ class CoachAgent:
                           + alert)}
 
     async def _n_wrongbook(self, state):
+        mem = state["mem"]
         wb = self.tools.wrong_book(state["user_id"])
+        mem.record_event("wrongbook", f"查看高频错题 {len(wb)} 道")
         return {"cards": {"wrong": wb},
                 "reply": f"你共有 {len(wb)} 道高频错题（按错误次数排序），先把 error_count 最高的几道吃透。"}
 
@@ -73,6 +78,7 @@ class CoachAgent:
         diag = self.tools.diagnose(state["user_id"])
         plan = await self.tools.plan(state["user_id"], diag["all"])
         mem.update_long("last_plan", json.dumps(plan.get("focus", []), ensure_ascii=False))
+        mem.record_event("plan", f"冲刺重点：{', '.join(plan.get('focus', []))}")
         return {"cards": {"plan": plan},
                 "reply": "已基于你的真实掌握度生成冲刺计划👇 我会在后续对话里持续跟进你的进度。"}
 
@@ -81,6 +87,8 @@ class CoachAgent:
         last_diagnose = mem.get_long("last_diagnose") or ""
         context = mem.build_context(state["message"], last_diagnose)
         rag = await self.tools.rag_qa(state["message"], context, state["user_id"])
+        mem.record_event("rag",
+                         f"RAG相关={rag.get('relevant')} 引用数={len(rag.get('citations', []))}")
         rag_out = {k: rag.get(k) for k in ("relevant", "citations", "top_score", "threshold", "source")}
         return {"reply": rag.get("reply", ""),
                 "rag": rag_out,

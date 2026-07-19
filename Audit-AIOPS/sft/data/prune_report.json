@@ -1,0 +1,95 @@
+{
+  "task": "审计运维意图识别（14 类）",
+  "method": "非结构化幅度剪枝（Magnitude Pruning）",
+  "framework": "纯 numpy，无 GPU / 无框架，CPU 秒级复现",
+  "dense_baseline": {
+    "test_acc": 1.0,
+    "params": 7168,
+    "size_kb": 28.0,
+    "nnz": 4662
+  },
+  "sweep": [
+    {
+      "sparsity": 0.0,
+      "test_acc": 1.0,
+      "nnz": 4662,
+      "sparse_kb": 36.4,
+      "acc_delta_vs_dense": 0.0
+    },
+    {
+      "sparsity": 0.5,
+      "test_acc": 1.0,
+      "nnz": 3584,
+      "sparse_kb": 28.0,
+      "acc_delta_vs_dense": 0.0
+    },
+    {
+      "sparsity": 0.7,
+      "test_acc": 1.0,
+      "nnz": 2151,
+      "sparse_kb": 16.8,
+      "acc_delta_vs_dense": 0.0
+    },
+    {
+      "sparsity": 0.8,
+      "test_acc": 1.0,
+      "nnz": 1434,
+      "sparse_kb": 11.2,
+      "acc_delta_vs_dense": 0.0
+    },
+    {
+      "sparsity": 0.9,
+      "test_acc": 1.0,
+      "nnz": 717,
+      "sparse_kb": 5.6,
+      "acc_delta_vs_dense": 0.0
+    },
+    {
+      "sparsity": 0.95,
+      "test_acc": 1.0,
+      "nnz": 359,
+      "sparse_kb": 2.8,
+      "acc_delta_vs_dense": 0.0
+    },
+    {
+      "sparsity": 0.98,
+      "test_acc": 1.0,
+      "nnz": 144,
+      "sparse_kb": 1.1,
+      "acc_delta_vs_dense": 0.0
+    },
+    {
+      "sparsity": 0.99,
+      "test_acc": 0.955,
+      "nnz": 74,
+      "sparse_kb": 0.6,
+      "acc_delta_vs_dense": -0.045
+    },
+    {
+      "sparsity": 0.995,
+      "test_acc": 0.875,
+      "nnz": 36,
+      "sparse_kb": 0.3,
+      "acc_delta_vs_dense": -0.125
+    },
+    {
+      "sparsity": 0.999,
+      "test_acc": 0.445,
+      "nnz": 8,
+      "sparse_kb": 0.1,
+      "acc_delta_vs_dense": -0.555
+    }
+  ],
+  "tolerance_pt": 0.01,
+  "best_sparsity_within_tol": 0.98,
+  "best": {
+    "sparsity": 0.98,
+    "test_acc": 1.0,
+    "nnz": 144,
+    "sparse_kb": 1.1,
+    "acc_delta_vs_dense": 0.0
+  },
+  "theoretical_mac_reduction": 50.0,
+  "note": "剪枝降非零权重个数（与量化的降比特正交），高稀疏时配稀疏存储/稀疏算子可进一步减小体积与乘加次数；工程常用「先剪枝再量化」组合。",
+  "generated_at": "2026-07-19 04:42:30"
+}

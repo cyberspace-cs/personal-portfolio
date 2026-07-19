@@ -1,0 +1,31 @@
+# 审计智能一体化运维平台 · 编排部署
+# 用法：
+#   docker compose up -d --build
+#   # 配置真实基座：复制 .env.example 为 .env 并填入 HUNYUAN_API_KEY / QWEN_API_KEY
+#   docker compose --env-file .env up -d
+
+services:
+  audit-aiops:
+    build: .
+    image: audit-aiops:latest
+    container_name: audit-aiops
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+      - HUNYUAN_API_KEY=${HUNYUAN_API_KEY:-}
+      - HUNYUAN_BASE_URL=${HUNYUAN_BASE_URL:-}
+      - HUNYUAN_MODEL=${HUNYUAN_MODEL:-}
+      - QWEN_API_KEY=${QWEN_API_KEY:-}
+      - QWEN_BASE_URL=${QWEN_BASE_URL:-}
+      - QWEN_MODEL=${QWEN_MODEL:-}
+      - EMBEDDING_BACKEND=${EMBEDDING_BACKEND:-local}
+      - ASR_BACKEND=${ASR_BACKEND:-mock}
+      - OA_BACKEND=${OA_BACKEND:-mock}
+      - MCP_OA_SERVER=${MCP_OA_SERVER:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

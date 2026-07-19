@@ -20,12 +20,13 @@ from database import get_db
 SHORT_LIMIT = 12          # 短期滑窗保留的最大轮数（user+assistant 计一轮）
 PROFILE_KEYS = ("last_diagnose", "last_plan", "preferred_cat", "preferred_name", "notes")
 
-# 五段式预算（字符数，约 3 字符/token 估算）
+# 六段式预算（字符数，约 3 字符/token 估算）
 BUDGET = {
     "identity": 240,
     "profile": 420,
     "summary": 520,
     "short": 1500,
+    "history": 380,   # 中长期事件日志（append-only，可 grep），nanobot HISTORY.md 同构
     "current": 1100,
 }
 
@@ -49,6 +50,16 @@ def ensure_tables():
         );
         CREATE INDEX IF NOT EXISTS idx_agent_st_user_session
             ON agent_short_term(user_id, session_id, seq);
+        CREATE TABLE IF NOT EXISTS agent_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            session_id TEXT NOT NULL DEFAULT 'default',
+            kind TEXT NOT NULL,      -- diagnose/plan/rag/wrongbook/milestone/anomaly ...
+            payload TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_agent_hist_user
+            ON agent_history(user_id, created_at);
     """)
     conn.commit()
     conn.close()
@@ -146,7 +157,43 @@ class MemoryStore:
         conn.commit()
         conn.close()
 
-    # ---------- 五段式上下文预算拼接 ----------
+    # ---------- 中长期事件日志（nanobot HISTORY.md 同构，append-only 可 grep） ----------
+    def record_event(self, kind: str, payload: str) -> None:
+        """记录一条中长期事件（诊断/计划/RAG/里程碑…），append-only，供后续 grep 检索。"""
+        conn = get_db()
+        conn.execute(
+            "INSERT INTO agent_history (user_id, session_id, kind, payload) VALUES (?,?,?,?)",
+            (self.user_id, self.session_id, kind, payload),
+        )
+        conn.commit()
+        conn.close()
+
+    def search_history(self, keyword: str = "", limit: int = 50) -> list:
+        """检索中长期事件：无 keyword 取最近 limit 条；有 keyword 按 payload LIKE 模糊匹配。"""
+        conn = get_db()
+        if keyword:
+            rows = conn.execute(
+                "SELECT kind, payload, created_at FROM agent_history "
+                "WHERE user_id=? AND payload LIKE ? ORDER BY created_at DESC LIMIT ?",
+                (self.user_id, f"%{keyword}%", limit),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT kind, payload, created_at FROM agent_history "
+                "WHERE user_id=? ORDER BY created_at DESC LIMIT ?",
+                (self.user_id, limit),
+            ).fetchall()
+        conn.close()
+        return [dict(r) for r in rows]
+
+    def _recent_events(self, limit: int = 6) -> str:
+        """取最近 limit 条事件，拼成可注入上下文的中长期摘要。"""
+        rows = self.search_history("", limit)
+        if not rows:
+            return "（暂无中长期事件）"
+        return "\n".join(f"- [{r['kind']}] {r['payload']}" for r in rows)
+
+    # ---------- 六段式上下文预算拼接 ----------
     def build_context(self, message: str, tool_summary: str = "") -> str:
         """把五段上下文按预算拼成一段文本，供 LLM 使用。"""
         identity = ("你是「专属刷题教练」AI：一位永远在线、永不嫌烦的备考教练。"
@@ -169,11 +216,13 @@ class MemoryStore:
         short_txt = "\n".join(f"{'用户' if t['role']=='user' else '教练'}：{t['content']}"
                               for t in short[-SHORT_LIMIT:]) or "（无历史对话）"
 
+        history_txt = self._recent_events()
         seg = {
             "identity": _truncate(identity, BUDGET["identity"]),
             "profile": _truncate(profile_txt, BUDGET["profile"]),
             "summary": _truncate(tool_summary or "无", BUDGET["summary"]),
             "short": _truncate(short_txt, BUDGET["short"]),
+            "history": _truncate(history_txt, BUDGET["history"]),
             "current": _truncate(
                 ("用户当前说：" + message) + (("\n诊断/工具摘要：" + tool_summary) if tool_summary else ""),
                 BUDGET["current"],
@@ -184,5 +233,6 @@ class MemoryStore:
             f"[长期画像] {seg['profile']}\n"
             f"[诊断摘要] {seg['summary']}\n"
             f"[对话历史] {seg['short']}\n"
+            f"[近期事件] {seg['history']}\n"
             f"[当前] {seg['current']}"
         )

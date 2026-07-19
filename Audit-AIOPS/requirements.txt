@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+pydantic
+httpx
+python-multipart          # ASR /api/asr 文件上传（UploadFile）必需
+faiss-cpu
+numpy
+# 可选（生产启用时取消注释）：
+# sentence-transformers   # EMBEDDING_BACKEND=st 时启用真实语义向量
+# funasr                  # ASR_BACKEND=funasr 时启用真实语音识别
+# peft                    # sft/train.py 领域微调
+# transformers
+# accelerate
+# datasets
+

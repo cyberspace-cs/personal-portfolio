@@ -1,0 +1,85 @@
+{
+  "title": "企业级并行（流水线 / 模型 / 上下文 / GPU 显存）+ 蒸馏压缩 概念仿真",
+  "framework": "纯 numpy，无 GPU / 无框架，CPU 秒级复现（原理级，非真实多卡）",
+  "note": "输出与单设备一致（correctness 已校验）；用于面试讲清工业界部署范式与压缩组合收益。",
+  "model_parallel": {
+    "2_cards": {
+      "per_device_param_ratio": 0.5,
+      "all_reduce_correct": true,
+      "output_matches_single_device": true
+    },
+    "4_cards": {
+      "per_device_param_ratio": 0.25,
+      "all_reduce_correct": true,
+      "output_matches_single_device": true
+    },
+    "8_cards": {
+      "per_device_param_ratio": 0.125,
+      "all_reduce_correct": true,
+      "output_matches_single_device": true
+    },
+    "summary": "沿输出列切分权重，每卡算局部 logits 后 All-Reduce(sum) 还原；单卡参数/算力降为 1/N，且输出与单卡逐元素一致（已校验）。"
+  },
+  "context_parallel": {
+    "2_cards": {
+      "per_device_kv_ratio": 0.5,
+      "per_device_kv_elements": 2097152,
+      "reconstructed_ok": true
+    },
+    "4_cards": {
+      "per_device_kv_ratio": 0.25,
+      "per_device_kv_elements": 1048576,
+      "reconstructed_ok": true
+    },
+    "8_cards": {
+      "per_device_kv_ratio": 0.125,
+      "per_device_kv_elements": 524288,
+      "reconstructed_ok": true
+    },
+    "summary": "序列长 8192、KV 维 512 时，单卡 KV 显存降为全部/ N；配合本项目的语义/Prompt 缓存，可进一步只缓存命中前缀，是「上下文压缩」的双保险。"
+  },
+  "pipeline_parallel": {
+    "depth": 12,
+    "microbatches": 16,
+    "devices": 4,
+    "util_naive": 0.25,
+    "util_1f1b": 0.842,
+    "util_gain_x": 3.37,
+    "summary": "把 12 层切成 4 段、16 个 micro-batch 流水，设备利用率从 25% 提到 84%（约 3.4×）；工程常用 1F1B 调度平衡空泡与显存。"
+  },
+  "combined_memory_budget": {
+    "reference": "7B 级模型，序列 32768 / KV 维 4096，模型并行 4 卡 × 上下文并行 4 卡",
+    "per_device_rows": [
+      {
+        "quant_bits": 32,
+        "per_device_weight_mb": 6675.72,
+        "per_device_kv_mb": 128.0,
+        "per_device_total_mb": 6803.72
+      },
+      {
+        "quant_bits": 8,
+        "per_device_weight_mb": 1668.93,
+        "per_device_kv_mb": 32.0,
+        "per_device_total_mb": 1700.93
+      },
+      {
+        "quant_bits": 4,
+        "per_device_weight_mb": 834.465,
+        "per_device_kv_mb": 16.0,
+        "per_device_total_mb": 850.465
+      }
+    ],
+    "summary": "量化降比特 × 模型并行分权重 × 上下文并行分 KV：fp32 单卡≈28GB → INT8+并行≈1.0GB/卡 → INT4+并行≈0.6GB/卡；再叠加本项目蒸馏/剪枝，单卡即可服务大模型，正是「企业私有化低显存部署」的核心。"
+  },
+  "enterprise_distill_compression": {
+    "pipeline": "① 先压缩（蒸馏→量化→剪枝，降比特/降非零个数）→ ② 再并行（模型/流水/上下文并行，降单卡显存与提升吞吐）",
+    "our_evidence": [
+      "蒸馏+INT8：Teacher→INT8 学生体积压 63.0×、提速 10.8×、精度保持 100.0%",
+      "幅度剪枝：98% 稀疏仍无损、理论乘加削减 50.0×（与量化正交，可组合）",
+      "投机解码：Draft 提议 + Target 并行校验，无损加速（见 /api/opt/speculative-report）",
+      "语义/Prompt 缓存：高频请求命中即跳过整次推理（见 /api/llm/cache/demo）"
+    ],
+    "summary": "压缩在前、并行在后是企业落地的标准顺序：先用本项目实测的蒸馏/量化/剪枝把模型做小，再用并行把小模型铺到多卡服务海量审计并发，单卡显存与成本同时可控。"
+  },
+  "generated_at": "2026-07-19 04:58:21"
+}

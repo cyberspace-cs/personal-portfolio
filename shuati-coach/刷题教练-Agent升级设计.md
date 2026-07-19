@@ -313,3 +313,205 @@ Phase A-D 已具备「编排 + 工具 + 记忆 + RAG」，但仍是**被动响�
 
 ### 12.7 全 Phase 收官
 Phase A（Agent 基础包）→ B（SQLite 持久化记忆 + 五段式预算）→ C（RAG + 引用 + 防幻觉）→ D（LangGraph 同构编排 + 反思）→ E（学习异常检测 + 评测闭环）全部落地。项目已从「带 AI 的刷题工具」升级为**会编排、有记忆、能检索溯源、会反思、能主动预警、可量化评测**的定制化备考 Agent。
+
+---
+
+## 13. Phase F 落地记录（2026-07-19）：Agent 推理优化（LLM 推理开发向）
+
+### 13.1 解决了什么
+前五个 Phase 让 Agent「能用、可量化」，但未触及**推理成本**这一 Agent 应用开发的核心工程问题。Phase F 把面试高频的 LLM 推理优化技术（量化 / 蒸馏 / KV cache / continuous batching / 投机解码 / 上下文压缩 / 工具替代生成）**做成真实可运行的代码**，无需 GPU、无 API Key 也能跑出量化指标，作为「推理开发深度」的直接证据。
+
+新增 `server/agent/inference.py`，并接入既有编排/工具/评测链路。
+
+### 13.2 优化项与实现映射
+| 优化技术 | 在本项目的真实实现（`agent/inference.py`） | 可量化指标 |
+|---|---|---|
+| **KV cache / 前缀缓存** | `KVCacheManager`：五段式上下文的【身份】【长期画像】【诊断摘要】为稳定前缀，多轮复用；若服务端支持 vLLM `prompt_prefix` 则透传，否则本地测算省下的 prompt token | `kv_cache_hit_rate`、`reused_tokens` |
+| **上下文压缩** | `compress_context`：长对话历史用 TF-IDF 抽取式摘要瘦身（复用 `TfidfIndex`），超预算即压缩并记账 | `compressed_saved_tokens` |
+| **投机解码** | `speculative_decode` + `draft_from_ngram`：草稿小模型(2-gram)先出 token，目标模型按拒绝采样逐位校验 | `spec_accept_rate` |
+| **知识蒸馏 KD** | `Distiller`：teacher(大模型)生成讲题/变式 → student(确定性规则)近似；纯 Python ROUGE-N 评保真度 | `kd_pairs`、`rouge2`、`kd_teacher_cost_tokens` |
+| **连续批处理** | `InferenceBatcher.run_bench`：串行 vs 一次 gather 对比并发吞吐 | `batch_merged_requests`、`speedup` |
+| **工具替代生成** | 诊断/错题本走工具确定性返回（0 token），`mark_tool_substitution` 记账 | `tool_substitutions` |
+| **量化 / AWQ** | `QUANT_CONFIG` + `enable_quantization`：私有化部署透传 `quantization=awq`、`bits=4` | `quant_mode` |
+
+### 13.3 改动文件
+| 文件 | 改动 |
+|---|---|
+| `agent/inference.py`（新） | 推理优化层：7 项优化 + `MetricsLedger` 全局台账 + `run_infer_demo` 离线自演示 |
+| `agent/tools.py` | 3 个生成型工具走 `optimized_call_llm`（KV 前缀 + 压缩 + token 记账）；诊断/错题本 `mark_tool_substitution` |
+| `agent/orchestrator.py` | 意图分类走 `optimized_call_llm` |
+| `agent/eval.py` | `evaluate` 输出附 `inference_optimization` 指标 |
+| `agent/router.py` | 新增 `POST /api/agent/infer/optimize`（自演示）、`GET /api/agent/infer/status`（台账） |
+| `main.py` | 版本升 `3.5.0-infer-opt`；启动打印推理优化模式；`/api/health` 返回 `infer_opt` 开关 |
+
+### 13.4 自演示实测（无 Key / 无 GPU，本机）
+调用 `POST /api/agent/infer/optimize` 实测结果：
+- KV 前缀缓存：`reused_tokens=96`、`kv_cache_hit_rate=0.8`
+- 上下文压缩：`compressed_saved_tokens=766`
+- 投机解码：`accept_rate=1.0`（草稿 8 token 全接受）
+- 知识蒸馏：`kd_pairs=10`、`rouge2=0.516`（student 对 teacher 保真度）
+- 连续批处理：`speedup≈8.3x`（串行 0.125s → 批处理 0.015s）
+- 工具替代生成：`tool_substitutions=3`
+- 量化：`quant_mode=awq-4bit`（生产透传）
+
+### 13.5 面试讲法
+「刷题教练不是堆功能，而是**推理成本敏感**的设计：稳定前缀可 prefix cache、该查库不生成直接砍推理量、上下文预算即 context 压缩、评测闭环可同时比对 teacher/student——这些推理优化技术本来就是 Agent 降本的标配，我已经在代码里把它们跑成可量化的指标。」
+
+---
+
+## 14. Agent-native Harness 参考（nanobot / HKUDS 黄超教授实验室）
+
+### 14.1 背景与定位
+团队 Vibe-Trading（量化）与 Deep Tutor（教育）同日登 GitHub 全球 Trending 第一/第二，验证「**一个核心 Harness + 每垂直域一套 Skills/Memory/Tools**」的 Agent-native 打法可行。经调研，港大黄超教授 HKUDS 实验室的 **nanobot**（45.9k⭐，~4000 行可自托管运行时，MIT）正是这一范式的最佳解剖样本——它也是黄超教授系列开源（AutoAgent 一句话造 Agent、DeepCode AI 分析论文代码）的同门。
+
+> 关键澄清：**nanobot 即黄超教授 HKUDS 的项目**；「学习黄超教授项目」与「学习 nanobot」是同一来源。
+
+### 14.2 nanobot 架构 → 刷题教练 映射
+| nanobot 模块 | 设计哲学 | 刷题教练 对应 |
+|---|---|---|
+| **Channel 接入层** | 统一 `Message`，WebUI/CLI/API + 飞书/微信/Telegram… | `coach.html` / 小程序 / `/api/agent/chat`；未来垂直域（Vibe-Trading/Deep Tutor）复用同一 core，仅换 Skills |
+| **Bus 总线层**（~45 行异步双队列） | 解耦「通信」与「思考」 | 编排层 `supervisor.py` 的 `StateGraph` 引擎（节点异步推进、条件边路由）同构 |
+| **ReAct Loop**（Observe→Reason→Act 状态机） | 核心引擎 | `CoachAgent` 六节点编排 + 反思节点 |
+| **虚拟工具范式**（不执行的「幽灵 Function Definition」） | 用 Function Calling 协议约束结构化输出，替代脆弱 Prompt 指令 | **Phase G 已落地**：`llm.call_llm_tool` 替代 `response_format=json_object`（见第 15 节） |
+| **三层记忆**（Session/HISTORY.md/MEMORY.md） | 短期+.jsonl、中长期 append-only grep、长期全量注入 | Phase B 已落地：`agent_profile`(长期画像) + `agent_short_term`(短期) + 五段式预算；可进一步补「可 grep 的中长期事件日志」 |
+| **Skills + 原生 MCP** | 垂直能力以插件注入 | `agent/tools.py` 工具集 + `rag_qa`；生产可接 MCP 接行情/题库 |
+| **Model Freedom** | OpenAI 兼容自定义 providers、本地 Ollama/vLLM、fallback | **Phase G 已落地**：`llm.PROVIDERS` 多厂商注册表（智谱/Kimi/混元/豆包/千问/DeepSeek/OpenAI） |
+
+### 14.3 借鉴要点（用于后续垂直域）
+1. **极简可自托管**：核心小而可读（<4000 行），不搞巨石——刷题教练编排层坚持 `StateGraph` 同构、可一键换 LangGraph。
+2. **协议层约束输出**：结构化数据交给 Function Calling，不靠 Prompt 硬凑 JSON（这正是 Phase G 的虚拟工具改造动机）。
+3. **记忆务实分层**：在 Token 与持久性间找平衡，短期/中长期/长期三档物理分离。
+4. **Channel 与思考解耦**：新垂直域（Vibe-Trading/Deep Tutor）只写 Skills+Memory，接入层不动。
+
+---
+
+## 15. Phase G 落地记录（2026-07-19）：多厂商注册表 + 虚拟工具范式
+
+### 15.1 解决了什么
+两个工程痛点：
+- **单厂商锁定**：原 LLM 调用层（含 `main.py` 的 `AI_CONFIG`）只认一个 OpenAI 兼容端点，无法在智谱/Kimi/混元/豆包/千问/DeepSeek/OpenAI 间切换——与「多基座可切换」的面试叙事脱节。
+- **结构化输出脆弱**：`/api/explain|gen|report` 依赖 `response_format=json_object`，部分厂商对该模式支持不稳（返回带 ```json 包裹、字段漂移），易解析失败。
+
+Phase G 把调用层升级为**多厂商注册表 + 虚拟工具范式**：① 7 家主流模型一键切换（环境变量驱动、运行期可切）；② 结构化输出改用 Function Calling 截获 `tool_calls.arguments`，协议层保证严格 JSON。
+
+### 15.2 改动文件
+| 文件 | 改动 | 命中面试点 |
+|---|---|---|
+| `agent/llm.py` | 重写为**多厂商注册表** `PROVIDERS`（智谱/GLM·Kimi/Moonshot·腾讯混元·字节豆包Ark·阿里千问/通义·DeepSeek·OpenAI），统一 OpenAI 兼容 `/chat/completions`；`_pick_active` 按 `LLM_PROVIDER`→首个有 Key→历史变量→降级 选激活厂商；导出 `LLM_CONFIG/HAS_KEY/active_provider/switch_provider/list_providers`（向后兼容 `inference.py`/`main.py`）；新增 `call_llm_tool`（虚拟工具范式） | 多模型基座 / Function Calling / 协议层约束 |
+| `agent/router.py` | 新增 `GET /api/agent/providers`（列所有厂商+是否配置 Key+激活态）、`POST /api/agent/providers/switch`（运行期切厂商，需该厂商有 Key） | API 边界 / 模型选择器后端 |
+| `main.py` | 删除旧 `AI_CONFIG` 与本地 `call_llm`/`_extract_json`，改用 `agent.llm` 激活配置；`/api/explain|gen|report` 改走 `_structured_llm`→`call_llm_tool`（虚拟工具）；无 Key/解析失败自动降级 `fallback_*`；启动打印激活厂商；`/api/health` 返回 `llm_provider/llm_model/llm_label`；版本升 `3.6.0-harness` | 多厂商 / 结构化输出健壮性 |
+
+### 15.3 多厂商注册表（核心）
+- 每个厂商含 `api_base / key_envs / default_model / supports_json`；可用 `<PROVIDER>_API_KEY`、`<PROVIDER>_MODEL`、`<PROVIDER>_API_BASE` 覆盖。
+- 激活优先级：`LLM_PROVIDER` 指定 → 自动选第一个配置了 Key 的厂商 → 历史 `API_KEY/API_BASE/MODEL` 兜底（custom）→ 无 Key 降级（调用方走规则模式）。
+- 运行期 `switch_provider(name)` 切换（仅限已配置 Key 的厂商），利于演示「同一 Agent 换基座」。
+
+### 15.4 虚拟工具范式（核心）
+```python
+# llm.py：发一个 function definition，截获 arguments 作为严格结构，不真实执行
+payload["tools"] = [{"type":"function","function":{"name":tool_name,"parameters":tool_schema}}]
+payload["tool_choice"] = {"type":"function","function":{"name":tool_name}}
+# → 取 choices[0].message.tool_calls[0].function.arguments 解析为 dict
+```
+- 相比 `json_object`：Function Calling 协议对参数有严格 JSON Schema 约束，且被所有 OpenAI 兼容端点统一支持——nanobot 同款「幽灵工具」技巧。
+- `main.py` 为 explain/gen/report 各定义一份 JSON Schema（`_EXPLAIN_SCHEMA/_GEN_SCHEMA/_REPORT_SCHEMA`），并在返回空 dict 时回退到确定性 `fallback_*` 模板，保证前端始终可用。
+
+### 15.5 验证
+- `python -m py_compile` 全过（`agent/llm.py`、`main.py`、`agent/router.py`），无 lint。
+- 接口就绪：`GET /api/agent/providers` 返回激活厂商与各厂商配置态；`POST /api/agent/providers/switch {"provider":"moonshot"}` 在配置 Key 后切到 Kimi；`GET /api/health` 新增 `llm_provider` 字段。
+- 降级路径保持：无 Key 时 explain/gen/report 仍走 `fallback_*`，结构化输出失败也自动回退，不破坏前端。
+
+### 15.6 下一步建议
+- **Phase H（Channel 接入层）**：把 `coach.html`/小程序/未来 Vibe-Trading/Deep Tutor 统一到「一个 Agent core + 多 Channel」的 nanobot 式接入层，垂直域只注入 Skills+Memory+MCP 工具（呼应第 14 节）。
+- **三层记忆补中长期档**：在现有短期(`agent_short_term`)+长期(`agent_profile`)之外，加一层「可 grep 的中长期事件日志」（错题反复/专题突破），贴合 nanobot 的 HISTORY.md 设计。
+- **MCP 接垂直工具**：讲题 Agent 接 MCP 接行情/题库/考纲源，复用 nanobot 的 Skills+MCP 扩展机制。
+
+> 以上三项已在 **Phase H** 落地，详见 §16（Channel 接入层）/ §17（三层记忆中期档）/ §18（MCP 接垂直工具）。
+
+---
+
+## 16. Phase H 落地记录（2026-07-19）：Channel 接入层（一个 Agent core + 多 Channel）
+
+### 16.1 解决了什么
+之前 CoachAgent 直接被 FastAPI 路由调用，来源（Web / 小程序 / 未来 Vibe-Trading / Deep Tutor）与 Agent 逻辑耦合。要复用到其它垂直域，需为每个域重写接入。
+
+nanobot 的启示：**Channel 接入层把「通信来源」与「思考」解耦**。核心 Agent 只处理统一消息，新渠道注册即插即用。
+
+### 16.2 新增 `agent/channel.py`
+| 组件 | 作用 |
+|---|---|
+| `InboundMessage` / `OutboundMessage` | 渠道无关的入站/出站消息（user_id/content/session_id/channel/extra） |
+| `Channel`（基类） | `receive()` / `send()` 抽象 |
+| `ApiChannel` | HTTP API 渠道：`dispatch(inbound)` 调 `CoachAgent.handle`，出站经 router 透传 JSON |
+| `CliChannel` | 本地 CLI 渠道：`asyncio.to_thread(input)` 读 stdin、`print` 回 stdout，无 Web 也能跑 Agent |
+| `AgentHub` | 渠道中枢：注册多 Channel，统一 `dispatch_api()`；单例 `HUB` 被 router 与 CLI 共享同一 Agent 实例 |
+
+### 16.3 改动
+- `router.py`：`/api/agent/chat` 改为经 `HUB.dispatch_api(...)`（返回结构不变，前端兼容）；新增 `GET /api/agent/channels`（列 api/cli/未来飞书微信等）。
+- 新增 `server/run_agent_cli.py`：本地 CLI runner，`python run_agent_cli.py [user_id]` 直接驱动 Agent，验证 Channel 解耦。
+- `main.py` 启动打印接入渠道；`/api/health` 返回 `channels`。
+
+### 16.4 复用价值（面试讲法）
+「刷题教练不是为 Web 写的 Agent，而是**一个 Harness**：接入层屏蔽来源，未来 Vibe-Trading/Deep Tutor 直接复用 `CoachAgent` core，只换 Skills+Memory+MCP 工具——这正是我们团队两个 Trending 项目验证过的『一核多域』打法。」
+
+---
+
+## 17. 三层记忆补中长期档（nanobot HISTORY.md 同构）
+
+### 17.1 之前 vs 现在
+| 层 | 之前 | 现在 |
+|---|---|---|
+| 短期 | `agent_short_term`（单 session 滑窗） | 不变 |
+| **中长期** | ❌ 缺 | ✅ 新增 `agent_history`（append-only，可 grep） |
+| 长期 | `agent_profile`（用户画像） | 不变 |
+
+### 17.2 新增 `agent_history` 表（memory.py）
+- 字段：`user_id / session_id / kind / payload / created_at`，`kind` 区分 diagnose/plan/rag/wrongbook/milestone/anomaly。
+- `MemoryStore.record_event(kind, payload)`：append-only 写入。
+- `MemoryStore.search_history(keyword, limit)`：无 keyword 取最近 N 条；有 keyword 按 `payload LIKE` 模糊检索（**可 grep**）。
+- `build_context` 由五段式扩为**六段式**：新增 `[近期事件]` 段（最近 6 条事件摘要），让 Agent 跨会话记住「这周诊断出什么薄弱、定了什么计划」。
+
+### 17.3 落点（orchestrator.py 各节点）
+- 诊断 → `record_event("diagnose", "诊断薄弱模块：…")`
+- 错题本 → `record_event("wrongbook", "查看高频错题 N 道")`
+- 计划 → `record_event("plan", "冲刺重点：…")`
+- RAG → `record_event("rag", "RAG相关=True 引用数=N")`
+
+### 17.4 接口与价值
+- 新增 `POST /api/agent/history`：检索中长期事件（前端可渲染「学习时间线」）。
+- 面试讲法：「记忆不只是多轮上下文，而是**务实分层**：短期保对话、长期保画像、中长期保『发生了什么大事』——后者用 append-only + 关键词检索，比全量重灌更省 token，也比纯向量更可解释。」
+
+---
+
+## 18. MCP 接垂直工具（Skills + MCP 插件化，nanobot 同款）
+
+### 18.1 设计
+新增 `agent/mcp.py`：**声明式 MCP 桥**，不依赖第三方 MCP SDK（零依赖、可编译运行）。
+- `MCPToolSpec(name/description/input_schema/source)`：工具声明。
+- `MCPBridge`：
+  - `register_builtin(spec, func)`：注册内置 MCP 兼容工具；
+  - `list_tools()`：聚合内置工具 +（配置了 `MCP_SERVER_URL` 时）远程工具；
+  - `call(tool, args)`：内置直接 `func(args)`；远程走 HTTP JSON-RPC（`tools/list` / `tools/call`）。
+- 降级：远程不可达时返回错误提示，内置工具始终可用。
+
+### 18.2 内置示例工具（证明范式已打通）
+| 工具 | 作用 | 对应垂直能力 |
+|---|---|---|
+| `exam_syllabus` | 按分类检索考纲概览（考研/考公/大厂） | 考纲源 |
+| `question_bank_search` | 按知识点检索垂直题库 | 题库源 |
+
+### 18.3 接入方式
+- `tools.py` 的 `CoachTools` 内建 `MCPBridge`，暴露 `mcp_call(tool, args)` / `list_mcp_tools()`。
+- 新增 `GET /api/agent/mcp/tools`（列内置+远程工具）、`POST /api/agent/mcp/call`（调用工具）。
+- 接真实垂直 MCP server（行情/题库/考纲）：仅设 `MCP_SERVER_URL`（+ 可选 `MCP_SERVER_KEY`），**无需改代码**——正是「核心 Harness + 垂直 Skills」红利。
+
+### 18.4 面试讲法
+「Agent 的核心不膨胀，垂直能力以 MCP 工具注入：本地用内置工具演示范式，生产接飞书/行情/题库的 MCP server，只改环境变量。这套 Skills+MCP 扩展机制直接复用了 nanobot（HKUDS）的成熟设计。」
+
+---
+
+## 19. 版本与接口清单（截至 Phase H）
+- 版本：`3.7.0-channel-history-mcp`（`main.py` / `/api/health`）。
+- 新增端点：`GET /api/agent/channels`、`POST /api/agent/history`、`GET /api/agent/mcp/tools`、`POST /api/agent/mcp/call`。
+- 新增模块：`agent/channel.py`（Channel 接入层）、`agent/mcp.py`（MCP 桥）、`server/run_agent_cli.py`（CLI 调试）。
+- 记忆表新增：`agent_history`（中长期事件日志）。

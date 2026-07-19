@@ -12,7 +12,34 @@ dist
 dist-ssr
 *.local
 
-# Editor directories and files
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE and Editor
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -22,3 +49,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Project specific
+.workbuddy/
+project.private.config.json

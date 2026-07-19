@@ -1,0 +1,252 @@
+{
+  "task": "审计运维场景 · Prompt/Prefix KV-Cache 强化（前缀复用仿真）",
+  "framework": "pure python + numpy (CPU)",
+  "summary": {
+    "total_requests": 2000,
+    "distinct_prefixes": 5,
+    "prefix_cache_hits": 1995,
+    "prefix_cache_misses": 5,
+    "prefix_cache_hit_rate": 0.9975,
+    "prefix_tokens_per_request": 1500,
+    "query_tokens_per_request": 120,
+    "tokens_saved": 2992500,
+    "tokens_saved_pct": 0.9236,
+    "latency_saved_ms": 34114.5,
+    "avg_latency_ms": 2.38,
+    "ttft_reduction_pct": 0.8774,
+    "cost_saved_selfhost": 0.5985,
+    "monthly_cost_saved_at_500w": 1496.25
+  },
+  "assumptions": {
+    "prefix_tokens": 1500,
+    "query_tokens": 120,
+    "distinct_prefixes": 5,
+    "total_requests": 2000,
+    "ms_per_1k_tokens": 12.0,
+    "cache_read_factor": 0.05,
+    "selfhost_price_per_1k": 0.0002,
+    "monthly_requests_w": 500
+  },
+  "caching_layers": [
+    {
+      "layer": 1,
+      "name": "服务端 prefix/KV cache",
+      "what": "复用系统前缀的 prefill KV，跳过前缀重算",
+      "quantified_by": "本脚本（命中率/省 token/省 prefill 时延）"
+    },
+    {
+      "layer": 2,
+      "name": "应用层 精确+语义 响应缓存",
+      "what": "相同/近似 prompt 直接复用推理结果（cache.py）",
+      "quantified_by": "/api/llm/cache/stats（命中率/累计省时）"
+    }
+  ],
+  "series": [
+    {
+      "req": 1,
+      "cum_saved_tokens": 0
+    },
+    {
+      "req": 41,
+      "cum_saved_tokens": 54000
+    },
+    {
+      "req": 81,
+      "cum_saved_tokens": 114000
+    },
+    {
+      "req": 121,
+      "cum_saved_tokens": 174000
+    },
+    {
+      "req": 161,
+      "cum_saved_tokens": 234000
+    },
+    {
+      "req": 201,
+      "cum_saved_tokens": 294000
+    },
+    {
+      "req": 241,
+      "cum_saved_tokens": 354000
+    },
+    {
+      "req": 281,
+      "cum_saved_tokens": 414000
+    },
+    {
+      "req": 321,
+      "cum_saved_tokens": 474000
+    },
+    {
+      "req": 361,
+      "cum_saved_tokens": 534000
+    },
+    {
+      "req": 401,
+      "cum_saved_tokens": 594000
+    },
+    {
+      "req": 441,
+      "cum_saved_tokens": 654000
+    },
+    {
+      "req": 481,
+      "cum_saved_tokens": 714000
+    },
+    {
+      "req": 521,
+      "cum_saved_tokens": 774000
+    },
+    {
+      "req": 561,
+      "cum_saved_tokens": 834000
+    },
+    {
+      "req": 601,
+      "cum_saved_tokens": 894000
+    },
+    {
+      "req": 641,
+      "cum_saved_tokens": 954000
+    },
+    {
+      "req": 681,
+      "cum_saved_tokens": 1014000
+    },
+    {
+      "req": 721,
+      "cum_saved_tokens": 1074000
+    },
+    {
+      "req": 761,
+      "cum_saved_tokens": 1134000
+    },
+    {
+      "req": 801,
+      "cum_saved_tokens": 1194000
+    },
+    {
+      "req": 841,
+      "cum_saved_tokens": 1254000
+    },
+    {
+      "req": 881,
+      "cum_saved_tokens": 1314000
+    },
+    {
+      "req": 921,
+      "cum_saved_tokens": 1374000
+    },
+    {
+      "req": 961,
+      "cum_saved_tokens": 1434000
+    },
+    {
+      "req": 1001,
+      "cum_saved_tokens": 1494000
+    },
+    {
+      "req": 1041,
+      "cum_saved_tokens": 1554000
+    },
+    {
+      "req": 1081,
+      "cum_saved_tokens": 1614000
+    },
+    {
+      "req": 1121,
+      "cum_saved_tokens": 1674000
+    },
+    {
+      "req": 1161,
+      "cum_saved_tokens": 1734000
+    },
+    {
+      "req": 1201,
+      "cum_saved_tokens": 1794000
+    },
+    {
+      "req": 1241,
+      "cum_saved_tokens": 1854000
+    },
+    {
+      "req": 1281,
+      "cum_saved_tokens": 1914000
+    },
+    {
+      "req": 1321,
+      "cum_saved_tokens": 1974000
+    },
+    {
+      "req": 1361,
+      "cum_saved_tokens": 2034000
+    },
+    {
+      "req": 1401,
+      "cum_saved_tokens": 2094000
+    },
+    {
+      "req": 1441,
+      "cum_saved_tokens": 2154000
+    },
+    {
+      "req": 1481,
+      "cum_saved_tokens": 2214000
+    },
+    {
+      "req": 1521,
+      "cum_saved_tokens": 2274000
+    },
+    {
+      "req": 1561,
+      "cum_saved_tokens": 2334000
+    },
+    {
+      "req": 1601,
+      "cum_saved_tokens": 2394000
+    },
+    {
+      "req": 1641,
+      "cum_saved_tokens": 2454000
+    },
+    {
+      "req": 1681,
+      "cum_saved_tokens": 2514000
+    },
+    {
+      "req": 1721,
+      "cum_saved_tokens": 2574000
+    },
+    {
+      "req": 1761,
+      "cum_saved_tokens": 2634000
+    },
+    {
+      "req": 1801,
+      "cum_saved_tokens": 2694000
+    },
+    {
+      "req": 1841,
+      "cum_saved_tokens": 2754000
+    },
+    {
+      "req": 1881,
+      "cum_saved_tokens": 2814000
+    },
+    {
+      "req": 1921,
+      "cum_saved_tokens": 2874000
+    },
+    {
+      "req": 1961,
+      "cum_saved_tokens": 2934000
+    },
+    {
+      "req": 2000,
+      "cum_saved_tokens": 2992500
+    }
+  ],
+  "note": "演示估算口径：prefix/query token 数、distinct 前缀数、prefill 算力(12ms/1k)与自托管单价为假设值；命中率由流量结构（5 业务域 × 2000 请求，zipf 倾斜）真实仿真得出。前缀缓存命中率≈99.75%，月度（500万请求）可省约 ¥1,496 的 prefill 算力，呼应黄超「成本控制·自负盈亏」——把大模型成本压到可私有化、可量化的水平。",
+  "generated_at": "2026-07-19T11:19:17"
+}

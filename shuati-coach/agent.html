@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 备考助手 · 专属刷题教练 Agent</title>
+<style>
+  :root{
+    --bg-0:#070b1a;
+    --bg-1:#0b1230;
+    --surface:rgba(255,255,255,.06);
+    --surface-2:rgba(255,255,255,.09);
+    --line:rgba(120,160,255,.18);
+    --ink:#eaf1ff;
+    --ink-2:#aab8e0;
+    --ink-3:#7e8cb8;
+    --brand:#3b82f6;
+    --brand-2:#2563eb;
+    --cyan:#22d3ee;
+    --violet:#8b5cf6;
+    --glow:0 0 0 1px rgba(120,160,255,.18), 0 18px 50px -18px rgba(37,99,235,.55);
+    --radius:18px;
+    --radius-sm:12px;
+    font-synthesis:none;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    color:var(--ink);background:var(--bg-0);line-height:1.6;overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ---------- 科技感背景 ---------- */
+  .bg{position:fixed;inset:0;z-index:0;overflow:hidden;
+      background:
+        radial-gradient(900px 500px at 85% -10%, rgba(34,211,238,.18), transparent 60%),
+        radial-gradient(800px 520px at 5% 8%, rgba(139,92,246,.18), transparent 60%),
+        radial-gradient(1000px 700px at 50% 120%, rgba(37,99,235,.22), transparent 60%),
+        linear-gradient(180deg,#070b1a,#0b1230 60%,#070b1a);}
+  .bg::before{content:"";position:absolute;inset:-2px;
+      background-image:linear-gradient(rgba(120,160,255,.06) 1px,transparent 1px),
+                       linear-gradient(90deg,rgba(120,160,255,.06) 1px,transparent 1px);
+      background-size:44px 44px;
+      -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 75%);
+              mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 75%);
+      animation:drift 24s linear infinite;opacity:.7;}
+  @keyframes drift{from{background-position:0 0,0 0}to{background-position:44px 44px,44px 44px}}
+  .orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.5;animation:float 14s ease-in-out infinite}
+  .orb.a{width:340px;height:340px;background:radial-gradient(circle,#22d3ee,transparent 70%);right:-60px;top:-40px}
+  .orb.b{width:380px;height:380px;background:radial-gradient(circle,#8b5cf6,transparent 70%);left:-80px;bottom:-60px;animation-delay:-6s}
+  @keyframes float{0%,100%{transform:translateY(0) translateX(0)}50%{transform:translateY(26px) translateX(14px)}}
+
+  .app{position:relative;z-index:1;height:100vh;display:grid;grid-template-columns:1fr 340px;gap:18px;
+       max-width:1280px;margin:0 auto;padding:18px;}
+
+  /* ---------- 顶部栏 ---------- */
+  .topbar{grid-column:1/3;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .mark{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:#fff;
+      background:linear-gradient(135deg,var(--cyan),var(--brand));box-shadow:0 8px 24px -6px rgba(34,211,238,.6);}
+  .brand .mark svg{width:24px;height:24px}
+  .brand h1{font-size:18px;font-weight:800;letter-spacing:-.3px}
+  .brand p{font-size:12px;color:var(--ink-3)}
+  .status{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-2);
+      background:var(--surface);border:1px solid var(--line);padding:8px 12px;border-radius:999px;backdrop-filter:blur(8px)}
+  .dot{width:8px;height:8px;border-radius:50%;background:#22d3ee;box-shadow:0 0 10px #22d3ee;animation:pulse 1.8s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .status b{color:var(--ink)}
+
+  /* ---------- 聊天主区 ---------- */
+  .chat{display:flex;flex-direction:column;min-height:0;background:var(--surface);border:1px solid var(--line);
+        border-radius:var(--radius);backdrop-filter:blur(14px);box-shadow:var(--glow);overflow:hidden}
+  .chat-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .chat-head .title{display:flex;align-items:center;gap:10px;font-weight:700}
+  .chat-head .title .ai{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;
+        background:linear-gradient(135deg,var(--brand),var(--violet));box-shadow:0 6px 16px -6px rgba(59,130,246,.7)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{font-size:12px;color:var(--ink-2);border:1px solid var(--line);background:var(--surface-2);
+        padding:6px 11px;border-radius:999px;cursor:pointer;transition:.18s;white-space:nowrap}
+  .chip:hover{color:#fff;border-color:var(--brand);background:rgba(59,130,246,.18);transform:translateY(-1px)}
+
+  .stream{padding:18px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth}
+  .stream::-webkit-scrollbar{width:8px}
+  .stream::-webkit-scrollbar-thumb{background:rgba(120,160,255,.25);border-radius:8px}
+
+  .msg{display:flex;gap:10px;max-width:88%;animation:rise .35s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .msg .av{width:32px;height:32px;border-radius:9px;flex:0 0 32px;display:grid;place-items:center;font-size:14px;font-weight:700}
+  .msg.ai .av{color:#fff;background:linear-gradient(135deg,var(--brand),var(--violet))}
+  .msg.me{margin-left:auto;flex-direction:row-reverse}
+  .msg.me .av{color:#06122a;background:linear-gradient(135deg,#bae6fd,#7dd3fc)}
+  .bubble{padding:12px 15px;border-radius:14px;font-size:14.5px;box-shadow:0 8px 24px -14px rgba(0,0,0,.6);word-break:break-word}
+  .msg.ai .bubble{background:var(--surface-2);border:1px solid var(--line);border-top-left-radius:4px}
+  .msg.me .bubble{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;border-top-right-radius:4px}
+  .bubble pre{white-space:pre-wrap;font-family:inherit}
+  .tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .tag{font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);background:rgba(255,255,255,.04)}
+  .tag.k{color:var(--cyan);border-color:rgba(34,211,238,.4);background:rgba(34,211,238,.08)}
+  .tag.s{color:var(--violet);border-color:rgba(139,92,246,.4);background:rgba(139,92,246,.08)}
+
+  /* 结构化卡片 */
+  .card{margin-top:10px;border:1px solid var(--line);border-radius:12px;background:rgba(10,18,48,.55);overflow:hidden}
+  .card .ch{display:flex;align-items:center;gap:8px;padding:9px 13px;font-size:12.5px;font-weight:700;color:var(--cyan);
+           background:linear-gradient(90deg,rgba(34,211,238,.12),transparent);border-bottom:1px solid var(--line)}
+  .card .cb{padding:12px 13px;font-size:13.5px;color:var(--ink-2)}
+  .card ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+  .card .row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed rgba(120,160,255,.14)}
+  .card .row:last-child{border-bottom:none}
+  .pill{font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(226,232,240,.1);color:var(--ink-2)}
+
+  /* typing */
+  .typing{display:flex;gap:4px;padding:4px 2px}
+  .typing i{width:7px;height:7px;border-radius:50%;background:var(--ink-3);animation:blink 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+
+  /* ---------- 输入区 ---------- */
+  .composer{padding:14px 16px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:flex-end}
+  .composer textarea{flex:1;resize:none;max-height:120px;min-height:46px;background:rgba(7,11,26,.6);
+        border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:12px 14px;font:inherit;font-size:14.5px;outline:none;transition:.18s}
+  .composer textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+  .send{width:46px;height:46px;border-radius:12px;flex:0 0 46px;display:grid;place-items:center;color:#fff;cursor:pointer;
+        background:linear-gradient(135deg,var(--cyan),var(--brand));box-shadow:0 10px 24px -8px rgba(34,211,238,.7);transition:.18s}
+  .send:hover{transform:translateY(-2px)}
+  .send:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .send svg{width:20px;height:20px}
+
+  /* ---------- 侧栏能力面板 ---------- */
+  .side{display:flex;flex-direction:column;gap:14px;min-height:0;overflow-y:auto;padding-right:2px}
+  .side::-webkit-scrollbar{width:6px}
+  .side::-webkit-scrollbar-thumb{background:rgba(120,160,255,.22);border-radius:6px}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);backdrop-filter:blur(14px);
+         padding:14px;box-shadow:0 12px 30px -20px rgba(0,0,0,.7)}
+  .panel h3{font-size:13px;letter-spacing:.3px;color:var(--ink);display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .panel h3 .ic{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;color:#06122a;
+        background:linear-gradient(135deg,var(--cyan),var(--brand))}
+  .panel h3 .ic svg{width:13px;height:13px}
+  .kv{display:flex;flex-direction:column;gap:7px}
+  .kv .item{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--ink-2)}
+  .kv .item b{color:var(--ink);font-weight:600}
+  .badge{font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--cyan);background:rgba(34,211,238,.08)}
+  .tool{font-size:12px;color:var(--ink-2);padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.03);margin-bottom:7px}
+  .tool b{color:var(--ink)}
+  .tool span{color:var(--ink-3);display:block;font-size:11px;margin-top:2px}
+  .tl{display:flex;flex-direction:column;gap:0;position:relative}
+  .tl .ev{padding:8px 0 8px 18px;position:relative;font-size:12px;color:var(--ink-2);border-left:1px solid var(--line)}
+  .tl .ev::before{content:"";position:absolute;left:-4.5px;top:13px;width:8px;height:8px;border-radius:50%;
+        background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+  .tl .ev b{color:var(--ink);display:block;font-size:11px}
+  .tl .ev .t{color:var(--ink-3);font-size:10.5px}
+  .muted{color:var(--ink-3);font-size:12px}
+
+  @media(max-width:960px){
+    .app{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+    .side{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="bg"><div class="orb a"></div><div class="orb b"></div></div>
+
+<div class="app">
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="M2 8v6"/><path d="M6 10.5V15c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/></svg></span>
+      <div><h1>AI 备考助手</h1><p>专属刷题教练 · Agent 驱动（Channel + 三层记忆 + MCP）</p></div>
+    </div>
+    <div class="status" id="status"><span class="dot"></span><span id="statusText">连接中…</span></div>
+  </div>
+
+  <!-- 聊天主区 -->
+  <div class="chat">
+    <div class="chat-head">
+      <div class="title"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V7a4 4 0 0 1 4-4Z"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span> 与备考教练对话</div>
+      <div class="chips" id="chips">
+        <span class="chip" data-q="帮我诊断薄弱点">诊断薄弱点</span>
+        <span class="chip" data-q="生成我的冲刺计划">冲刺计划</span>
+        <span class="chip" data-q="查看我的高频错题">高频错题</span>
+        <span class="chip" data-q="概率统计怎么复习">自由提问</span>
+      </div>
+    </div>
+    <div class="stream" id="stream">
+      <div class="msg ai"><div class="av">AI</div><div class="bubble">你好，我是你的备考教练 🤖（纯文本模式，无 emoji 干扰）。我可以<b>诊断薄弱点</b>、<b>讲题</b>、<b>生成变式</b>、<b>排冲刺计划</b>，并主动预警学习异常。试试上方的快捷指令，或直接发消息。</div></div>
+    </div>
+    <div class="composer">
+      <textarea id="input" placeholder="说点什么：如「帮我诊断薄弱点」…" rows="1"></textarea>
+      <button class="send" id="send" title="发送"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg></button>
+    </div>
+  </div>
+
+  <!-- 侧栏能力面板 -->
+  <div class="side">
+    <div class="panel">
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></span>运行环境</h3>
+      <div class="kv" id="envBox"><div class="muted">加载中…</div></div>
+    </div>
+    <div class="panel">
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>接入渠道 (Channel)</h3>
+      <div class="kv" id="channelBox"><div class="muted">加载中…</div></div>
+    </div>
+    <div class="panel">
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span>MCP 工具</h3>
+      <div id="mcpBox"><div class="muted">加载中…</div></div>
+    </div>
+    <div class="panel">
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>近期事件 (记忆)</h3>
+      <div class="tl" id="historyBox"><div class="muted">暂无记录，对话后将自动沉淀。</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "";            // 同域，留空
+const USER_ID = 1;
+const SESSION = "web-demo-" + Math.random().toString(36).slice(2, 8);
+const $ = s => document.querySelector(s);
+const stream = $("#stream"), input = $("#input"), send = $("#send");
+
+function scrollDown(){ stream.scrollTop = stream.scrollHeight; }
+
+function addMsg(role, html){
+  const m = document.createElement("div");
+  m.className = "msg " + (role === "me" ? "me" : "ai");
+  m.innerHTML = `<div class="av">${role==="me"?"我":"AI"}</div><div class="bubble">${html}</div>`;
+  stream.appendChild(m); scrollDown(); return m;
+}
+function typingEl(){
+  const m = document.createElement("div");
+  m.className = "msg ai";
+  m.innerHTML = `<div class="av">AI</div><div class="bubble"><div class="typing"><i></i><i></i><i></i></div></div>`;
+  stream.appendChild(m); scrollDown(); return m;
+}
+function esc(s){ return String(s ?? "").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+
+function renderCards(cards){
+  if(!cards) return "";
+  let h = "";
+  if(cards.plan){
+    const p = cards.plan; const items = (p.focus||[]).map(f=>`<li>${esc(f)}</li>`).join("");
+    h += `<div class="card"><div class="ch">冲刺计划</div><div class="cb">${p.note?`<div style="margin-bottom:8px">${esc(p.note)}</div>`:""}<ul>${items||"<li>暂无</li>"}</ul></div></div>`;
+  }
+  if(cards.wrong){
+    const wb = cards.wrong;
+    h += `<div class="card"><div class="ch">高频错题（${wb.length}）</div><div class="cb">${
+      wb.slice(0,6).map(w=>`<div class="row"><span>${esc(w.stem||"").slice(0,34)}…</span><span class="pill">错 ${w.error_count} 次</span></div>`).join("")
+    }</div></div>`;
+  }
+  if(cards.diagnose){
+    const d = cards.diagnose;
+    h += `<div class="card"><div class="ch">薄弱诊断</div><div class="cb"><ul>${
+      (d.weak_topics||[]).map(w=>`<li>${esc(w.topic)} · 掌握度 ${Math.round((w.mastery??0)*100)}%</li>`).join("")
+    }</ul></div></div>`;
+  }
+  return h;
+}
+
+async function sendMsg(text){
+  text = (text||"").trim(); if(!text) return;
+  addMsg("me", esc(text));
+  const t = typingEl(); send.disabled = true; input.value = "";
+  try{
+    const r = await fetch(API + "/api/agent/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({user_id:USER_ID, message:text, session_id:SESSION})
+    });
+    const data = await r.json();
+    t.remove();
+    const tags = `<div class="tags">${data.intent?`<span class="tag k">意图 · ${esc(data.intent)}</span>`:""}${data.source?`<span class="tag s">来源 · ${esc(data.source)}</span>`:""}</div>`;
+    const m = addMsg("ai", `<pre>${esc(data.reply||"")}</pre>${renderCards(data.cards)}${tags}`);
+    loadHistory();
+  }catch(e){
+    t.remove(); addMsg("ai", `<pre>连接失败：${esc(e.message)}</pre>`);
+  }finally{ send.disabled = false; input.focus(); }
+}
+
+send.onclick = ()=> sendMsg(input.value);
+input.addEventListener("keydown", e=>{
+  if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); sendMsg(input.value); }
+});
+input.addEventListener("input", ()=>{ input.style.height="auto"; input.style.height=Math.min(input.scrollHeight,120)+"px"; });
+document.querySelectorAll(".chip").forEach(c=> c.onclick = ()=> sendMsg(c.dataset.q));
+
+// ---- 侧栏：运行环境 / 渠道 / MCP / 记忆 ----
+async function loadEnv(){
+  try{
+    const r = await (await fetch(API + "/api/health")).json();
+    $("#statusText").innerHTML = `AI <b>${r.ai==="enabled"?"真实模型":"降级模式"}</b> · ${esc(r.llm_label||"")}`;
+    $("#envBox").innerHTML = `
+      <div class="item"><span>版本</span><b>${esc(r.version)}</b></div>
+      <div class="item"><span>激活厂商</span><b>${esc(r.llm_label||r.llm_provider)}</b></div>
+      <div class="item"><span>推理优化</span><b>7 项已启用</b></div>
+      <div class="item"><span>MCP 远程</span><span class="badge">${r.mcp_remote?"已连":"内置"}</span></div>`;
+  }catch(e){ $("#statusText").textContent="后端未连接"; }
+}
+async function loadChannels(){
+  try{
+    const r = await (await fetch(API + "/api/agent/channels")).json();
+    $("#channelBox").innerHTML = (r.active_channels||[]).map(c=>`<div class="item"><span>${esc(c.name)}</span><span class="badge">${esc(c.type||"")}</span></div>`).join("")
+      || `<div class="muted">无</div>`;
+  }catch(e){ $("#channelBox").innerHTML=`<div class="muted">加载失败</div>`; }
+}
+async function loadMcp(){
+  try{
+    const r = await (await fetch(API + "/api/agent/mcp/tools")).json();
+    const tools = r.tools||[];
+    $("#mcpBox").innerHTML = tools.map(t=>`<div class="tool"><b>${esc(t.name)}</b><span>${esc(t.description||"")}</span></div>`).join("")
+      || `<div class="muted">无可用工具</div>`;
+  }catch(e){ $("#mcpBox").innerHTML=`<div class="muted">加载失败</div>`; }
+}
+async function loadHistory(){
+  try{
+    const r = await (await fetch(API + "/api/agent/history", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({user_id:USER_ID, session_id:SESSION, limit:8})
+    })).json();
+    const evs = r.events||[];
+    $("#historyBox").innerHTML = evs.length
+      ? evs.map(e=>`<div class="ev"><b>${esc(e.kind||"")}</b>${esc(e.payload||"")}<div class="t">${esc(e.created_at||"")}</div></div>`).join("")
+      : `<div class="muted">暂无记录，对话后将自动沉淀。</div>`;
+  }catch(e){}
+}
+
+loadEnv(); loadChannels(); loadMcp(); loadHistory();
+</script>
+</body>
+</html>

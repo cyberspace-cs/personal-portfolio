@@ -10,11 +10,25 @@ import json
 
 from database import get_db
 from agent.llm import call_llm, HAS_KEY
+from agent.inference import optimized_call_llm, mark_tool_substitution
 
 
 class CoachTools:
+    def __init__(self):
+        # MCP 适配层：把垂直工具（考纲/题库/行情…）以声明式桥接入 Agent
+        from agent.mcp import MCPBridge
+        self.mcp = MCPBridge()
+
+    # ⑥ MCP 工具接入（垂直能力插件化，nanobot 同款 Skills+MCP 扩展机制）
+    async def mcp_call(self, tool_name: str, arguments: dict) -> dict:
+        return await self.mcp.call(tool_name, arguments)
+
+    async def list_mcp_tools(self) -> list:
+        return await self.mcp.list_tools()
+
     # ① 薄弱度诊断：聚合错题，按知识点计算掌握度，输出最弱 Top3
     def diagnose(self, user_id: int) -> dict:
+        mark_tool_substitution()  # 诊断由工具(纯SQL聚合)完成，0 token 生成替代
         conn = get_db()
         rows = conn.execute(
             """
@@ -40,6 +54,7 @@ class CoachTools:
 
     # ② 高频错题本：按错误次数降序
     def wrong_book(self, user_id: int, limit: int = 10) -> list:
+        mark_tool_substitution()  # 错题本由工具(纯SQL聚合)完成，0 token 生成替代
         conn = get_db()
         rows = conn.execute(
             """
@@ -68,7 +83,7 @@ class CoachTools:
         try:
             sys = "你是备考规划师，基于掌握度输出紧凑 JSON：{focus:[薄弱模块], plan:[3条冲刺建议]}，中文。"
             user = "当前掌握度：" + json.dumps(weak, ensure_ascii=False)
-            text = await call_llm(sys, user, 600, json_mode=True)
+            text = await optimized_call_llm(sys, user, 600, json_mode=True)
             data = json.loads(text)
             data["source"] = "llm"
             return data
@@ -82,7 +97,7 @@ class CoachTools:
             return {"source": "fallback", "reply": "智能教练暂未接入大模型，先去刷几道题热热身吧～"}
         sys = ("你是「专属刷题教练」AI，基于用户学习数据用中文回答备考问题，"
                "不编造未提供的数据，不确定时诚实说明。")
-        text = await call_llm(sys, context + "\n用户：" + message, 700)
+        text = await optimized_call_llm(sys, context + "\n用户：" + message, 700)
         return {"source": "llm", "reply": text or "教练开小差了，请稍后再问～"}
 
     # ⑤ RAG 问答：检索知识点/考纲/用户错题 → 引用溯源 → 低相关拒答（防幻觉）
@@ -119,7 +134,7 @@ class CoachTools:
             f"[{i+1}] {h['title']}\n{h['content']}" for i, h in enumerate(hits)
         )
         user = f"【检索到的参考知识】\n{knowledge}\n\n【上下文】\n{context}\n\n用户问题：{message}"
-        text = await call_llm(sys, user, 800)
+        text = await optimized_call_llm(sys, user, 800)
         result = {"source": "rag-llm", "relevant": True,
                   "reply": text or "教练开小差了，请稍后再问～",
                   "citations": citations, "top_score": res["top_score"],
