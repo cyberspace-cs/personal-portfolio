@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>审计智能运维 · 服务目录</title>
+<style>
+  :root{
+    --c-primary:#1858c9; --c-primary-deep:#0e3a8c; --c-accent:#22b8cf;
+    --bg:#eef3f9; --surface:#fff; --line:#e3ebf5; --text:#16243a; --muted:#64748b;
+    --shadow:0 6px 22px rgba(20,52,108,.08); --radius:14px;
+    --font:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--text);background:
+      radial-gradient(900px 400px at 80% -10%, rgba(56,189,248,.10), transparent 60%),
+      radial-gradient(800px 360px at 0% 0%, rgba(24,88,201,.08), transparent 55%), var(--bg);
+    min-height:100vh;padding:0 0 30px}
+  .top{height:60px;background:linear-gradient(100deg,var(--c-primary-deep),var(--c-primary) 55%,#1f6fdc);color:#fff;
+    display:flex;align-items:center;padding:0 22px;position:sticky;top:0;z-index:10;box-shadow:0 2px 16px rgba(14,58,140,.25)}
+  .top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--c-accent),transparent);opacity:.8}
+  .top .brand{display:flex;align-items:center;gap:12px}
+  .emblem{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center;border:1px solid rgba(255,255,255,.25)}
+  .top h1{font-size:16px;font-weight:700}
+  .top p{font-size:11px;opacity:.82;letter-spacing:2px;margin-top:2px}
+  .top .back{margin-left:auto;color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,.14);padding:8px 15px;border-radius:9px;border:1px solid rgba(255,255,255,.2)}
+  .wrap{max-width:1280px;margin:22px auto;padding:0 22px}
+  .hero{background:linear-gradient(120deg,#0e3a8c,#1858c9 60%,#1f6fdc);border-radius:var(--radius);padding:22px 26px;color:#fff;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;right:-50px;top:-50px;width:240px;height:240px;background:radial-gradient(circle,rgba(56,189,248,.3),transparent 70%)}
+  .hero h2{font-size:20px;font-weight:800;position:relative}
+  .hero p{font-size:13px;opacity:.9;margin-top:8px;position:relative;max-width:680px;line-height:1.6}
+  .count{display:inline-block;margin-top:12px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);padding:5px 12px;border-radius:20px;font-size:12px;position:relative}
+  .group{margin-top:22px}
+  .group h3{font-size:15px;font-weight:700;color:var(--c-primary);display:flex;align-items:center;gap:9px;margin-bottom:13px}
+  .group h3 .tag{font-size:11px;background:#e8f0fe;color:var(--c-primary);padding:3px 10px;border-radius:20px;font-weight:600}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
+  .card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:#c7dbff}
+  .card .ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--c-primary),var(--c-accent));margin-bottom:11px;font-size:20px}
+  .card h4{font-size:15px;font-weight:700}
+  .card p{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+  .card .badge{position:absolute;top:13px;right:13px;font-size:10px;background:#fff;border:1px solid var(--line);color:var(--muted);padding:2px 8px;border-radius:10px}
+  .card .badge.auto{color:#0e7490;border-color:#b6e8f0;background:#e3f7fb}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:26px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="emblem">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/></svg>
+    </div>
+    <div><h1>审计智能一体化运维平台</h1><p>数字审计 · 智慧运维 · 新时代</p></div>
+  </div>
+  <a class="back" href="/">← 返回工作台</a>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <h2>服务目录 · 点选式提交</h2>
+    <p>将分散在 OA 各模块的运维服务整合为统一目录。审计人员点选即可提交需求，系统自动拆分审批流并路由责任人，终结「入口分散、记忆负担重」的痛点。</p>
+    <span class="count" id="total">加载中…</span>
+  </section>
+  <div id="groups"></div>
+  <div class="foot">审计智能一体化运维平台 · 服务目录 · 基座：混元/千问（可插拔，当前 Mock）</div>
+</div>
+
+<script>
+const ICONS={"ukey":"🔑","perm":"👤","mail":"✉️","resource":"💾","ups":"🔋","lottery":"🎁","web":"🌐","terminal":"💻","meeting":"🎥","backup":"🗄️","devops":"🖥️","appops":"🧩","platops":"⚙️"};
+async function load(){
+  try{
+    const d=await (await fetch("/api/catalog")).json();
+    document.getElementById("total").textContent=`共 ${d.total} 项服务 · 覆盖 10 类审计支持 + 3 类运维`;
+    const groups={};
+    d.items.forEach(it=>{(groups[it.group]=groups[it.group]||[]).push(it);});
+    const host=document.getElementById("groups");
+    host.innerHTML=Object.entries(groups).map(([g,items])=>`
+      <div class="group"><h3>${g}<span class="tag">${items.length} 项</span></h3>
+      <div class="grid">${items.map(it=>`
+        <div class="card" onclick="location.href='/'">
+          <span class="badge ${it.automated?'auto':''}">${it.automated?'自动化':'需审批'}</span>
+          <div class="ic">${ICONS[it.id]||'📋'}</div>
+          <h4>${it.name}</h4>
+          <p>${it.desc}</p>
+        </div>`).join("")}</div></div>`).join("");
+  }catch(e){console.error(e);}
+}
+load();
+</script>
+</body>
+</html>

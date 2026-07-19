@@ -1,0 +1,551 @@
+【命中:ReAct】===== PAGE 3/405 =====
+AI Agent 面试全攻略 -- 从零到 Offer ​
+面向小白的、最全最详细的 AI Agent 面试准备资料，包含面试八股文、企业级实战项目
+9 大模块面试八股文：覆盖 Agent 基础、ReAct/Plan-and-Execute 框架、RAG、工具调用、
+记忆系统、多智能体、大模型基础、工程化实践、Prompt 工程，合计 200+ 道面试题及详细答
+企业级实战项目：对标 nageoffer/ragent 的架构复杂度，Python / Java / Go 三个语言版本
+Claude Code、ragent 等
+AI Agent 简历写法
+
+
+【命中:ReAct】===== PAGE 5/405 =====
+本项目实现了一个企业级智能客服/知识助手 Agent 平台，核心架构：
+java -jar target/agent-platform-1.0.0.jar
+go build -o agent-server ./cmd/server
+./agent-server
+用户请求 → API 网关 → 意图识别 → Agent 编排器
+                                    ├── ReAct Agent（思考-行动-观察循环）
+                                    ├── 规划 Agent（任务分解与执行）
+                                    ├── RAG Agent（知识检索与生成）
+                                    └── 反思 Agent（质量校验）
+├── 多路检索引擎（向量 + BM25 + 混合检索 + RRF 融合）
+├── 记忆系统（短期：Redis 滑窗 + 长期：向量数据库）
+├── 工具系统（搜索、计算器、数据库查询 + MCP）
+└── 文档 ETL（PDF/Word 解析 → 分块 → 向量化 → 入库）
+
+
+【命中:Agent 的核心组成】===== PAGE 10/405 =====
+01 AI Agent 基础概念（面试八股文） ​
+（如适用）」。建议配合动手写一个小 Agent 循环加深理解。
+1. 什么是 AI Agent
+2. Agent vs LLM Chain vs ChatBot
+3. Agent 的核心组成
+4. Agent 的工作流程
+5. Agent 的分类
+6. Agent 的应用场景
+7. Agent 的挑战与局限
+1. 什么是 AI Agent ​
+AI Agent（智能体）可以类比为：一位能上网、能记笔记、会拆任务的「数字员工」。
+Agent ≈ LLM + Planning（规划）+ Memory（记忆）+ Tools（工具）
+LLM：大脑，负责理解、推理、生成自然语言与结构化计划。
+
+
+【命中:Agent 的工作流程】===== PAGE 10/405 =====
+01 AI Agent 基础概念（面试八股文） ​
+（如适用）」。建议配合动手写一个小 Agent 循环加深理解。
+1. 什么是 AI Agent
+2. Agent vs LLM Chain vs ChatBot
+3. Agent 的核心组成
+4. Agent 的工作流程
+5. Agent 的分类
+6. Agent 的应用场景
+7. Agent 的挑战与局限
+1. 什么是 AI Agent ​
+AI Agent（智能体）可以类比为：一位能上网、能记笔记、会拆任务的「数字员工」。
+Agent ≈ LLM + Planning（规划）+ Memory（记忆）+ Tools（工具）
+LLM：大脑，负责理解、推理、生成自然语言与结构化计划。
+
+
+【命中:Agent 的应用场景】===== PAGE 10/405 =====
+01 AI Agent 基础概念（面试八股文） ​
+（如适用）」。建议配合动手写一个小 Agent 循环加深理解。
+1. 什么是 AI Agent
+2. Agent vs LLM Chain vs ChatBot
+3. Agent 的核心组成
+4. Agent 的工作流程
+5. Agent 的分类
+6. Agent 的应用场景
+7. Agent 的挑战与局限
+1. 什么是 AI Agent ​
+AI Agent（智能体）可以类比为：一位能上网、能记笔记、会拆任务的「数字员工」。
+Agent ≈ LLM + Planning（规划）+ Memory（记忆）+ Tools（工具）
+LLM：大脑，负责理解、推理、生成自然语言与结构化计划。
+
+
+【命中:Agent 的核心组成】===== PAGE 15/405 =====
+3. Agent 的核心组成 ​
+3. 记忆（Memory）
+短期：当前会话上下文、工具轨迹。
+长期：用户画像、文档知识、向量库、图数据库等。
+感知常与 结构化抽取、OCR、HTML 解析、日志解析 结合；关键是减少噪声进上下文。
+记忆工程要点：摘要压缩、引用溯源、记忆冲突解决、权限与隐私。
+反思可做成独立子调用：「列出本次推理的三处风险并修正」。
+
+
+【命中:记忆（Memory）】===== PAGE 15/405 =====
+3. Agent 的核心组成 ​
+3. 记忆（Memory）
+短期：当前会话上下文、工具轨迹。
+长期：用户画像、文档知识、向量库、图数据库等。
+感知常与 结构化抽取、OCR、HTML 解析、日志解析 结合；关键是减少噪声进上下文。
+记忆工程要点：摘要压缩、引用溯源、记忆冲突解决、权限与隐私。
+反思可做成独立子调用：「列出本次推理的三处风险并修正」。
+
+
+【命中:Agent 的工作流程】===== PAGE 17/405 =====
+4. Agent 的工作流程 ​
+意图识别、指代消解、安全过滤、加载相关记忆与文档。
+Q7：如何避免 Agent 在工具调用间「迷失」？
+关键步骤 强制验证（单元测试式检查、二次 LLM 审核）。
+
+
+【命中:Agent 的应用场景】===== PAGE 19/405 =====
+5.2 原理详解（与 LLM Agent 的映射） ​
+反应式：适合低延迟、规则清晰；LLM 只做轻量分类/路由。
+Q8：基于效用的 Agent 和基于目标的有什么区别？
+Q9：反应式 Agent 有什么优缺点？
+A： 优点：快、可解释、易测试。缺点：对长程依赖与复杂推理弱；遇到未见输入可能失效。常与
+追问：LLM Agent 一般算哪一类？
+应对： 常是混合型：底层是模型推理，上层可接目标/效用（打分选路径）+ 记忆（世界状态）
+6. Agent 的应用场景 ​
+工单查询、订单状态、退换货政策；需 知识库对齐、身份鉴权、升级人工 策略。
+
+
+【命中:自动化运维】===== PAGE 20/405 =====
+4. 自动化运维
+查日志、重启服务、开单；需 审批流、灰度、回滚。
+Q10：企业内部落地 Agent，你最先关心哪三个非功能需求？
+应对： 强 RAG 溯源、禁止无引用断言、模板化答复、未知则转人工。
+7. Agent 的挑战与局限 ​
+Agent 把能力做强的同时，把 错误放大 到多步；工程上要「限步、限权、可观测、可回滚」。
+
+
+【命中:ReAct】===== PAGE 26/405 =====
+02 核心框架（AI Agent 面试八股文 · 模块二） ​
+面向零基础读者：本模块系统梳理主流 Agent「推理—行动—编排」框架。建议先理解
+后把 LangChain / LangGraph / 多 Agent 当作「工程落地方式」来记忆。
+4. LATS（Language Agent Tree Search）
+5. LangChain Agent 实现
+7. AutoGen / CrewAI 等多 Agent 框架
+ReAct 的全称是 Reasoning + Acting（推理 + 行动）。可以把它想象成：一个会做题的学生，不
+是一口气写完答案，而是 边想边做——先在心里说一句「我接下来要干什么」（推理），然后真的
+推理（Thought）：为什么要这么做、下一步选什么工具、预期看到什么。
+
+
+【命中:LATS】===== PAGE 26/405 =====
+02 核心框架（AI Agent 面试八股文 · 模块二） ​
+面向零基础读者：本模块系统梳理主流 Agent「推理—行动—编排」框架。建议先理解
+后把 LangChain / LangGraph / 多 Agent 当作「工程落地方式」来记忆。
+4. LATS（Language Agent Tree Search）
+5. LangChain Agent 实现
+7. AutoGen / CrewAI 等多 Agent 框架
+ReAct 的全称是 Reasoning + Acting（推理 + 行动）。可以把它想象成：一个会做题的学生，不
+是一口气写完答案，而是 边想边做——先在心里说一句「我接下来要干什么」（推理），然后真的
+推理（Thought）：为什么要这么做、下一步选什么工具、预期看到什么。
+
+
+【命中:LangChain Agent 实现】===== PAGE 26/405 =====
+02 核心框架（AI Agent 面试八股文 · 模块二） ​
+面向零基础读者：本模块系统梳理主流 Agent「推理—行动—编排」框架。建议先理解
+后把 LangChain / LangGraph / 多 Agent 当作「工程落地方式」来记忆。
+4. LATS（Language Agent Tree Search）
+5. LangChain Agent 实现
+7. AutoGen / CrewAI 等多 Agent 框架
+ReAct 的全称是 Reasoning + Acting（推理 + 行动）。可以把它想象成：一个会做题的学生，不
+是一口气写完答案，而是 边想边做——先在心里说一句「我接下来要干什么」（推理），然后真的
+推理（Thought）：为什么要这么做、下一步选什么工具、预期看到什么。
+
+
+【命中:AutoGen / CrewAI】===== PAGE 26/405 =====
+02 核心框架（AI Agent 面试八股文 · 模块二） ​
+面向零基础读者：本模块系统梳理主流 Agent「推理—行动—编排」框架。建议先理解
+后把 LangChain / LangGraph / 多 Agent 当作「工程落地方式」来记忆。
+4. LATS（Language Agent Tree Search）
+5. LangChain Agent 实现
+7. AutoGen / CrewAI 等多 Agent 框架
+ReAct 的全称是 Reasoning + Acting（推理 + 行动）。可以把它想象成：一个会做题的学生，不
+是一口气写完答案，而是 边想边做——先在心里说一句「我接下来要干什么」（推理），然后真的
+推理（Thought）：为什么要这么做、下一步选什么工具、预期看到什么。
+
+
+【命中:ReAct】===== PAGE 27/405 =====
+一句话：ReAct = 把「思考过程」和「工具使用」写进同一条轨迹里，让推理可监督、可纠错、
+1.2.1 核心思想：交替推理与行动 ​
+输入: question, tools, llm, max_steps
+    text = llm.generate(prompt)
+
+
+【命中:ReAct】===== PAGE 29/405 =====
+A： 普通 CoT 只在模型内部展开推理链，不强制与外部环境交互；ReAct 把推理与 可执行行动
+学习信号（可做监督微调或评估中间步骤质量）。在工程上，Thought 也帮助模型在下一步更稳定
+
+
+【命中:ReAct】===== PAGE 36/405 =====
+和「分层 Agent」关
+ReAct 或子 Agent。
+def plan(task: str, llm) -> List[str]:
+    text = llm(prompt)
+def execute_step(step: str, state: Dict[str, Any], tools, llm) -> str:
+    return llm(prompt)
+def plan_and_execute(task: str, llm, tools, max_replans: int = 2) -> str:
+    steps = plan(task, llm)
+
+
+【命中:LATS】===== PAGE 40/405 =====
+4. LATS（Language Agent Tree Search） ​
+LATS 把 Agent 的决策看成在 树 上搜索：每个节点是一种「状态/中间思路」，分支是不同行动。
+
+
+【命中:LATS】===== PAGE 41/405 =====
+折中，把「语言推理」嵌进搜索节点。
+4.2.1 树搜索 + Agent ​
+节点：包含当前上下文、已执行动作历史、可选下一步。
+4.2.2 MCTS 思想（与 Agent 结合的直觉） ​
+在 LATS 中，「扩展」常由 LLM 生成多个候选行动；「模拟」可用更便宜模型或短 rollouts。
+
+
+【命中:ReAct】===== PAGE 43/405 =====
+5. LangChain Agent 实现 ​
+LangChain 把 LLM、提示模板、工具、记忆、解析器等拼成可运行程序。Agent 在这里通常指：
+由 LLM 决定下一步调用哪个工具 的循环执行体；AgentExecutor 负责「跑这个循环直到结束」。
+5.2.1 LangChain 中与 Agent 相关的核心抽象（面试口径） ​
+LLM / ChatModel：生成下一步决策与内容。
+Agent（推理策略）：如何把工具、提示、中间步骤组合起来（ReAct、OpenAI tools 等）。
+AgentExecutor：驱动循环：调用 Agent → 若有 tool_calls 则执行工具 → 回填消息 → 直到
+5.2.2 AgentExecutor 工作原理（流程） ​
+5.2.3 自定义 Agent 的步骤（通用 checklist） ​
+2. 选择 提示模板（ReAct JSON / OpenAI tool calling）。
+inputs → AgentExecutor
+    agent.plan(messages/tools) -> next message / tool_calls
+    (optional) trim memory / handle parsing errors
+
+
+【命中:LangChain Agent 实现】===== PAGE 43/405 =====
+5. LangChain Agent 实现 ​
+LangChain 把 LLM、提示模板、工具、记忆、解析器等拼成可运行程序。Agent 在这里通常指：
+由 LLM 决定下一步调用哪个工具 的循环执行体；AgentExecutor 负责「跑这个循环直到结束」。
+5.2.1 LangChain 中与 Agent 相关的核心抽象（面试口径） ​
+LLM / ChatModel：生成下一步决策与内容。
+Agent（推理策略）：如何把工具、提示、中间步骤组合起来（ReAct、OpenAI tools 等）。
+AgentExecutor：驱动循环：调用 Agent → 若有 tool_calls 则执行工具 → 回填消息 → 直到
+5.2.2 AgentExecutor 工作原理（流程） ​
+5.2.3 自定义 Agent 的步骤（通用 checklist） ​
+2. 选择 提示模板（ReAct JSON / OpenAI tool calling）。
+inputs → AgentExecutor
+    agent.plan(messages/tools) -> next message / tool_calls
+    (optional) trim memory / handle parsing errors
+
+
+【命中:AutoGen / CrewAI】===== PAGE 48/405 =====
+7. AutoGen / CrewAI 等多 Agent 框架 ​
+多 Agent 框架把任务拆给多个「角色」：有人负责写代码，有人负责审查，有人负责检索。它们通
+过 对话 或 结构化消息 协作。AutoGen 偏 可编程的对话与工具；CrewAI 偏 角色驱动的团队流程
+可组合：工作流可由对话路由或 DAG/图编排。
+def exec_node(state: AgentState) -> AgentState:
+def route_fn(state: AgentState) -> Literal["exec", "end"]:
+
+
+【命中:RAG 基础】===== PAGE 54/405 =====
+03 RAG 技术（面试八股文 · 模块三） ​
+建议配合动手实验：同一批文档，对比「仅向量 / 混合检索 / +重排」的答案质量差异。
+1. RAG 基础
+4. 向量化（Embedding）
+5. 向量数据库
+8. RAG 高级模式
+9. RAG 评估
+10. RAG 生产优化
+1. RAG 基础 ​
+1.1 RAG（Retrieval-Augmented Generation）定义与原理 ​
+RAG（检索增强生成）指：在让大语言模型（LLM）生成答案 之前，先从 外部知识库（文档、数
+据库、网页等）中 检索 与用户问题相关的片段，再把这些片段作为 上下文 一并输入模型，从而
+
+
+【命中:RAG 评估】===== PAGE 54/405 =====
+03 RAG 技术（面试八股文 · 模块三） ​
+建议配合动手实验：同一批文档，对比「仅向量 / 混合检索 / +重排」的答案质量差异。
+1. RAG 基础
+4. 向量化（Embedding）
+5. 向量数据库
+8. RAG 高级模式
+9. RAG 评估
+10. RAG 生产优化
+1. RAG 基础 ​
+1.1 RAG（Retrieval-Augmented Generation）定义与原理 ​
+RAG（检索增强生成）指：在让大语言模型（LLM）生成答案 之前，先从 外部知识库（文档、数
+据库、网页等）中 检索 与用户问题相关的片段，再把这些片段作为 上下文 一并输入模型，从而
+
+
+【命中:RAG 生产优化】===== PAGE 54/405 =====
+03 RAG 技术（面试八股文 · 模块三） ​
+建议配合动手实验：同一批文档，对比「仅向量 / 混合检索 / +重排」的答案质量差异。
+1. RAG 基础
+4. 向量化（Embedding）
+5. 向量数据库
+8. RAG 高级模式
+9. RAG 评估
+10. RAG 生产优化
+1. RAG 基础 ​
+1.1 RAG（Retrieval-Augmented Generation）定义与原理 ​
+RAG（检索增强生成）指：在让大语言模型（LLM）生成答案 之前，先从 外部知识库（文档、数
+据库、网页等）中 检索 与用户问题相关的片段，再把这些片段作为 上下文 一并输入模型，从而
+
+
+【命中:RAG 评估】===== PAGE 78/405 =====
+跳」，再 分发 到不同子管道；与 Agentic RAG 的边界在于：Adaptive 强调 路由策略，Agentic
+强调 循环决策与工具调用。
+面试 Q14a：Agentic RAG 与 Self-RAG 有什么共同点？
+标准答案 A： 都引入 多步决策与反思；区别在于 Agentic 常外显为 工具调用与规划，Self-RAG
+面试 Q14b：Corrective RAG 典型触发信号？
+面试 Q14c：Adaptive RAG 如何避免路由误判？
+答： 若数据以 说明文、FAQ 为主，向量 RAG + 混合检索 + 重排 通常足够；图适合 关系问题
+9. RAG 评估 ​
+忠实度（Faithfulness）：答案是否可由检索上下文推出，不编造。
+上下文相关性（Context Relevance）：检索块与问题是否相关。
+
+
+【命中:RAG 生产优化】===== PAGE 80/405 =====
+10. RAG 生产优化 ​
+Embedding 缓存：热门 query 的向量
+LLM 响应缓存：对低敏场景可缩短延迟
+文档变更 版本化；删除旧向量 按 doc_id
+
+
+【命中:MCP 协议（Model Context Protocol）】===== PAGE 85/405 =====
+04 工具调用（Tool / Function Calling） ​
+面向初学者的 AI Agent「工具调用」面试八股文：从 Function Calling、Tool 设计，到
+MCP、路由与编排，再到安全与常见实现。
+1. Function Calling 基础
+2. Tool Use / Tool Calling
+3. MCP 协议（Model Context Protocol）
+5. 工具编排（Tool Orchestration）
+1. Function Calling 基础 ​
+1.1 什么是 Function Calling ​
+Function Calling（函数调用）指：大语言模型在生成回复时，不是直接输出最终答案，而是先输
+数据库等，突破「仅靠训练记忆回答」的限制。
+
+
+【命中:工具编排（Tool Orchestration）】===== PAGE 85/405 =====
+04 工具调用（Tool / Function Calling） ​
+面向初学者的 AI Agent「工具调用」面试八股文：从 Function Calling、Tool 设计，到
+MCP、路由与编排，再到安全与常见实现。
+1. Function Calling 基础
+2. Tool Use / Tool Calling
+3. MCP 协议（Model Context Protocol）
+5. 工具编排（Tool Orchestration）
+1. Function Calling 基础 ​
+1.1 什么是 Function Calling ​
+Function Calling（函数调用）指：大语言模型在生成回复时，不是直接输出最终答案，而是先输
+数据库等，突破「仅靠训练记忆回答」的限制。
+
+
+【命中:MCP 协议（Model Context Protocol）】===== PAGE 94/405 =====
+3. MCP 协议（Model Context Protocol） ​
+3.1 MCP 是什么 ​
+MCP（Model Context Protocol）是由 Anthropic 推动的开放标准，用于在 AI 应用（Host） 与
+外部数据源/工具（MCP Server） 之间建立统一、可插拔的通信方式。可理解为「AI 侧的 USB-
+C」：一次实现 Server，多个客户端（Claude Desktop、IDE、自研 Agent）可复用。
+协议定义了能力发现、资源读取、工具调用、提示模板等消息格式与生命周期。
+# 注册到 Agent 时通常传入 tools=[search_product]
+# 例如 create_react_agent(llm, tools=[search_product], ...)
+
+
+【命中:ReAct】===== PAGE 100/405 =====
+面试 Q9：向量路由选出来的工具不对怎么兜底？
+A：Top-K 调大、混合关键词打分、加一层 LLM「是否适用」二分类、允许用户澄清、保留「通
+5. 工具编排（Tool Orchestration） ​
+5.1 串行工具调用 ​
+5.2 并行工具调用 ​
+Pipeline，也可以是 LLM 每步决定下一步（ReAct / Agent）。
+
+
+【命中:工具编排（Tool Orchestration）】===== PAGE 100/405 =====
+面试 Q9：向量路由选出来的工具不对怎么兜底？
+A：Top-K 调大、混合关键词打分、加一层 LLM「是否适用」二分类、允许用户澄清、保留「通
+5. 工具编排（Tool Orchestration） ​
+5.1 串行工具调用 ​
+5.2 并行工具调用 ​
+Pipeline，也可以是 LLM 每步决定下一步（ReAct / Agent）。
+
+
+【命中:记忆（Memory）】===== PAGE 111/405 =====
+05 记忆系统（Memory） 
+面向初学者的系统梳理：从「为什么需要记忆」到生产落地与高级框架。每个小节尽量包含：概念
+1. 记忆系统概述
+2. 短期记忆
+3. 长期记忆
+5. 情景记忆与语义记忆
+6. 记忆检索策略
+7. 高级记忆框架
+8. 记忆在生产中的挑战
+1. 记忆系统概述 
+记忆（Memory）在 Agent 语境里，指系统为完成多轮对话、长期任务与个性化服务而存储、组
+织、检索、更新信息的一整套机制。没有记忆，Agent 只能做「无状态函数调用」：每次请求都像
+第一次见面，无法延续偏好、历史决策与上下文因果。
+状态与上下文的区别：单次请求的 prompt 是瞬时输入；记忆是跨请求持久或半持久的状态，
+
+
+【命中:ReAct】===== PAGE 112/405 =====
+与 RAG 的关系：长期记忆常与向量检索结合，但记忆还强调时间线、重要性、用户维度、写入
+1.3 人类记忆类比（感觉 / 短期 / 长期） ​
+Agent 中的常见对应
+感觉记忆
+原始多模态输入缓存、流式 ASR 缓冲、截图/音频
+短期记忆 / 工
+作记忆
+对话上下文、Working Memory、ReAct 轨迹中的
+长期记忆
+向量库、文档库、用户画像表、知识图谱、会话摘要
+1.4 Agent 记忆的分类体系（实用版） ​
+3. 按存储介质：进程内存、Redis、关系库、向量库、图数据库、对象存储。
+4. 按可控性：显式记忆（用户确认保存）vs 隐式记忆（系统自动提炼）。
+Q1：为什么 Agent 需要记忆？没有行不行？
+
+
+【命中:ReAct】===== PAGE 231/405 =====
+Q14：Prompt 和微调的关系？
+A：Prompt 是推理时上下文策略；微调是改权重。数据少、迭代快优先 Prompt + 评测；要固化
+领域行为、长期一致再考虑微调；二者常组合。
+A：更长延迟与成本；可能产生错误但自信的推理；对简单任务浪费 token；需评估是否对用户展
+Q20：间接注入如何与 RAG 结合防御？
+Q21：Agent 里 ReAct 和 Plan-and-Execute 怎么选？
+
+
+【命中:ReAct】===== PAGE 232/405 =====
+Q27：长上下文模型出现后 Prompt 工程会消失吗？
+A：不会减弱为「随便堆字」；更需要结构化、检索与权限设计，上下文越长，间接注入与噪声干
+Q28：Function Calling 与「输出 JSON」二选一？
+A：看生态与框架；Function Calling 强在动作空间清晰；纯 JSON 适合简单结构化且无工具场
+1. 结构：角色 / 任务 / 上下文 / 格式 / 约束是否齐全？
+4. 推理：CoT、Self-Consistency、反思各解决什么问题？
+5. 结构化：JSON + Pydantic 校验、Function Calling。
+9. Agent 模板：ReAct、Plan-and-Execute、意图、改写、摘要能口述流程。
+
+
+【命中:ReAct】===== PAGE 237/405 =====
+熟悉至少一种 编排范式：状态图（LangGraph）、多 Agent 对话（AutoGen）、链式组合
+能讲清 何时用 RAG、何时用工具、何时纯 CoT，以及失败重试与超时策略。
+2.1.3 高级 AI Agent 开发工程师（深圳） ​
+5 年及以上；具备 LLM 应用或 Agent 实际开发 经验（非仅调用演示）
+SFT / RLHF / DPO 等对齐与微调方法；ReAct 等推理-行动范式；Fine-
+更偏 模型侧 + 工程侧结合：不仅要会编排，还要理解 数据构造、训练/对齐流程、评估指标。
+K8s/Docker 强调 训练/推理服务化、弹性扩缩、A/B 与灰度。
+小红书内容社区属性强，Agent 方向与 搜索、推荐、创作助手、社区治理 等场景结合紧密。
+2.2.1 AI Agent 工程师（智能体系统与上下文工程） ​
+意图识别；任务分解；工具调用；记忆管理；失败恢复
+Agent / Workflow 系统 建设经验；RAG 工程；多模态
+「上下文工程」解读：
+
+
+【命中:ReAct】===== PAGE 242/405 =====
+1. Python 后端能力：异步 IO、API 设计、依赖注入与模块化；能独立部署一个「带工具调用的
+Agent 服务」。
+2. LLM 应用基础：消息格式、流式输出、常见参数（temperature、max_tokens）、限流与重
+3. RAG 全流程：切分、embedding、向量库、重排序、幻觉与引用溯源的基本对策。
+4. Tool Calling：JSON schema、函数描述、错误处理、并行与串行工具策略。
+5. Agent 范式：ReAct / Plan-and-Execute 等能口述 + 能画图；理解「何时结束」与「状态」。
+6. 基础 Prompt Engineering：角色、约束、Few-shot、输出格式（JSON/XML）——与自动化
+2. 公有云：AWS/GCP/Azure 任一，对象存储、密钥管理、托管向量库或推理网关。
+4. 对齐与微调入门：SFT 数据格式、DPO/RLHF 名词与适用边界（高级岗）。
+1. 领域结合的 RAG：运维日志/指标、剪映类创作链路——能讲「数据从哪来、如何评测」。
+2. 记忆槽位与上下文工程：显式 schema、压缩策略、用户级隔离与合规。
+3. Token 与成本优化：可量化前后对比（节省比例、延迟变化）。
+
+
+【命中:ReAct】===== PAGE 284/405 =====
+（开场 — 可按你习惯微调，建议保留业务一句话）
+这个项目是一个 企业级 AI Agent 智能助手平台，主要解决企业在 知识管理和智能客服 场景中的
+痛点：文档分散、检索不准、重复咨询多，以及大模型回答 不可控、不可审计、成本波动大 等问
+从业务侧看，我们希望员工和客服能用自然语言 一站式 完成：查政策、查工单历史、走标准流
+从技术侧看，平台核心包括：Agent 编排（多模式智能切换）、ReAct 等多步推理、多路 RAG 检
+索、记忆与会话状态、工具系统与 MCP 集成、模型路由与熔断降级、文档 ETL 流水线，以及 全
+一个大模型 API」。
+我在项目里主要负责【例如：Agent 编排与工具运行时 / 多路 RAG 与重排 / 模型网关与降级】，
+与【前端、运维、算法】同事协作，工作覆盖从【方案设计、接口契约、灰度上线】到【线上指标
+
+
+【命中:ReAct】===== PAGE 285/405 =====
+面试官您好，我参与的是 企业级 AI Agent 智能助手平台，面向 知识管理和智能客服，把 多路
+RAG、Agent 编排、ReAct、工具与 MCP、记忆、模型路由与熔断、文档 ETL、全链路追踪 串
+话职责】，上线后在【延迟 / 准确率 / 成本 / 满意度】上有【可量化或趋势性】改善。您可以从您
+面试官您好，我来介绍这个项目。我们做的是 企业级 AI Agent 智能助手平台，解决企业在 知识
+在技术实现上，Python 是我们 服务端与 Agent 编排层 的主力语言之一：我用它把 对话编排、
+ReAct 循环、工具执行、RAG 客户端、记忆读写、与模型网关的异步调用 组织成清晰模块，并用
+我主要负责【例如：基于 FastAPI/异步框架实现编排引擎、工具沙箱、MCP 客户端、与检索/向
+以上就是我的介绍，您想听编排、RAG 还是工具与 MCP，我都可以用 STAR 展开。
+
+
+【命中:ReAct】===== PAGE 287/405 =====
+企业级 Agent 平台；Go 负责高性能网关、流式与检索代理，强调延迟与稳态。我负责【一句
+3.1 Agent 编排系统 ​
+企业需要一个能处理复杂问题的 AI 助手，但 单一 Agent 模式 无法应对所有场景：有的问题只要
+简单检索即可，有的需要多步推理，有的必须调用内部工具甚至走审批。如果全部用「重模式」，
+我负责 设计并实现 Agent 编排系统，支持 多种 Agent 模式（如简单问答、ReAct、Plan-and-
+我设计了一个 两层编排架构：
+第二层是 执行编排层：把一次对话拆成可观测的「步骤」，每步包含：思考、工具选择、工具执
+工程上我重点做了四件事：统一状态机，避免 if-else 散落；并发与超时，工具调用全链路带
+
+
+【命中:ReAct】===== PAGE 288/405 =====
+系统能够 自动选择更合适的 Agent 模式，我们观测到 复杂问题解决率提升约 30%（以业务侧
+3.2 ReAct Agent ​
+很多业务问题不是「一次检索就能回答」，需要 多轮思考 + 多次工具调用，但又要避免模型胡
+我负责实现 ReAct Agent 的完整执行闭环：在既定工具集合与权限下，让模型按「思考—行动—
+对工具调用做 幂等与超时；对 observation 做 摘要压缩，避免上下文爆炸。针对 循环，增加 重
+复检测（同工具同参数、连续相同 observation），以及 人工兜底或策略切换 开关。用典型工单
+3.3 多路 RAG 检索引擎 ​
+企业知识来源多样：制度 PDF、内部 Wiki、工单、结构化表。单一向量检索容易出现 召回不全或
+我负责建设 多路 RAG 检索引擎：融合 关键词、向量、结构化查询 等多路召回，并做 重排与引
+
+
+【命中:ReAct】===== PAGE 300/405 =====
+企业级 AI Agent 项目面试问答集 
+本文档包含企业级 AI Agent 项目可能被面试官问到的所有核心问题及 STAR 法回答。 全部
+Situation： 在设计企业级 AI Agent 系统时，需要在 ReAct（Reasoning + Acting）和 Plan-
+and-Execute 两种主流 Agent 范式之间做出架构决策。业务场景包括客服问答、知识检索、工具
+Task： 选择一种既能满足实时交互需求，又能处理复杂多步任务的 Agent 架构范式。
+
+
+【命中:ReAct】===== PAGE 301/405 =====
+ReAct 与 Function Calling 天然兼容，每次思考后可以调用工具。
+复杂任务（多步骤）：先用 LLM 生成粗粒度 Plan，每个步骤内部用 ReAct 执行。
+Q2: 为什么采用多路检索而不是单一向量检索？ ​
+Situation： 企业知识库包含大量结构化和非结构化数据，单一向量检索在某些场景下召回率不
+足。例如，精确的编号查询（如"工单号 WO-20240315-001"）在纯语义检索中表现很差。
+
+
+【命中:ReAct】===== PAGE 319/405 =====
+Q18: 你怎么看 Agent 架构的未来发展？ ​
+Situation： AI Agent 技术发展迅速，架构范式在不断演进，需要对未来趋势有前瞻性判断。
+Task： 分析 Agent 架构的发展趋势，给出有见地的观点。
+以 ReAct、Plan-and-Execute 为主的单 Agent 架构成熟。
+多 Agent 协作开始落地但尚不成熟。
+工具生态（MCP、Function Calling）快速发展。
+Agent 工作流 + 自主决策的混合： 关键路径用确定性工作流，非关键路径让 Agent 自主决
+长期记忆的突破： 从简单的向量存储到结构化的长期记忆系统。
+
+
+【命中:ReAct】===== PAGE 321/405 =====
+表格：整表作为一个 chunk，附加上下文描述。
+Situation： ReAct 模式的效果严重依赖 Prompt 设计质量。需要让 LLM 严格遵循 Thought →
+
+
+【命中:ReAct】===== PAGE 356/405 =====
+Q1: Agent 死循环怎么检测和防止的？ 
+Situation： ReAct 模式下，Agent 可能陷入"思考-行动-观察"的无限循环。例如检索结果不满意
+Task： 设计检测和防止 Agent 死循环的机制。
+
+
+【命中:RAG 基础】===== PAGE 358/405 =====
+Situation： LLM 在没有足够信息时会"编造"内容（幻觉），在企业场景中这是严重的问题（如编
+1. RAG 基础（最重要）：
+所有回答都基于检索到的知识片段，要求 LLM 只使用提供的上下文信息。
+要求 LLM 在回答中标注引用来源：[参考1] 、[参考2] 。
+自我一致性检查： 让 LLM 对同一问题生成 3 次回答，如果答案不一致，标记为低置信度。
+检索结果相关性低（rerank score < 0.4）→ 回复"知识库中暂无相关信息"。
+
+
+【命中:ReAct】===== PAGE 366/405 =====
+模拟场景：数据库主节点故障、向量库数据损坏、Redis 全部清空。
+向量库重建时间：约 6 小时（从原始文档重新计算 embedding）。
+Situation： LLM 有时不按预期格式输出（如应输出 JSON 但输出了纯文本，或 ReAct 格式解析
+严格正则解析 → 宽松正则解析 → LLM 重格式化 → 降级处理

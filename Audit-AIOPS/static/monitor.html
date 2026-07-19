@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>审计智能运维 · 监控指挥中心</title>
+<style>
+  :root{
+    --c-primary:#1858c9; --c-primary-deep:#0a2a66; --c-accent:#22d3ee;
+    --bg:#0a1430; --bg2:#0e1c45; --card:rgba(255,255,255,.06);
+    --line:rgba(120,170,255,.18); --text:#e8f0ff; --muted:#8aa3d6;
+    --ok:#34d399; --warn:#fbbf24; --err:#f87171;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(34,211,238,.12), transparent 60%),
+      radial-gradient(900px 500px at 0% 0%, rgba(24,88,201,.18), transparent 55%), var(--bg);
+    color:var(--text);min-height:100vh;padding:18px 22px 28px}
+  .top{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 16px;border-bottom:1px solid var(--line)}
+  .top h1{font-size:22px;font-weight:800;letter-spacing:2px;display:flex;align-items:center;gap:12px}
+  .top h1 .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(34,211,238,.25);animation:blink 1.6s infinite}
+  @keyframes blink{50%{opacity:.4}}
+  .top .sub{font-size:12px;color:var(--muted);letter-spacing:3px;margin-top:4px}
+  .top .clock{font-size:13px;color:var(--muted);text-align:right}
+  .grid{display:grid;grid-template-columns:1.1fr 1.4fr 1fr;gap:16px;margin-top:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;backdrop-filter:blur(4px)}
+  .card .h{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .card .h .bar{width:4px;height:16px;border-radius:3px;background:linear-gradient(var(--accent),var(--c-primary))}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .kpi{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .kpi .k{font-size:12px;color:var(--muted)}
+  .kpi .v{font-size:30px;font-weight:800;margin-top:6px}
+  .kpi .v small{font-size:13px;font-weight:600;color:var(--muted)}
+  .kpi .t{font-size:11px;margin-top:4px}
+  .t.up{color:var(--ok)} .t.down{color:var(--err)}
+  .chart-wrap{padding:6px 4px 2px}
+  .anoms{margin-top:12px;max-height:230px;overflow:auto}
+  .anom{display:flex;align-items:center;gap:10px;padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px}
+  .anom .lv{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:700}
+  .anom .lv.h{background:rgba(248,113,113,.2);color:var(--err)}
+  .anom .lv.m{background:rgba(251,191,36,.2);color:var(--warn)}
+  .anom .lv.l{background:rgba(52,211,153,.2);color:var(--ok)}
+  .anom .meta{color:var(--muted);font-size:11px;margin-top:2px}
+  .topo .node{display:flex;align-items:center;gap:12px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:11px;background:rgba(255,255,255,.04)}
+  .topo .node .ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,var(--c-primary),var(--accent));font-size:20px}
+  .topo .node .name{font-size:14px;font-weight:600}
+  .topo .node .st{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+  .topo .node .led{width:9px;height:9px;border-radius:50%}
+  .led.ok{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+  .led.warn{background:var(--warn);box-shadow:0 0 8px var(--warn)}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:18px}
+  a.back{color:var(--accent);font-size:12px;text-decoration:none}
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1><span class="dot"></span>审计智能运维 · 监控指挥中心</h1>
+    <div class="sub">DIGITAL AUDIT · AIOps COMMAND CENTER</div>
+  </div>
+  <div class="clock"><div id="clock">--:--:--</div><a class="back" href="/">← 返回工作台</a></div>
+</header>
+
+<div class="grid">
+  <div class="card">
+    <div class="h"><span class="bar"></span>核心指标</div>
+    <div class="kpis">
+      <div class="kpi"><div class="k">异常事件（今日）</div><div class="v"><span id="kAnom">-</span> <small>起</small></div><div class="t down">▼ 较昨日 -40%</div></div>
+      <div class="kpi"><div class="k">在线设备</div><div class="v"><span id="kDev">-</span> <small>台</small></div><div class="t up">▲ 99.2% 健康度</div></div>
+      <div class="kpi"><div class="k">自动处置率</div><div class="v"><span id="kAuto">-</span> <small>%</small></div><div class="t up">▲ +12pt</div></div>
+      <div class="kpi"><div class="k">工单平均时长</div><div class="v"><span id="kDur">-</span> <small>h</small></div><div class="t down">▼ -35min</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="h"><span class="bar"></span>近 12 小时异常检测趋势 <span style="margin-left:auto;color:var(--accent);font-size:12px">P95 420ms</span></div>
+    <div class="chart-wrap"><svg id="trend" width="100%" height="170" viewBox="0 0 600 170" preserveAspectRatio="none"></svg></div>
+    <div class="anoms" id="anomList"></div>
+  </div>
+
+  <div class="card topo">
+    <div class="h"><span class="bar"></span>运维对象健康</div>
+    <div class="node"><div class="ic">🖥️</div><div><div class="name">计算存储设备</div><div class="meta">服务器 / 存储阵列</div></div><div class="st"><span class="led ok"></span>正常</div></div>
+    <div class="node"><div class="ic">🧩</div><div><div class="name">应用系统</div><div class="meta">业务系统 / 门户</div></div><div class="st"><span class="led ok"></span>正常</div></div>
+    <div class="node"><div class="ic">⚙️</div><div><div class="name">基础软件平台</div><div class="meta">中间件 / 数据库</div></div><div class="st"><span class="led warn"></span>关注</div></div>
+    <div class="node"><div class="ic">🤖</div><div><div class="name">Agent 编排服务</div><div class="meta">混元/千问 可插拔</div></div><div class="st"><span class="led ok"></span>在线</div></div>
+  </div>
+</div>
+
+<div class="foot">审计智能一体化运维平台 · AIOps 监控大屏 · 基座：混元/千问（可插拔，当前 Mock）</div>
+
+<script>
+function drawTrend(trend){
+  const svg=document.getElementById("trend");
+  const W=600,H=170,pad=14;
+  const max=Math.max(...trend,1), min=Math.min(...trend,0);
+  const rng=(max-min)||1;
+  const pts=trend.map((v,i)=>{
+    const x=pad+(W-2*pad)*i/(trend.length-1);
+    const y=H-pad-(H-2*pad)*(v-min)/rng;
+    return [x,y];
+  });
+  const line=pts.map(p=>p.join(",")).join(" ");
+  const area=`${pad},${H-pad} ${line} ${W-pad},${H-pad}`;
+  svg.innerHTML=`
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity=".35"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/></linearGradient></defs>
+    <polygon fill="url(#g)" points="${area}"/>
+    <polyline fill="none" stroke="#22d3ee" stroke-width="2.4" points="${line}"/>
+    ${pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="#fff"/>`).join("")}`;
+}
+const ANOMS=[
+  {lv:"h",lvt:"高",name:"应用系统 A 节点 CPU 持续 >90%",meta:"2026-07-19 01:40 · 已自动生成工单 WO-…"},
+  {lv:"m",lvt:"中",name:"存储阵列 B 磁盘使用率 82%",meta:"2026-07-19 01:12 · 通知资源管理员"},
+  {lv:"l",lvt:"低",name:"基础软件平台心跳延迟抖动",meta:"2026-07-19 00:55 · 已自愈"},
+  {lv:"m",lvt:"中",name:"UPS 演练脚本执行偏离预期",meta:"2026-07-18 16:20 · 待运维保障组复核"},
+];
+function renderAnoms(){document.getElementById("anomList").innerHTML=ANOMS.map(a=>`
+  <div class="anom"><span class="lv ${a.lv}">${a.lvt}</span>
+    <div><div>${a.name}</div><div class="meta">${a.meta}</div></div></div>`).join("");}
+async function load(){
+  try{
+    const m=await (await fetch("/api/monitor")).json();
+    document.getElementById("kAnom").textContent=m.anomalies_today;
+    document.getElementById("kDev").textContent=m.online_devices;
+    document.getElementById("kAuto").textContent=m.auto_rate;
+    document.getElementById("kDur").textContent=m.avg_duration_h;
+    drawTrend(m.trend.length?m.trend:Array.from({length:12},()=>Math.random()*40+10));
+  }catch(e){ console.error(e); }
+  renderAnoms();
+}
+function tick(){const d=new Date();document.getElementById("clock").textContent=d.toLocaleTimeString("zh-CN");}
+load(); tick(); setInterval(tick,1000); setInterval(load,15000);
+</script>
+</body>
+</html>

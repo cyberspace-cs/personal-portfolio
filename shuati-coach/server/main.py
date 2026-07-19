@@ -4,7 +4,6 @@ FastAPI + SQLite · TRAE AI 创造力大赛复赛
 import hashlib
 import json
 import os
-import re
 from datetime import date, datetime, timedelta
 
 from fastapi import FastAPI, HTTPException
@@ -24,14 +23,21 @@ from agent.router import router as agent_router
 from agent.memory import ensure_tables as ensure_agent_tables
 from agent.eval import ensure_eval_table
 
-# ---- AI 配置（全部来自环境变量，不写死任何密钥） ----
-AI_CONFIG = {
-    "API_BASE": os.getenv("API_BASE", "https://api.openai.com/v1"),
-    "API_KEY": os.getenv("API_KEY", "") or os.getenv("OPENAI_API_KEY", ""),
-    "MODEL": os.getenv("MODEL", "gpt-3.5-turbo"),
-}
-HAS_KEY = bool(AI_CONFIG["API_KEY"])
-print(f"[coach-ai] AI 模式： {'真实大模型' if HAS_KEY else '降级模式（无需 Key，前端功能不受影响）'}")
+# ---- AI 配置（统一复用 Agent 多厂商注册表：智谱/Kimi/混元/豆包/千问/DeepSeek/OpenAI） ----
+# 由 agent/llm.py 的多厂商注册表解析激活厂商（LLM_PROVIDER 指定，或自动选第一个有 Key 的厂商）。
+from agent.llm import call_llm_tool, active_provider, HAS_KEY
+_act = active_provider()
+print(f"[coach-ai] AI 厂商：{_act['label']}（{_act['name']} · {_act['model']}）"
+      f" · {'真实大模型' if HAS_KEY else '降级模式（无需 Key，前端功能不受影响）'}")
+from agent.inference import QUANT_CONFIG
+_awq_state = "开" if QUANT_CONFIG["enabled"] else "关"
+print(f"[coach-ai] 推理优化(Phase F)：KV前缀缓存/上下文压缩/投机解码/知识蒸馏/连续批处理/"
+      f"工具替代生成/量化AWQ={_awq_state} 已启用；调用 /api/agent/infer/optimize 查看量化结果")
+print(f"[coach-ai] 多厂商可切换：GET /api/agent/providers 查看，POST /api/agent/providers/switch 切换")
+from agent.channel import HUB
+print(f"[coach-ai] 接入渠道(Agent-native Harness)：{[c['name'] for c in HUB.list_channels()]}；"
+      f" GET /api/agent/channels 查看；MCP 内置 exam_syllabus/question_bank_search")
+
 
 # Hermes Agent（智能答疑转发，内网代理，绝不公网暴露）
 HERMES_CONFIG = {
@@ -60,40 +66,51 @@ def _cache_set(key: str, val: dict):
     _AI_CACHE[key] = (datetime.now().timestamp(), val)
 
 
-def _extract_json(text: str) -> dict:
-    """从模型返回中稳妥提取 JSON（兼容 json_object 模式与纯文本包裹的 JSON）。"""
-    text = (text or "").strip()
-    try:
-        return json.loads(text)
-    except Exception:
-        m = re.search(r'\{.*\}', text, re.S)
-        if not m:
-            raise ValueError("无法从模型返回中解析 JSON")
-        return json.loads(m.group(0))
+# ---- 结构化输出 schema（虚拟工具范式：用 Function Calling 约束 JSON，替代脆弱的 json_object） ----
+# 参考 HKUDS/nanobot「虚拟工具」技巧：发一个 function definition，截获 tool_calls.arguments 作为严格结构，
+# 不真实执行该工具。多厂商 OpenAI 兼容端点对 Function Calling 支持比 json_object 更稳定。
+_EXPLAIN_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "summary": {"type": "string"},
+        "steps": {"type": "array", "items": {"type": "string"}},
+        "tips": {"type": "string"},
+    },
+    "required": ["summary", "steps", "tips"],
+}
+_GEN_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "baseTopic": {"type": "string"},
+        "variants": {"type": "array", "items": {
+            "type": "object",
+            "properties": {
+                "stem": {"type": "string"},
+                "opts": {"type": "array", "items": {"type": "string"}},
+                "answer": {"type": "array", "items": {"type": "integer"}},
+                "explain": {"type": "string"},
+            },
+            "required": ["stem", "opts", "answer", "explain"],
+        }},
+    },
+    "required": ["baseTopic", "variants"],
+}
+_REPORT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "overall": {"type": "string"},
+        "prediction": {"type": "string"},
+        "focusTopics": {"type": "string"},
+        "plan": {"type": "array", "items": {"type": "string"}},
+        "encouragement": {"type": "string"},
+    },
+    "required": ["overall", "prediction", "focusTopics", "plan", "encouragement"],
+}
 
 
-async def call_llm(system_prompt: str, user_prompt: str, max_tokens: int = 700) -> dict:
-    url = f'{AI_CONFIG["API_BASE"].rstrip("/")}/chat/completions'
-    payload = {
-        "model": AI_CONFIG["MODEL"],
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        "temperature": 0.7,
-        "max_tokens": max_tokens,
-        "response_format": {"type": "json_object"},
-    }
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            url,
-            headers={"Content-Type": "application/json", "Authorization": f'Bearer {AI_CONFIG["API_KEY"]}'},
-            json=payload,
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        content = data.get("choices", [{}])[0].get("message", {}).get("content", "{}")
-        return _extract_json(content)
+async def _structured_llm(system: str, user: str, tool_name: str, schema: dict, max_tokens: int = 700) -> dict:
+    """用虚拟工具范式向激活厂商要结构化 JSON；返回空 dict 表示失败（调用方应降级）。"""
+    return await call_llm_tool(system, user, tool_name, schema, max_tokens)
 
 # 启动时初始化数据库（lifespan 事件，替代已弃用的 on_event）
 from contextlib import asynccontextmanager
@@ -106,7 +123,7 @@ async def lifespan(app):
     ensure_eval_table()      # 评测闭环日志表
     yield
 
-app = FastAPI(title="专属刷题教练 API", version="3.4.0-anomaly", lifespan=lifespan)
+app = FastAPI(title="专属刷题教练 API", version="3.7.0-channel-history-mcp", lifespan=lifespan)
 app.include_router(agent_router)
 
 # CORS
@@ -708,13 +725,16 @@ async def api_explain(data: ExplainIn):
         if not HAS_KEY:
             result = fallback_explain(q)
         else:
-            system = ("你是资深备考讲师，擅长把题目讲透。请基于题目与官方解析，输出结构化 JSON："
-                      "{summary:简要结论, steps:[步骤要点数组], tips:1句记忆/避坑建议}。语言通俗、面向备考学生。")
+            system = ("你是资深备考讲师，擅长把题目讲透。请基于题目与官方解析，输出结构化结果："
+                      "summary=简要结论, steps=步骤要点数组, tips=1句记忆/避坑建议。语言通俗、面向备考学生。")
             user = (f'题目：{q.get("stem","")}\n选项：{ " ".join(f"{_letter(i)}.{o}" for i,o in enumerate(q.get("opts",[]))) }\n'
                     f'正确答案：{ "、".join(_letter(i) for i in q.get("answer",[])) }\n'
                     f'知识点：{q.get("topic","")}\n官方解析：{q.get("explain","（无）")}')
-            result = await call_llm(system, user, 600)
-            result["source"] = "llm"
+            result = await _structured_llm(system, user, "explain_question", _EXPLAIN_SCHEMA, 600)
+            if not result:
+                result = fallback_explain(q)
+            else:
+                result["source"] = "llm"
         _cache_set(key, result)
         return result
     except Exception as e:
@@ -733,13 +753,16 @@ async def api_gen(data: GenIn):
         if not HAS_KEY:
             result = fallback_gen(q)
         else:
-            system = ("你是题库命题专家。基于给定题目，生成3道「同考点」变式题，用于巩固训练。输出 JSON："
-                      "{baseTopic:原考点, variants:[{stem,opts:[],answer:[正确项下标数组],explain}]}。"
-                      "变式应改变情境/表述/反向提问，但考查同一核心知识点。选项4个，answer为正确项下标(0起)。")
+            system = ("你是题库命题专家。基于给定题目，生成3道「同考点」变式题，用于巩固训练。"
+                      "baseTopic=原考点；variants=数组，每项含 stem/opts(4个字符串)/answer(正确项下标数组,0起)/explain。"
+                      "变式应改变情境/表述/反向提问，但考查同一核心知识点。")
             user = (f'原题：{q.get("stem","")}\n选项：{ " ".join(f"{_letter(i)}.{o}" for i,o in enumerate(q.get("opts",[]))) }\n'
                     f'正确答案下标：{json.dumps(q.get("answer",[])) }\n知识点：{q.get("topic","")}\n解析：{q.get("explain","（无）")}')
-            result = await call_llm(system, user, 900)
-            result["source"] = "llm"
+            result = await _structured_llm(system, user, "gen_variants", _GEN_SCHEMA, 900)
+            if not result:
+                result = fallback_gen(q)
+            else:
+                result["source"] = "llm"
         _cache_set(key, result)
         return result
     except Exception as e:
@@ -758,13 +781,16 @@ async def api_report(data: ReportIn):
         if not HAS_KEY:
             result = fallback_report(p)
         else:
-            system = ("你是备考规划师。基于用户学习数据，生成考前押题/冲刺报告。输出 JSON："
-                      "{overall:总评, prediction:得分预测与判断, focusTopics:重点押题模块, "
-                      "plan:[3条冲刺建议], encouragement:鼓励语}。")
+            system = ("你是备考规划师。基于用户学习数据，生成考前押题/冲刺报告。"
+                      "overall=总评；prediction=得分预测与判断；focusTopics=重点押题模块(字符串)；"
+                      "plan=3条冲刺建议数组；encouragement=鼓励语。")
             user = (f'整体掌握度：{p.get("mastery",0)}%\n累计作答：{p.get("total",0)} 题\n'
                     f'正确：{p.get("correct",0)} 题\n薄弱知识点：{ "、".join(p.get("weakTopics",[]) or []) or "无明显薄弱点" }')
-            result = await call_llm(system, user, 700)
-            result["source"] = "llm"
+            result = await _structured_llm(system, user, "gen_report", _REPORT_SCHEMA, 700)
+            if not result:
+                result = fallback_report(p)
+            else:
+                result["source"] = "llm"
         _cache_set(key, result)
         return result
     except Exception as e:
@@ -807,8 +833,21 @@ async def api_chat(data: ChatIn):
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "ai": "enabled" if HAS_KEY else "fallback",
-            "hermes": "enabled" if HAS_HERMES else "off"}
+    from agent.inference import QUANT_CONFIG
+    from agent.channel import HUB
+    ap = active_provider()
+    return {"ok": True, "version": "3.7.0-channel-history-mcp",
+            "ai": "enabled" if HAS_KEY else "fallback",
+            "llm_provider": ap.get("name"),
+            "llm_model": ap.get("model"),
+            "llm_label": ap.get("label"),
+            "channels": [c["name"] for c in HUB.list_channels()],
+            "mcp_builtin_tools": ["exam_syllabus", "question_bank_search"],
+            "mcp_remote": bool(os.getenv("MCP_SERVER_URL")),
+            "hermes": "enabled" if HAS_HERMES else "off",
+            "infer_opt": {"kv_cache": True, "compress": True, "speculative": True,
+                          "distill": True, "continuous_batching": True,
+                          "tool_substitution": True, "quant_awq": QUANT_CONFIG["enabled"]}}
 
 
 # ================================================================

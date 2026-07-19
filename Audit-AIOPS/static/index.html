@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>审计智能一体化运维平台 · 工作台</title>
+<style>
+  :root{
+    --c-primary:#1858c9; --c-primary-deep:#0e3a8c; --c-primary-hover:#2e6fd6;
+    --c-accent:#22b8cf; --c-accent-2:#38bdf8;
+    --bg:#eef3f9; --surface:#ffffff; --surface-2:#f6f9fd;
+    --line:#e3ebf5; --text:#16243a; --muted:#64748b;
+    --ok:#16a34a; --warn:#f59e0b; --err:#e11d48;
+    --shadow:0 6px 22px rgba(20,52,108,.08); --shadow-sm:0 2px 8px rgba(20,52,108,.06);
+    --radius:14px; --font:"PingFang SC","Microsoft YaHei",-apple-system,"Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--text);background:
+      radial-gradient(1200px 500px at 80% -10%, rgba(56,189,248,.10), transparent 60%),
+      radial-gradient(900px 400px at 0% 0%, rgba(24,88,201,.08), transparent 55%), var(--bg);
+    min-height:100vh;font-size:14px}
+  .topbar{height:60px;background:linear-gradient(100deg,var(--c-primary-deep) 0%,var(--c-primary) 55%,#1f6fdc 100%);
+    color:#fff;display:flex;align-items:center;padding:0 22px;position:sticky;top:0;z-index:30;
+    box-shadow:0 2px 16px rgba(14,58,140,.25)}
+  .topbar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--c-accent-2),var(--c-accent),transparent);opacity:.8}
+  .brand{display:flex;align-items:center;gap:12px;min-width:300px}
+  .emblem{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center;
+    border:1px solid rgba(255,255,255,.25);box-shadow:inset 0 0 12px rgba(56,189,248,.35)}
+  .brand h1{font-size:17px;font-weight:700;letter-spacing:.5px;line-height:1.1}
+  .brand p{font-size:11px;opacity:.82;letter-spacing:2px;margin-top:2px}
+  .nav{display:flex;gap:6px;margin-left:34px;flex:1}
+  .nav a{color:rgba(255,255,255,.85);text-decoration:none;padding:9px 16px;border-radius:9px;font-size:14px;transition:.18s;position:relative}
+  .nav a:hover{background:rgba(255,255,255,.12);color:#fff}
+  .nav a.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
+  .nav a.active::after{content:"";position:absolute;left:16px;right:16px;bottom:-9px;height:3px;border-radius:3px;background:var(--c-accent-2)}
+  .top-right{display:flex;align-items:center;gap:16px}
+  .search{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);padding:7px 12px;border-radius:10px;min-width:210px}
+  .search input{background:transparent;border:none;outline:none;color:#fff;font-size:13px;width:100%}
+  .search input::placeholder{color:rgba(255,255,255,.7)}
+  .icon-btn{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);cursor:pointer;position:relative}
+  .icon-btn:hover{background:rgba(255,255,255,.2)}
+  .dot{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--c-accent-2);box-shadow:0 0 0 2px var(--c-primary)}
+  .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#7dd3fc,#1858c9);display:grid;place-items:center;font-weight:700;color:#fff;font-size:13px;border:2px solid rgba(255,255,255,.4)}
+  .layout{display:grid;grid-template-columns:248px 1fr 320px;gap:18px;padding:18px 22px;max-width:1640px;margin:0 auto}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
+  .card-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .card-h .t{font-size:15px;font-weight:700;display:flex;align-items:center;gap:9px}
+  .tag{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600}
+  .tag.blue{background:#e8f0fe;color:var(--c-primary)}
+  .tag.green{background:#e7f7ee;color:var(--ok)}
+  .tag.cyan{background:#e3f7fb;color:#0e7490}
+  .catalog .card-h{background:var(--surface-2)}
+  .cat-group{padding:10px 12px}
+  .cat-title{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:1px;padding:8px 8px 6px;display:flex;align-items:center;gap:7px}
+  .cat-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;color:var(--text);font-size:13.5px;transition:.15s}
+  .cat-item:hover{background:var(--surface-2)}
+  .cat-item .ic{width:28px;height:28px;border-radius:8px;background:#eef4fe;color:var(--c-primary);display:grid;place-items:center;flex:none}
+  .cat-item .meta{font-size:11px;color:var(--muted);margin-top:1px}
+  .workbench{display:flex;flex-direction:column;gap:18px;min-width:0}
+  .ai-entry{background:linear-gradient(120deg,#0e3a8c 0%,#1858c9 60%,#1f6fdc 100%);border-radius:var(--radius);padding:20px 22px;color:#fff;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(24,88,201,.28)}
+  .ai-entry::before{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;background:radial-gradient(circle,rgba(56,189,248,.35),transparent 70%);}
+  .ai-entry .label{display:inline-flex;align-items:center;gap:7px;font-size:12px;letter-spacing:1px;background:rgba(255,255,255,.14);padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.25)}
+  .ai-entry h2{font-size:20px;margin:14px 0 6px;font-weight:700}
+  .ai-entry p{font-size:13px;opacity:.88;max-width:640px;line-height:1.6}
+  .ai-input{margin-top:16px;display:flex;gap:10px;position:relative;z-index:2}
+  .ai-input input{flex:1;background:rgba(255,255,255,.95);border:none;outline:none;padding:14px 16px;border-radius:12px;font-size:14px;color:var(--text);box-shadow:0 4px 14px rgba(0,0,0,.12)}
+  .ai-input button{background:linear-gradient(135deg,#22b8cf,#38bdf8);color:#062a3a;border:none;padding:0 22px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;box-shadow:0 4px 14px rgba(34,184,207,.4)}
+  .ai-input button:hover{filter:brightness(1.05)}
+  .chips{display:flex;gap:8px;margin-top:13px;flex-wrap:wrap;position:relative;z-index:2}
+  .chip{font-size:12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);padding:6px 12px;border-radius:20px;cursor:pointer;transition:.15s}
+  .chip:hover{background:rgba(255,255,255,.22)}
+  .chat-log{margin-top:16px;position:relative;z-index:2;display:flex;flex-direction:column;gap:10px;max-height:240px;overflow:auto}
+  .bubble{max-width:88%;padding:11px 14px;border-radius:12px;font-size:13px;line-height:1.6}
+  .bubble.user{align-self:flex-end;background:rgba(255,255,255,.95);color:var(--text)}
+  .bubble.bot{align-self:flex-start;background:rgba(13,40,92,.55);color:#eaf3ff;border:1px solid rgba(125,211,252,.3)}
+  .bubble.bot .sug{display:inline-block;margin:8px 6px 0 0;padding:5px 10px;border-radius:8px;background:rgba(56,189,248,.18);border:1px solid rgba(125,211,252,.35);color:#bfe9ff;cursor:pointer;font-size:12px}
+  .row{display:grid;grid-template-columns:1.35fr 1fr;gap:18px}
+  .stepper{display:flex;align-items:flex-start;padding:20px 16px 8px}
+  .step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;text-align:center}
+  .step .node{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff;z-index:2;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+  .step.done .node{background:var(--ok)}
+  .step.doing .node{background:var(--c-primary);animation:pulse 1.8s infinite}
+  .step.wait .node{background:#cbd5e1;color:#64748b}
+  .step::before{content:"";position:absolute;top:17px;left:-50%;width:100%;height:3px;background:var(--line);z-index:1}
+  .step:first-child::before{display:none}
+  .step.done::before{background:var(--ok)}
+  .step.doing::before{background:linear-gradient(90deg,var(--ok),var(--c-primary))}
+  .step .name{font-size:13px;font-weight:600;margin-top:10px}
+  .step .time{font-size:11px;color:var(--muted);margin-top:3px}
+  .step .owner{font-size:11px;color:var(--c-primary);margin-top:2px}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(24,88,201,.5)}70%{box-shadow:0 0 0 10px rgba(24,88,201,0)}100%{box-shadow:0 0 0 0 rgba(24,88,201,0)}}
+  .order-meta{display:flex;gap:18px;padding:6px 18px 16px;flex-wrap:wrap}
+  .order-meta div{font-size:12px;color:var(--muted)}
+  .order-meta b{color:var(--text);font-weight:600}
+  .quick-link{color:var(--c-primary);font-size:12px;font-weight:600;cursor:pointer;text-decoration:none}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}
+  .kpi{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .kpi .k{font-size:12px;color:var(--muted)}
+  .kpi .v{font-size:24px;font-weight:800;margin-top:6px;color:var(--text)}
+  .kpi .v small{font-size:13px;font-weight:600;color:var(--muted)}
+  .kpi .trend{font-size:11px;margin-top:4px;display:flex;align-items:center;gap:4px}
+  .trend.up{color:var(--ok)} .trend.down{color:var(--err)}
+  .chart-wrap{padding:0 16px 16px}
+  .chart-wrap .cap{font-size:12px;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between}
+  .svc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:16px}
+  .svc{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:16px;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
+  .svc:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:#c7dbff}
+  .svc .ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--c-primary),var(--c-accent-2));margin-bottom:11px}
+  .svc h4{font-size:14px;font-weight:700}
+  .svc p{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.5}
+  .svc .badge{position:absolute;top:12px;right:12px;font-size:10px;background:#fff;border:1px solid var(--line);color:var(--muted);padding:2px 7px;border-radius:10px}
+  .rightpanel{display:flex;flex-direction:column;gap:18px}
+  .todo li{list-style:none;display:flex;gap:11px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:flex-start}
+  .todo li:last-child{border-bottom:none}
+  .todo .st{width:8px;height:8px;border-radius:50%;margin-top:6px;flex:none}
+  .todo .st.r{background:var(--err)} .todo .st.y{background:var(--warn)} .todo .st.g{background:var(--ok)}
+  .todo .body{font-size:13px;line-height:1.5}
+  .todo .body small{display:block;color:var(--muted);margin-top:3px;font-size:11px}
+  .btn-approve{margin-left:auto;font-size:11px;background:#e8f0fe;color:var(--c-primary);border:none;padding:5px 11px;border-radius:8px;cursor:pointer;font-weight:600;white-space:nowrap}
+  .btn-approve:hover{background:#d6e4fd}
+  .notice li{list-style:none;padding:11px 16px;border-bottom:1px solid var(--line);font-size:13px}
+  .notice li:last-child{border-bottom:none}
+  .notice .d{font-size:11px;color:var(--muted);margin-top:3px}
+  .flywheel{background:linear-gradient(135deg,#0e3a8c,#1858c9);color:#fff;border-radius:var(--radius);padding:18px;position:relative;overflow:hidden}
+  .flywheel::after{content:"";position:absolute;right:-40px;bottom:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(56,189,248,.4),transparent 70%)}
+  .flywheel h3{font-size:15px;margin-bottom:8px}
+  .flywheel p{font-size:12px;opacity:.9;line-height:1.6;position:relative;z-index:2}
+  .flywheel .mini{display:flex;gap:8px;margin-top:12px;position:relative;z-index:2}
+  .flywheel .mini span{font-size:11px;background:rgba(255,255,255,.14);padding:5px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.2)}
+  .footer{text-align:center;color:var(--muted);font-size:12px;padding:8px 0 22px}
+  .toast{position:fixed;left:50%;top:74px;transform:translateX(-50%);background:var(--c-primary-deep);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;box-shadow:var(--shadow);z-index:50;opacity:0;transition:.3s;pointer-events:none}
+  .toast.show{opacity:1;top:84px}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="emblem">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8">
+        <path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/><path d="M9 12l2 2 4-4" stroke="#7dd3fc" stroke-width="1.8"/>
+      </svg>
+    </div>
+    <div><h1>审计智能一体化运维平台</h1><p>数字审计 · 智慧运维 · 新时代</p></div>
+  </div>
+  <nav class="nav">
+    <a class="active" href="/">工作台</a><a href="/agent-demo.html">Agent编排</a><a href="/knowledge-hybrid.html">混合检索</a><a href="/voice.html">语音入口</a><a href="/optimization.html">算法优化</a><a href="/monitor.html">运维监控</a><a href="/service-catalog.html">服务目录</a>
+  </nav>
+  <div class="top-right">
+    <div class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input placeholder="搜索服务 / 工单 / 知识" /></div>
+    <div class="icon-btn"><span class="dot"></span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></div>
+    <div class="avatar">审</div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="card catalog">
+      <div class="card-h"><div class="t">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1858c9" stroke-width="1.9"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        服务目录</div><span class="tag blue" id="catalogTotal">13项</span></div>
+      <div id="catalogList"></div>
+    </div>
+  </aside>
+
+  <main class="workbench">
+    <section class="ai-entry">
+      <span class="label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="4"/></svg>
+        AI 智能助理 · 对话直达服务单</span>
+      <h2>您好，需要办理什么运维服务？</h2>
+      <p>用一句话描述需求，AI 自动判别事项类型、智能拆单并生成工单，自动路由对应审批流。</p>
+      <div class="ai-input">
+        <input id="chatInput" placeholder="例如：我要为审计三组开通远程邮件帐号，容量 5GB，并借用一台会议终端" />
+        <button id="chatSend">生成服务单 →</button>
+      </div>
+      <div class="chips" id="chips">
+        <span class="chip">＋ Ukey 权限调整</span><span class="chip">＋ 计算资源申请</span>
+        <span class="chip">＋ 视频会议+终端借用</span><span class="chip">＋ 应用系统巡检</span>
+        <span class="chip">？ 我的工单到哪了</span>
+      </div>
+      <div class="chat-log" id="chatLog"></div>
+    </section>
+
+    <div class="row">
+      <div class="card" id="progressCard">
+        <div class="card-h"><div class="t">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1858c9" stroke-width="1.9"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          工单进度卡片</div><span class="tag green" id="progressStatus">处理中</span></div>
+        <div class="stepper" id="stepperHost"></div>
+        <div class="order-meta" id="orderMetaHost"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><div class="t">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1858c9" stroke-width="1.9"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>
+          智能监控概览</div><span class="tag cyan">实时</span></div>
+        <div class="kpis">
+          <div class="kpi"><div class="k">异常事件（今日）</div><div class="v"><span id="kAnom">3</span> <small>起</small></div><div class="trend down">▼ 较昨日 -40%</div></div>
+          <div class="kpi"><div class="k">在线设备</div><div class="v"><span id="kDev">1284</span> <small>台</small></div><div class="trend up">▲ 99.2% 健康度</div></div>
+          <div class="kpi"><div class="k">自动处置率</div><div class="v"><span id="kAuto">86</span> <small>%</small></div><div class="trend up">▲ +12pt</div></div>
+          <div class="kpi"><div class="k">工单平均时长</div><div class="v"><span id="kDur">2.4</span> <small>h</small></div><div class="trend down">▼ -35min</div></div>
+        </div>
+        <div class="chart-wrap"><div class="cap"><span>近 12 小时异常检测趋势</span><span style="color:var(--c-primary);font-weight:600">P95 响应 420ms</span></div>
+          <svg width="100%" height="70" viewBox="0 0 300 70" preserveAspectRatio="none">
+            <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1858c9" stop-opacity=".25"/><stop offset="100%" stop-color="#1858c9" stop-opacity="0"/></linearGradient></defs>
+            <polyline fill="url(#g)" stroke="none" points="0,55 25,50 50,52 75,40 100,44 125,30 150,34 175,22 200,28 225,18 250,24 275,14 300,20 300,70 0,70"/>
+            <polyline fill="none" stroke="#1858c9" stroke-width="2" points="0,55 25,50 50,52 75,40 100,44 125,30 150,34 175,22 200,28 225,18 250,24 275,14 300,20"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><div class="t">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1858c9" stroke-width="1.9"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+        高频服务 · 点选式提交</div><span class="tag blue">点选即办</span></div>
+      <div class="svc-grid" id="svcGrid"></div>
+    </div>
+  </main>
+
+  <aside class="rightpanel">
+    <div class="card">
+      <div class="card-h"><div class="t">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1858c9" stroke-width="1.9"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        待我审批</div><span class="tag blue">实时</span></div>
+      <ul class="todo" id="todoList"></ul>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="t">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1858c9" stroke-width="1.9"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 11-5.8-1.6"/></svg>
+        通知公告</div></div>
+      <ul class="notice">
+        <li>UPS 应急演练将于本周五 16:00 开展<div class="d">2026-07-18 · 运维保障组</div></li>
+        <li>专网网站改版 v2.0 已上线<div class="d">2026-07-17 · 门户建设</div></li>
+        <li>新增大模型智能问答服务<div class="d">2026-07-15 · 平台升级</div></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="t">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1858c9" stroke-width="1.9"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        知识库问答</div><span class="tag blue">RAG</span></div>
+      <div style="padding:14px 16px">
+        <div style="display:flex;gap:8px">
+          <input id="kbInput" placeholder="问知识库：Ukey 怎么回收？审批流如何拆分？" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;outline:none;color:var(--text)" />
+          <button id="kbAsk" style="background:linear-gradient(135deg,#22b8cf,#38bdf8);color:#062a3a;border:none;padding:0 16px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer">提问</button>
+        </div>
+        <div id="kbAnswer" style="margin-top:12px;font-size:13px;line-height:1.7;color:var(--text);white-space:pre-line"></div>
+        <div id="kbSources" style="margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="flywheel"><h3>数据飞轮 · 持续优化</h3>
+      <p>工单与评价回流形成领域语料，驱动审计术语 SFT 与事实核查评测闭环，让助手越用越懂审计业务。</p>
+      <div class="mini"><span>工单回流</span><span>领域SFT</span><span>评测对齐</span></div></div>
+  </aside>
+</div>
+
+<div class="footer">审计智能一体化运维平台 · FastAPI + 政务蓝白原型 · 基座：混元/千问（可插拔，当前 Mock）</div>
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

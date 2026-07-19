@@ -14,6 +14,7 @@
 自带 run_self_eval：用样本 query 跑通闭环，无需真实流量即可演示评测能力。
 """
 from database import get_db
+from agent.inference import LEDGER
 
 # 默认自评估样本（覆盖"相关命中 / 不相关拒答"两类，验证防幻觉与引用）
 DEFAULT_SAMPLES = [
@@ -101,6 +102,7 @@ def evaluate() -> dict:
         "citation_rate": round(citation_rate, 3),
         "hallucination_rate": round(hallucination_rate, 3),
         "grade": grade,
+        "inference_optimization": LEDGER.to_dict(),
     }
 
 

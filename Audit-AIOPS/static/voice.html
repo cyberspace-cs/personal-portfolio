@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>语音入口 · 对话直达服务单 | 审计智能一体化运维平台</title>
+<style>
+  :root{
+    --blue:#1858c9; --blue-deep:#0e3a8c; --ink:#1f2a44; --muted:#6b7891;
+    --line:#e3e9f3; --bg:#f4f7fc; --card:#fff; --ok:#13a36b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:linear-gradient(120deg,var(--blue-deep),var(--blue));color:#fff;padding:18px 32px;display:flex;align-items:center;justify-content:space-between}
+  header h1{font-size:19px}
+  header .sub{font-size:12px;opacity:.85}
+  header a{color:#cfe0ff;text-decoration:none;font-size:13px;border:1px solid rgba(255,255,255,.4);padding:6px 12px;border-radius:8px}
+  .wrap{max-width:900px;margin:28px auto;padding:0 24px;text-align:center}
+  .mic{width:120px;height:120px;border-radius:50%;background:var(--blue);margin:30px auto;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(24,88,201,.3);transition:.2s;color:#fff;font-size:40px}
+  .mic.rec{background:#e0533a;animation:pulse 1.2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,83,58,.5)}70%{box-shadow:0 0 0 22px rgba(224,83,58,0)}100%{box-shadow:0 0 0 0 rgba(224,83,58,0)}}
+  .tip{color:var(--muted);font-size:13px;margin-top:8px}
+  .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:left;margin-top:22px;box-shadow:0 2px 10px rgba(20,40,80,.04)}
+  .box h3{font-size:14px;margin-bottom:8px;color:var(--blue-deep)}
+  .box .txt{font-size:15px;line-height:1.7;min-height:26px;white-space:pre-wrap}
+  .row{display:flex;gap:10px;margin-top:12px}
+  .row button{flex:1;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:11px;font-size:14px;cursor:pointer}
+  .row button.ghost{background:#eef3fc;color:var(--blue)}
+  .wo{margin-top:14px;background:#f7faff;border-left:3px solid var(--ok);padding:12px 14px;border-radius:8px;font-size:13px;line-height:1.7;white-space:pre-wrap}
+  .pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;background:#eafaf1;color:var(--ok);margin-right:6px}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>语音入口 · 对话直达服务单</h1>
+    <div class="sub">对应痛点五：缺乏 AI 赋能 → 语音识别 + 智能判别 + 自动生成工单</div>
+  </div>
+  <a href="/">← 返回工作台</a>
+</header>
+
+<div class="wrap">
+  <div class="mic" id="mic" onclick="toggle()">🎙️</div>
+  <div class="tip" id="tip">点击麦克风开始说话（演示环境使用离线回显 ASR，无需联网/模型）</div>
+
+  <div class="box">
+    <h3>① 语音转写（ASR）</h3>
+    <div class="txt" id="transcript">—</div>
+    <div class="row">
+      <button class="ghost" onclick="useSample()">填入示例语句</button>
+      <button onclick="toOrder()">转写文本 → 生成工单</button>
+    </div>
+  </div>
+
+  <div class="box" id="woBox" style="display:none">
+    <h3>② Agent 编排结果（自动拆单 + 审批路由）</h3>
+    <div class="wo" id="wo"></div>
+  </div>
+</div>
+
+<footer>审计智能一体化运维平台 · 语音入口演示</footer>
+
+<script>
+let mediaRecorder, chunks=[], recording=false;
+async function toggle(){
+  if(!recording){
+    try{
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      mediaRecorder = new MediaRecorder(stream);
+      chunks=[];
+      mediaRecorder.ondataavailable = e=>chunks.push(e.data);
+      mediaRecorder.onstop = async ()=>{
+        const blob = new Blob(chunks,{type:'audio/webm'});
+        const fd = new FormData();
+        fd.append('file', blob, 'voice.webm');
+        document.getElementById('tip').textContent='识别中…';
+        const r = await fetch('/api/asr',{method:'POST',body:fd}).then(x=>x.json());
+        document.getElementById('transcript').textContent = r.transcript || '（无结果）';
+        document.getElementById('tip').textContent='识别完成，可生成工单';
+        stream.getTracks().forEach(t=>t.stop());
+      };
+      mediaRecorder.start();
+      recording=true;
+      document.getElementById('mic').classList.add('rec');
+      document.getElementById('tip').textContent='正在聆听… 再次点击结束';
+    }catch(e){
+      document.getElementById('tip').textContent='无法访问麦克风（'+e.message+'），请用「填入示例语句」演示';
+    }
+  }else{
+    mediaRecorder.stop();
+    recording=false;
+    document.getElementById('mic').classList.remove('rec');
+  }
+}
+function useSample(){
+  document.getElementById('transcript').textContent='我要为审计三组开通远程邮件帐号，并借用一台会议终端';
+}
+async function toOrder(){
+  const msg = document.getElementById('transcript').textContent.trim();
+  if(!msg || msg==='—') return;
+  const r = await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,session_id:'voice-demo'})}).then(x=>x.json());
+  let html = `<span class="pill">意图</span>${ (r.intents||[]).join('、') || '—' }\n\n`;
+  html += r.reply + '\n\n';
+  if(r.work_order){
+    const w=r.work_order;
+    html += `工单号：${w.id}\n状态：${w.status}\n步骤：` + (w.steps||[]).map(s=>`${s.name}[${s.status}]`).join(' → ');
+  }
+  document.getElementById('wo').textContent = html;
+  document.getElementById('woBox').style.display='block';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>算法侧推理优化 · 蒸馏 / 压缩 / 缓存加速</title>
+<style>
+  :root{
+    --blue:#1858c9; --blue-deep:#0e3a8c; --ink:#1f2a44; --muted:#6b7891;
+    --line:#e3e9f3; --bg:#f4f7fc; --card:#fff; --ok:#13a36b; --amber:#e0892b; --red:#d94b4b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:linear-gradient(120deg,var(--blue-deep),var(--blue));color:#fff;padding:18px 32px;display:flex;align-items:center;justify-content:space-between}
+  header h1{font-size:19px}
+  header .sub{font-size:12px;opacity:.85;margin-top:3px}
+  header a{color:#cfe0ff;text-decoration:none;font-size:13px;border:1px solid rgba(255,255,255,.4);padding:6px 12px;border-radius:8px}
+  .wrap{max-width:1120px;margin:24px auto;padding:0 24px}
+  .sec-title{font-size:15px;color:var(--blue-deep);margin:26px 0 12px;display:flex;align-items:center;gap:8px}
+  .sec-title .n{background:var(--blue);color:#fff;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 2px 10px rgba(20,40,80,.04)}
+  .kpi .big{font-size:26px;font-weight:700;color:var(--blue-deep)}
+  .kpi .lbl{font-size:12px;color:var(--muted);margin-top:4px}
+  .kpi .sub{font-size:11px;color:var(--ok);margin-top:6px}
+  table{width:100%;border-collapse:collapse;font-size:13px;background:var(--card);border-radius:12px;overflow:hidden}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:#eef3fc;color:var(--blue-deep);font-weight:600}
+  .bar{height:14px;border-radius:7px;background:linear-gradient(90deg,var(--blue),#4b86e6)}
+  .bar-wrap{background:#eef3fc;border-radius:7px;overflow:hidden;width:160px;display:inline-block;vertical-align:middle}
+  .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px}
+  .pill.ok{background:#eafaf1;color:var(--ok)} .pill.warn{background:#fdf3e6;color:var(--amber)}
+  .note{font-size:12px;color:var(--muted);line-height:1.8;margin-top:8px}
+  .demo{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .demo input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13px;font-family:inherit}
+  .demo button{margin-top:8px;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-size:13px;cursor:pointer}
+  .log{font-size:12px;background:#0f1b33;color:#cfe0ff;border-radius:10px;padding:12px;height:180px;overflow:auto;font-family:Consolas,monospace;line-height:1.7}
+  .log .hit{color:#7ee0a8} .log .miss{color:#ffcf8a}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>算法侧 · 大模型推理优化实验台</h1>
+    <div class="sub">知识蒸馏 · INT8 量化 · 幅度剪枝 · 投机解码 · 语义/Prompt 缓存 · 企业级并行 —— 全部真实可复现（纯 numpy，CPU 秒级）</div>
+  </div>
+  <a href="/">← 返回工作台</a>
+</header>
+
+<div class="wrap">
+
+  <div class="sec-title"><span class="n">1</span> 核心收益总览（数据来自 <code>sft/distill_compress.py</code> 实测）</div>
+  <div class="grid" id="kpis">
+    <div class="card kpi"><div class="big" id="k-comp">—</div><div class="lbl">Teacher → INT8 学生 体积压缩</div><div class="sub" id="k-comp-sub"></div></div>
+    <div class="card kpi"><div class="big" id="k-speed">—</div><div class="lbl">推理提速（Teacher → 学生）</div><div class="sub" id="k-speed-sub"></div></div>
+    <div class="card kpi"><div class="big" id="k-acc">—</div><div class="lbl">精度保持（相对 Teacher）</div><div class="sub" id="k-acc-sub"></div></div>
+    <div class="card kpi"><div class="big" id="k-kd">—</div><div class="lbl">蒸馏增益（vs 仅硬标签）</div><div class="sub" id="k-kd-sub"></div></div>
+  </div>
+
+  <div class="sec-title"><span class="n">2</span> Teacher → 蒸馏 → Student → INT8 量化 全链路对比</div>
+  <table id="tbl">
+    <thead><tr><th>模型</th><th>特征维度</th><th>测试准确率</th><th>体积</th><th>单样本延迟</th><th>说明</th></tr></thead>
+    <tbody id="tbody"><tr><td colspan="6" style="color:var(--muted)">加载中…</td></tr></tbody>
+  </table>
+  <div class="note" id="kd-note"></div>
+
+  <div class="sec-title"><span class="n">3</span> 语义 / Prompt 缓存加速（应用层「KV-Cache」思想）</div>
+  <div class="demo">
+    <div class="card">
+      <div style="font-size:13px;color:var(--blue-deep);margin-bottom:8px">输入相同或近义的问题，第二次起命中缓存，省去整次模型推理</div>
+      <input id="q" value="Ukey 怎么申请制作" />
+      <button onclick="ask()">▶ 提问（模拟 800ms 推理）</button>
+      <button onclick="askParaphrase()" style="background:#eef3fc;color:var(--blue)">▶ 换个说法再问（测语义命中）</button>
+      <div class="note">精确命中：完全相同的 prompt；语义命中：近义改写（字符级向量余弦 ≥ 阈值）。</div>
+      <div id="cstat" class="note"></div>
+    </div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="sec-title"><span class="n">4</span> 幅度剪枝：稀疏度 - 精度权衡曲线（数据来自 <code>sft/prune.py</code> 实测）</div>
+  <div class="grid" id="prune-kpis">
+    <div class="card kpi"><div class="big" id="p-sp">—</div><div class="lbl">容忍掉点内最大稀疏度</div><div class="sub" id="p-sp-sub"></div></div>
+    <div class="card kpi"><div class="big" id="p-mac">—</div><div class="lbl">理论乘加削减比</div><div class="sub" id="p-mac-sub"></div></div>
+    <div class="card kpi"><div class="big" id="p-size">—</div><div class="lbl">稀疏存储体积</div><div class="sub" id="p-size-sub"></div></div>
+    <div class="card kpi"><div class="big" id="p-acc">—</div><div class="lbl">该稀疏度下准确率</div><div class="sub" id="p-acc-sub"></div></div>
+  </div>
+  <table id="ptbl" style="margin-top:14px">
+    <thead><tr><th>稀疏度</th><th>测试准确率</th><th>非零权重</th><th>稀疏存储</th><th>Δacc vs 稠密</th></tr></thead>
+    <tbody id="ptbody"><tr><td colspan="5" style="color:var(--muted)">加载中…</td></tr></tbody>
+  </table>
+  <div id="pchart" style="margin-top:14px"></div>
+  <div class="note" id="pnote"></div>
+
+  <div class="sec-title"><span class="n">5</span> 投机解码：草稿模型提议 + 目标模型并行校验（数据来自 <code>sft/speculative.py</code> 实测）</div>
+  <div class="grid" id="spec-kpis">
+    <div class="card kpi"><div class="big" id="s-speed">—</div><div class="lbl">加速比（仅算 Target 调用）</div><div class="sub" id="s-speed-sub"></div></div>
+    <div class="card kpi"><div class="big" id="s-eff">—</div><div class="lbl">加速比（计入 Draft 成本）</div><div class="sub" id="s-eff-sub"></div></div>
+    <div class="card kpi"><div class="big" id="s-acc">—</div><div class="lbl">草稿接受率</div><div class="sub" id="s-acc-sub"></div></div>
+    <div class="card kpi"><div class="big" id="s-loss">—</div><div class="lbl">输出与自回归一致（无损）</div><div class="sub" id="s-loss-sub"></div></div>
+  </div>
+  <div class="note" id="snote"></div>
+
+  <div class="sec-title"><span class="n">6</span> 工程落点（面试可讲）</div>
+  <div class="card note" style="color:var(--ink)">
+    • <b>蒸馏</b>：大模型/大特征 Teacher 对全量样本打软标签，把「暗知识」迁移给小 Student，标注预算受限时显著提升小模型精度。<br/>
+    • <b>量化</b>：Student 权重 fp32 → INT8 对称量化（per-channel scale），体积≈1/4、精度近乎无损，CPU 上毫秒级路由（降比特）。<br/>
+    • <b>剪枝</b>：按 |w| 幅度置零冗余权重（降非零个数，与量化正交）；本任务 98% 稀疏仍无损，配稀疏存储/算子进一步减体积与乘加；工程常用「先剪枝再量化」。<br/>
+    • <b>投机解码</b>：便宜的 Draft 一次猜 k 个 token，Target 一次并行校验、接受最长一致前缀 —— 用更少的大模型调用生成同样多 token，且输出<b>无损一致</b>；Draft 可用蒸馏小模型提升命中率。<br/>
+    • <b>缓存加速</b>：高频/近义请求走语义缓存，命中即跳过整次大模型推理（KV-Cache / Prompt-Cache 在应用层的落地）。<br/>
+    • <b>组合拳</b>：意图路由用「蒸馏+量化+剪枝」的小模型（快、省），生成环节用「投机解码 + 缓存」，端到端成本与延迟同时下降。
+  </div>
+
+  <div class="sec-title"><span class="n">7</span> 企业级并行（流水线 / 模型 / 上下文 / GPU 显存）+ 蒸馏压缩（数据来自 <code>sft/parallel.py</code> 概念仿真）</div>
+  <div class="grid" id="par-kpis">
+    <div class="card kpi"><div class="big" id="mp-ratio">—</div><div class="lbl">模型并行 · 单卡参数比</div><div class="sub" id="mp-ratio-sub"></div></div>
+    <div class="card kpi"><div class="big" id="ctx-ratio">—</div><div class="lbl">上下文并行 · 单卡 KV 比</div><div class="sub" id="ctx-ratio-sub"></div></div>
+    <div class="card kpi"><div class="big" id="pipe-util">—</div><div class="lbl">流水线并行 · 利用率提升</div><div class="sub" id="pipe-util-sub"></div></div>
+    <div class="card kpi"><div class="big" id="combo-mem">—</div><div class="lbl">INT8+4×4 并行 · 单卡显存</div><div class="sub" id="combo-mem-sub"></div></div>
+  </div>
+  <table id="cbtbl" style="margin-top:14px">
+    <thead><tr><th>量化比特</th><th>单卡权重</th><th>单卡 KV</th><th>单卡合计</th><th>对比 fp32 单卡</th></tr></thead>
+    <tbody id="cbtbody"><tr><td colspan="5" style="color:var(--muted)">加载中…</td></tr></tbody>
+  </table>
+  <div class="note" id="parnote"></div>
+
+  <div class="sec-title"><span class="n">8</span> 单轮 token 成本对比（呼应黄超「成本控制 · 自负盈亏」哲学）</div>
+  <div class="grid" id="cost-kpis">
+    <div class="card kpi"><div class="big" id="c-teacher">—</div><div class="lbl">纯大模型 Teacher 单轮成本</div><div class="sub" id="c-teacher-sub"></div></div>
+    <div class="card kpi"><div class="big" id="c-stu">—</div><div class="lbl">INT8 学生（蒸馏+量化）单轮</div><div class="sub" id="c-stu-sub"></div></div>
+    <div class="card kpi"><div class="big" id="c-opt">—</div><div class="lbl">学生+投机+缓存 单轮</div><div class="sub" id="c-opt-sub"></div></div>
+    <div class="card kpi"><div class="big" id="c-save">—</div><div class="lbl">综合降本幅度</div><div class="sub" id="c-save-sub"></div></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div style="font-size:13px;color:var(--blue-deep);margin-bottom:8px">成本计算器（演示估算口径：单价与缓存命中率为假设值，加速/压缩比来自本项目真实实测）</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <label style="font-size:12px;color:var(--muted)">月调用量(万次)<input id="c-qps" value="500" style="width:88px;border:1px solid var(--line);border-radius:8px;padding:7px;font-size:13px;margin-left:6px"></label>
+      <label style="font-size:12px;color:var(--muted)">缓存命中率(%)<input id="c-hit" value="35" style="width:68px;border:1px solid var(--line);border-radius:8px;padding:7px;font-size:13px;margin-left:6px"></label>
+      <button onclick="calcCost()" style="background:var(--blue);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer">▶ 估算月成本</button>
+    </div>
+    <div id="ccost" class="note" style="margin-top:10px"></div>
+  </div>
+  <div class="note" id="costnote"></div>
+
+  <div class="sec-title"><span class="n">9</span> Prompt / 前缀 KV-Cache 强化（呼应黄超「成本控制 · 自负盈亏」）</div>
+  <div class="grid" id="pc-kpis">
+    <div class="card kpi"><div class="big" id="pc-hit">—</div><div class="lbl">前缀缓存命中率</div><div class="sub" id="pc-hit-sub"></div></div>
+    <div class="card kpi"><div class="big" id="pc-tok">—</div><div class="lbl">节省 token（占全量）</div><div class="sub" id="pc-tok-sub"></div></div>
+    <div class="card kpi"><div class="big" id="pc-ttft">—</div><div class="lbl">首字延迟 TTFT 下降</div><div class="sub" id="pc-ttft-sub"></div></div>
+    <div class="card kpi"><div class="big" id="pc-month">—</div><div class="lbl">月省 prefill 成本</div><div class="sub" id="pc-month-sub"></div></div>
+  </div>
+  <div id="pcchart" style="margin-top:14px"></div>
+  <div class="note" id="pcnote"></div>
+
+  <footer>审计智能一体化运维平台 · 算法侧推理优化实验台 · 全部指标现场可复现</footer>
+</div>
+
+<script>
+async function loadReport(){
+  try{
+    const r = await fetch('/api/opt/distill-report');
+    if(!r.ok){ document.getElementById('tbody').innerHTML='<tr><td colspan=6 style="color:var(--red)">尚未生成报告，请先运行 python sft/distill_compress.py</td></tr>'; return; }
+    const d = await r.json();
+    // KPIs
+    document.getElementById('k-comp').textContent = d.summary.compression_ratio_teacher_to_int8 + '×';
+    document.getElementById('k-comp-sub').textContent = d.teacher.size_kb + 'KB → ' + d.student_int8.size_kb + 'KB';
+    document.getElementById('k-speed').textContent = d.summary.speedup_teacher_to_student + '×';
+    document.getElementById('k-speed-sub').textContent = d.teacher.latency_ms_per_sample + 'ms → ' + d.student_int8.latency_ms_per_sample + 'ms';
+    document.getElementById('k-acc').textContent = d.summary.acc_retained_pct + '%';
+    document.getElementById('k-acc-sub').textContent = 'INT8 学生 ' + (d.student_int8.test_acc*100).toFixed(1) + '% / Teacher ' + (d.teacher.test_acc*100).toFixed(1) + '%';
+    document.getElementById('k-kd').textContent = '+' + (d.student_distilled.distill_gain_vs_hard*100).toFixed(1) + 'pt';
+    document.getElementById('k-kd-sub').textContent = '仅硬标签 ' + (d.student_hard_only.test_acc*100).toFixed(1) + '% → 蒸馏 ' + (d.student_distilled.test_acc*100).toFixed(1) + '%';
+    // table
+    const rows = [
+      ['Teacher（大特征）', d.teacher.feature_dim, d.teacher.test_acc, d.teacher.size_kb, d.teacher.latency_ms_per_sample, '全量数据训练，能力上限'],
+      ['Student · 仅硬标签', d.student_hard_only.feature_dim, d.student_hard_only.test_acc, '—', '—', '仅 '+d.student_hard_only.labeled_samples+' 条人工标签'],
+      ['Student · 蒸馏', d.student_distilled.feature_dim, d.student_distilled.test_acc, d.student_distilled.size_kb, d.student_distilled.latency_ms_per_sample, 'Teacher 软标签(T='+d.student_distilled.temperature+') + 少量硬标签'],
+      ['Student · INT8 量化', d.student_distilled.feature_dim, d.student_int8.test_acc, d.student_int8.size_kb, d.student_int8.latency_ms_per_sample, 'fp32→int8，掉点 '+(d.student_int8.acc_drop_vs_fp32*100).toFixed(1)+'pt'],
+    ];
+    const maxKB = d.teacher.size_kb;
+    document.getElementById('tbody').innerHTML = rows.map(r=>{
+      const acc = (r[2]*100).toFixed(1)+'%';
+      const sizeCell = (r[3]==='—')?'—':`<div class="bar-wrap"><div class="bar" style="width:${Math.max(6,(r[3]/maxKB*160))}px"></div></div> ${r[3]}KB`;
+      return `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td><span class="pill ok">${acc}</span></td><td>${sizeCell}</td><td>${r[4]==='—'?'—':r[4]+'ms'}</td><td style="color:var(--muted)">${r[5]}</td></tr>`;
+    }).join('');
+    document.getElementById('kd-note').innerHTML = `任务：${d.task}｜实现：${d.framework}｜数据：train ${d.dataset.train} / test ${d.dataset.test} / ${d.dataset.num_intents} 类意图。生成时间：${d.generated_at}`;
+  }catch(e){ document.getElementById('tbody').innerHTML='<tr><td colspan=6 style="color:var(--red)">加载失败：'+e+'</td></tr>'; }
+}
+
+function logLine(txt, cls){ const el=document.getElementById('log'); el.innerHTML += `<div class="${cls||''}">${txt}</div>`; el.scrollTop=el.scrollHeight; }
+
+async function callCache(prompt){
+  const t0 = performance.now();
+  const r = await fetch('/api/llm/cache/demo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt, simulate_latency_ms:800})});
+  const j = await r.json();
+  const rtt = (performance.now()-t0).toFixed(0);
+  if(j.cache_hit){ logLine(`✔ 命中缓存 [${prompt}] 实际 ${rtt}ms，节省 ${j.saved_ms}ms`, 'hit'); }
+  else { logLine(`✗ 未命中 [${prompt}] 走模型推理 ${rtt}ms`, 'miss'); }
+  const s = j.cache_stats;
+  document.getElementById('cstat').innerHTML = `缓存统计：命中 ${s.hits} / 未命中 ${s.misses}｜命中率 ${(s.hit_rate*100||0).toFixed(0)}%｜累计节省 ${s.saved_ms_total||0}ms｜缓存条目 ${s.size||0}`;
+}
+function ask(){ callCache(document.getElementById('q').value); }
+function askParaphrase(){ callCache('如何申请制作一个 Ukey 密钥'); }
+
+async function loadPrune(){
+  try{
+    const r = await fetch('/api/opt/prune-report');
+    if(!r.ok){ document.getElementById('ptbody').innerHTML='<tr><td colspan=5 style="color:var(--red)">尚未生成报告，请先运行 python sft/prune.py</td></tr>'; return; }
+    const d = await r.json();
+    document.getElementById('p-sp').textContent = (d.best_sparsity_within_tol*100).toFixed(0)+'%';
+    document.getElementById('p-sp-sub').textContent = '容忍掉点 '+(d.tolerance_pt*100).toFixed(0)+'pt 内';
+    document.getElementById('p-mac').textContent = d.theoretical_mac_reduction+'×';
+    document.getElementById('p-mac-sub').textContent = '稀疏乘加削减';
+    document.getElementById('p-size').textContent = d.best.sparse_kb+'KB';
+    document.getElementById('p-size-sub').textContent = '稠密 '+d.dense_baseline.size_kb+'KB → 稀疏存储';
+    document.getElementById('p-acc').textContent = (d.best.test_acc*100).toFixed(1)+'%';
+    document.getElementById('p-acc-sub').textContent = '稠密基线 '+(d.dense_baseline.test_acc*100).toFixed(1)+'%';
+    document.getElementById('ptbody').innerHTML = d.sweep.map(s=>{
+      const knee = s.acc_delta_vs_dense < -d.tolerance_pt;
+      const accPill = knee?`<span class="pill warn">${(s.test_acc*100).toFixed(1)}%</span>`:`<span class="pill ok">${(s.test_acc*100).toFixed(1)}%</span>`;
+      return `<tr><td><b>${(s.sparsity*100).toFixed(1)}%</b></td><td>${accPill}</td><td>${s.nnz}</td><td>${s.sparse_kb}KB</td><td style="color:${knee?'var(--red)':'var(--muted)'}">${(s.acc_delta_vs_dense*100).toFixed(1)}pt</td></tr>`;
+    }).join('');
+    document.getElementById('pnote').innerHTML = d.note+'（生成时间：'+d.generated_at+'）';
+    drawPruneChart(d.sweep);
+  }catch(e){ document.getElementById('ptbody').innerHTML='<tr><td colspan=5 style="color:var(--red)">加载失败：'+e+'</td></tr>'; }
+}
+
+async function loadSpec(){
+  try{
+    const r = await fetch('/api/opt/speculative-report');
+    if(!r.ok){ document.getElementById('snote').innerHTML='<span style="color:var(--red)">尚未生成报告，请先运行 python sft/speculative.py</span>'; return; }
+    const d = await r.json(); const R = d.result;
+    document.getElementById('s-speed').textContent = R.speedup_target_calls_only+'×';
+    document.getElementById('s-speed-sub').textContent = R.autoregressive_target_calls+' → '+R.speculative_target_calls+' 次 Target 调用';
+    document.getElementById('s-eff').textContent = R.speedup_effective_with_draft_cost+'×';
+    document.getElementById('s-eff-sub').textContent = 'Draft 成本按 Target 的 1/8 计';
+    document.getElementById('s-acc').textContent = (R.accept_rate*100).toFixed(1)+'%';
+    document.getElementById('s-acc-sub').textContent = '草稿步长 k='+d.config.draft_k;
+    document.getElementById('s-loss').textContent = (R.output_identical_ratio*100).toFixed(0)+'%';
+    document.getElementById('s-loss-sub').textContent = 'Target='+d.models.target.split('（')[0]+' / Draft='+d.models.draft.split('（')[0];
+    document.getElementById('snote').innerHTML = d.note+'（'+d.framework+'；生成时间：'+d.generated_at+'）';
+  }catch(e){ document.getElementById('snote').innerHTML='<span style="color:var(--red)">加载失败：'+e+'</span>'; }
+}
+
+async function loadParallel(){
+  try{
+    const r = await fetch('/api/opt/parallel-report');
+    if(!r.ok){ document.getElementById('cbtbody').innerHTML='<tr><td colspan=5 style="color:var(--red)">尚未生成报告，请先运行 python sft/parallel.py</td></tr>'; return; }
+    const d = await r.json();
+    const mp = d.model_parallel["8_cards"];
+    document.getElementById('mp-ratio').textContent = (mp.per_device_param_ratio*100).toFixed(1)+'%';
+    document.getElementById('mp-ratio-sub').textContent = '输出与单卡一致 ✓';
+    const ctx = d.context_parallel["8_cards"];
+    document.getElementById('ctx-ratio').textContent = (ctx.per_device_kv_ratio*100).toFixed(1)+'%';
+    document.getElementById('ctx-ratio-sub').textContent = '长序列 KV 切分';
+    const pp = d.pipeline_parallel;
+    document.getElementById('pipe-util').textContent = pp.util_gain_x+'×';
+    document.getElementById('pipe-util-sub').textContent = '利用率 '+(pp.util_naive*100).toFixed(0)+'%→'+(pp.util_1f1b*100).toFixed(0)+'%';
+    const rows = d.combined_memory_budget.per_device_rows;
+    const int8 = rows.find(x=>x.quant_bits===8);
+    const fp32 = rows.find(x=>x.quant_bits===32);
+    document.getElementById('combo-mem').textContent = int8.per_device_total_mb+'MB';
+    document.getElementById('combo-mem-sub').textContent = 'fp32 单卡 '+fp32.per_device_total_mb+'MB';
+    const base = fp32.per_device_total_mb;
+    document.getElementById('cbtbody').innerHTML = rows.map(x=>{
+      const ratio = (base/x.per_device_total_mb);
+      return `<tr><td><b>INT${x.quant_bits}</b></td><td>${x.per_device_weight_mb}MB</td><td>${x.per_device_kv_mb}MB</td><td>${x.per_device_total_mb}MB</td><td><span class="pill ok">↓${ratio.toFixed(0)}×</span></td></tr>`;
+    }).join('');
+    const edc = d.enterprise_distill_compression;
+    document.getElementById('parnote').innerHTML =
+      '<b>核心范式：</b>'+edc.pipeline+'<br/>'+
+      '<b>本项目真凭：</b><ul style="margin:4px 0 0 18px">'+edc.our_evidence.map(s=>'<li>'+s+'</li>').join('')+'</ul>'+
+      d.combined_memory_budget.summary+'（生成时间：'+d.generated_at+'）';
+  }catch(e){ document.getElementById('cbtbody').innerHTML='<tr><td colspan=5 style="color:var(--red)">加载失败：'+e+'</td></tr>'; }
+}
+
+let COST_MODEL = null;
+function drawPruneChart(sweep){
+  if(!sweep || !sweep.length){ return; }
+  const W=680,H=260,padL=44,padR=16,padT=18,padB=36;
+  const x0=padL,x1=W-padR,y0=H-padB,y1=padT;
+  const sx = sp => x0 + (sp/100)*(x1-x0);
+  const sy = acc => y0 - (acc/100)*(y0-y1);
+  const pts = sweep.map(s=>({sp:s.sparsity*100, acc:s.test_acc*100}));
+  let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:12px" role="img" aria-label="剪枝精度断崖曲线">`;
+  for(let g=0; g<=100; g+=20){
+    const yy=sy(g);
+    svg += `<line x1="${x0}" y1="${yy}" x2="${x1}" y2="${yy}" stroke="#eef3fc"/>`;
+    svg += `<text x="${x0-6}" y="${yy+4}" font-size="10" fill="#6b7891" text-anchor="end">${g}%</text>`;
+    const xx=sx(g);
+    svg += `<line x1="${xx}" y1="${y1}" x2="${xx}" y2="${y0}" stroke="#f4f7fc"/>`;
+    svg += `<text x="${xx}" y="${y0+16}" font-size="10" fill="#6b7891" text-anchor="middle">${g}%</text>`;
+  }
+  const dpath = pts.map((p,i)=>(i?'L':'M')+sx(p.sp).toFixed(1)+' '+sy(p.acc).toFixed(1)).join(' ');
+  svg += `<path d="${dpath}" fill="none" stroke="#1858c9" stroke-width="2.5"/>`;
+  pts.forEach(p=>{
+    const cliff = p.acc < 80;
+    svg += `<circle cx="${sx(p.sp).toFixed(1)}" cy="${sy(p.acc).toFixed(1)}" r="${cliff?4:3.2}" fill="${cliff?'#d94b4b':'#1858c9'}"/>`;
+  });
+  const k98 = pts.find(p=>Math.abs(p.sp-98)<0.6);
+  if(k98){
+    svg += `<circle cx="${sx(k98.sp).toFixed(1)}" cy="${sy(k98.acc).toFixed(1)}" r="6.5" fill="none" stroke="#13a36b" stroke-width="2"/>`;
+    svg += `<text x="${sx(k98.sp).toFixed(1)}" y="${(sy(k98.acc)-12).toFixed(1)}" font-size="11" fill="#13a36b" text-anchor="middle">98% 无损拐点</text>`;
+  }
+  const k995 = pts.find(p=>Math.abs(p.sp-99.5)<0.6);
+  if(k995){
+    svg += `<text x="${sx(k995.sp).toFixed(1)}" y="${(sy(k995.acc)-10).toFixed(1)}" font-size="10.5" fill="#d94b4b" text-anchor="middle">断崖→${(k995.acc).toFixed(0)}%</text>`;
+  }
+  svg += `<text x="${W/2}" y="${H-6}" font-size="11" fill="#6b7891" text-anchor="middle">稀疏度（越高越省，但精度风险越大）</text>`;
+  svg += `<text x="13" y="${H/2}" font-size="11" fill="#6b7891" text-anchor="middle" transform="rotate(-90 13 ${H/2})">测试准确率</text>`;
+  svg += `</svg>`;
+  document.getElementById('pchart').innerHTML = svg;
+}
+
+async function loadCost(){
+  try{
+    const r = await fetch('/api/opt/cost-report');
+    if(!r.ok){ document.getElementById('costnote').innerHTML='<span style="color:var(--red)">尚未生成成本报告</span>'; return; }
+    const d = await r.json();
+    COST_MODEL = d;
+    const pt = d.per_turn, m = d.monthly_default;
+    document.getElementById('c-teacher').textContent = '¥'+pt.teacher.toFixed(4);
+    document.getElementById('c-teacher-sub').textContent = 'API 直调（输入+输出 token）';
+    document.getElementById('c-stu').textContent = '¥'+pt.student_int8.toFixed(5);
+    document.getElementById('c-stu-sub').textContent = '自托管 · 体积↓'+d.from_real_metrics.compression_ratio_teacher_to_int8+'×';
+    document.getElementById('c-opt').textContent = '¥'+pt.optimized.toFixed(5);
+    document.getElementById('c-opt-sub').textContent = '再叠投机×'+d.from_real_metrics.speedup_speculative+' + 缓存命中';
+    document.getElementById('c-save').textContent = (m.saved_pct*100).toFixed(1)+'%';
+    document.getElementById('c-save-sub').textContent = '月省 ¥'+Math.round(m.saved).toLocaleString();
+    document.getElementById('costnote').innerHTML = d.note+'（生成时间：'+d.generated_at+'）';
+    calcCost();
+  }catch(e){ document.getElementById('costnote').innerHTML='<span style="color:var(--red)">加载失败：'+e+'</span>'; }
+}
+function calcCost(){
+  if(!COST_MODEL) return;
+  const calls_w = parseFloat(document.getElementById('c-qps').value)||0;
+  const hit = (parseFloat(document.getElementById('c-hit').value)||0)/100;
+  const optBase = COST_MODEL.per_turn.optimized_base;
+  const perTurnOpt = optBase * (1-hit);
+  const monthlyCalls = calls_w*10000;
+  const teacherMonthly = COST_MODEL.per_turn.teacher * monthlyCalls;
+  const optMonthly = perTurnOpt * monthlyCalls;
+  const saved = teacherMonthly - optMonthly;
+  const pct = teacherMonthly>0 ? (saved/teacherMonthly*100) : 0;
+  document.getElementById('ccost').innerHTML =
+    `月调用 <b>${calls_w}万次</b>｜缓存命中率 <b>${(hit*100).toFixed(0)}%</b>：<br/>`+
+    `• 纯 Teacher(API) 月成本 ≈ <b>¥${teacherMonthly.toFixed(0)}</b><br/>`+
+    `• 优化路径(学生+投机+缓存) 月成本 ≈ <b>¥${optMonthly.toFixed(0)}</b><br/>`+
+    `• 每月节省 ≈ <b style="color:var(--ok)">¥${saved.toFixed(0)}</b>（降本 ${pct.toFixed(1)}%）`;
+}
+
+async function loadPromptCache(){
+  try{
+    const r = await fetch('/api/opt/prompt-cache-report');
+    if(!r.ok){ document.getElementById('pcnote').innerHTML='<span style="color:var(--red)">尚未生成 Prompt Cache 报告，请先运行 python sft/prompt_cache.py</span>'; return; }
+    const d = await r.json();
+    const s = d.summary;
+    document.getElementById('pc-hit').textContent = (s.prefix_cache_hit_rate*100).toFixed(2)+'%';
+    document.getElementById('pc-hit-sub').textContent = s.prefix_cache_hits+' 命中 / '+s.prefix_cache_misses+' 未命中（'+s.distinct_prefixes+' 业务域前缀）';
+    document.getElementById('pc-tok').textContent = (s.tokens_saved_pct*100).toFixed(1)+'%';
+    document.getElementById('pc-tok-sub').textContent = '省 '+s.tokens_saved.toLocaleString()+' token（前缀 '+s.prefix_tokens_per_request+' × 命中）';
+    document.getElementById('pc-ttft').textContent = (s.ttft_reduction_pct*100).toFixed(1)+'%';
+    document.getElementById('pc-ttft-sub').textContent = '平均时延 '+s.avg_latency_ms+'ms / 请求';
+    document.getElementById('pc-month').textContent = '¥'+s.monthly_cost_saved_at_500w.toLocaleString();
+    document.getElementById('pc-month-sub').textContent = '月 500 万请求 · 自托管口径';
+    document.getElementById('pcnote').innerHTML = d.note+'（生成时间：'+d.generated_at+'）';
+    drawPcChart(d.series);
+  }catch(e){ document.getElementById('pcnote').innerHTML='<span style="color:var(--red)">加载失败：'+e+'</span>'; }
+}
+function drawPcChart(series){
+  if(!series || !series.length) return;
+  const W=680,H=220,padL=52,padR=16,padT=16,padB=34;
+  const x0=padL,x1=W-padR,y0=H-padB,y1=padT;
+  const maxReq = series[series.length-1].req;
+  const maxTok = Math.max(...series.map(p=>p.cum_saved_tokens));
+  const sx = req => x0 + (req/maxReq)*(x1-x0);
+  const sy = tok => y0 - (tok/maxTok)*(y0-y1);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:12px" role="img" aria-label="前缀缓存累计节省 token 曲线">`;
+  for(let g=0; g<=4; g++){
+    const yy=sy(maxTok*g/4);
+    svg += `<line x1="${x0}" y1="${yy}" x2="${x1}" y2="${yy}" stroke="#eef3fc"/>`;
+    svg += `<text x="${x0-6}" y="${yy+4}" font-size="10" fill="#6b7891" text-anchor="end">${(maxTok*g/4/1000).toFixed(0)}k</text>`;
+  }
+  const dpath = series.map((p,i)=>(i?'L':'M')+sx(p.req).toFixed(1)+' '+sy(p.cum_saved_tokens).toFixed(1)).join(' ');
+  const area = `M${sx(series[0].req).toFixed(1)} ${y0} `+series.map(p=>'L'+sx(p.req).toFixed(1)+' '+sy(p.cum_saved_tokens).toFixed(1)).join(' ')+` L${sx(series[series.length-1].req).toFixed(1)} ${y0} Z`;
+  svg += `<path d="${area}" fill="#eafaf1" stroke="none"/>`;
+  svg += `<path d="${dpath}" fill="none" stroke="#13a36b" stroke-width="2.5"/>`;
+  svg += `<text x="${x0+8}" y="${y1+14}" font-size="11" fill="#13a36b">累计节省 token（前缀缓存命中后累积）</text>`;
+  svg += `<text x="${W/2}" y="${H-8}" font-size="11" fill="#6b7891" text-anchor="middle">请求序号（5 业务域 × 2000 请求，zipf 倾斜）</text>`;
+  svg += `</svg>`;
+  document.getElementById('pcchart').innerHTML = svg;
+}
+
+loadReport();
+loadPrune();
+loadSpec();
+loadParallel();
+loadCost();
+loadPromptCache();
+</script>
+</body>
+</html>
