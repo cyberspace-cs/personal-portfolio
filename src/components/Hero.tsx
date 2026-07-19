@@ -1,4 +1,4 @@
-import { Github, Linkedin, Twitter, Mail, ChevronDown, Download } from 'lucide-react';
+import { Github, Linkedin, Twitter, Mail, ChevronDown, Download, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { personalInfo, socialLinks } from '../data/portfolio';
 
@@ -57,6 +57,12 @@ export default function Hero() {
           {personalInfo.bio[language]}
         </p>
 
+        {/* Live Demo Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium mb-8">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          7 个 AI 项目已上线可交互 Demo
+        </div>
+
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
           <a
@@ -65,6 +71,15 @@ export default function Hero() {
           >
             <Download size={18} />
             {t.heroDownloadResume}
+          </a>
+          <a
+            href="/demos/index.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-8 py-3 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-semibold rounded-lg hover:shadow-lg hover:shadow-emerald-400/25 transition-all duration-300 flex items-center gap-2"
+          >
+            <Sparkles size={18} />
+            {t.heroViewDemos}
           </a>
           <a
             href="#contact"

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>强化学习对齐 · PPO→DPO→GRPO | 审计智能运维</title>
+<style>
+  :root{
+    --c-primary:#1858c9; --c-primary-deep:#0a2a66; --c-accent:#22b8cf;
+    --bg:#f4f7fc; --card:#ffffff; --line:#e2e9f3; --text:#16243b; --muted:#6b7a93;
+    --ok:#0e9f6e; --warn:#d97706; --err:#e11d48; --ppo:#7c3aed; --dpo:#1858c9; --grpo:#0e9f6e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:0 0 40px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+  header.top{background:linear-gradient(120deg,var(--c-primary-deep),var(--c-primary));color:#fff;padding:26px 0 30px;box-shadow:0 6px 24px rgba(24,88,201,.18)}
+  header.top h1{font-size:25px;font-weight:800;letter-spacing:1px}
+  header.top .sub{opacity:.85;font-size:13px;margin-top:6px;letter-spacing:2px}
+  header.top .nav{margin-top:14px;font-size:13px}
+  header.top .nav a{color:#dbe7ff;text-decoration:none;margin-right:14px}
+  header.top .nav a:hover{color:#fff;text-decoration:underline}
+  section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;margin-top:20px;box-shadow:0 2px 10px rgba(20,40,80,.04)}
+  section h2{font-size:18px;font-weight:800;color:var(--c-primary-deep);display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  section h2 .bar{width:5px;height:20px;border-radius:3px;background:linear-gradient(var(--c-accent),var(--c-primary))}
+  section .lead{color:var(--muted);font-size:13px;margin-bottom:16px}
+  /* 上下游流水线 */
+  .pipe{display:flex;gap:0;align-items:stretch;overflow-x:auto;padding-bottom:8px}
+  .stage{flex:1;min-width:190px;border:1px solid var(--line);border-radius:12px;padding:14px;background:linear-gradient(180deg,#fbfdff,#f4f8ff);position:relative}
+  .stage:not(:last-child)::after{content:"→";position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:var(--c-accent);font-weight:900;font-size:18px;z-index:2}
+  .stage .n{font-size:11px;color:var(--c-accent);font-weight:800;letter-spacing:1px}
+  .stage .t{font-size:14px;font-weight:800;margin:4px 0 6px;color:var(--c-primary-deep)}
+  .stage .io{font-size:11px;color:var(--muted);background:#eef4ff;border-radius:7px;padding:4px 7px;margin-bottom:6px}
+  .stage .d{font-size:12px;color:#3a4a63}
+  .stage.hot{background:linear-gradient(180deg,#eafaff,#dcf3fb);border-color:#b6e8f0}
+  /* 对比表 */
+  table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px}
+  th,td{border:1px solid var(--line);padding:10px 11px;text-align:left;vertical-align:top}
+  th{background:#f0f5ff;color:var(--c-primary-deep);font-weight:800}
+  td.method{font-weight:800}
+  .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:12px;font-weight:700;margin:2px 3px 2px 0}
+  .tag.on{background:#e7f8f0;color:var(--ok)} .tag.off{background:#fdeef0;color:var(--err)} .tag.mid{background:#fff3e0;color:var(--warn)}
+  /* 指标卡 */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .mc{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fbfdff}
+  .mc .h{font-size:13px;font-weight:800;display:flex;align-items:center;gap:7px}
+  .mc .h .dot{width:10px;height:10px;border-radius:50%}
+  .mc .row{display:flex;justify-content:space-between;font-size:12px;margin-top:7px;color:#33425c}
+  .mc .row b{color:var(--text)}
+  /* 图 */
+  .charts{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;margin-top:8px}
+  .chartbox{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfdff}
+  .chartbox h4{font-size:13px;color:var(--c-primary-deep);margin-bottom:8px}
+  .legend{display:flex;gap:14px;font-size:12px;margin-top:6px;color:#33425c}
+  .legend i{display:inline-block;width:12px;height:3px;vertical-align:middle;margin-right:5px}
+  .takeaways{list-style:none}
+  .takeaways li{padding:10px 14px;border-left:4px solid var(--c-accent);background:#f3f9ff;border-radius:0 10px 10px 0;margin-bottom:10px;font-size:13.5px;color:#243349}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:22px}
+  a.back{color:var(--c-accent);text-decoration:none;font-size:13px}
+  .err{color:var(--err);font-size:13px}
+  .btn{background:var(--c-primary);color:#fff;border:none;padding:9px 18px;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px}
+  .btn:hover{background:var(--c-primary-deep)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>强化学习对齐 · PPO → DPO → GRPO</h1>
+    <div class="sub">RLHF ALIGNMENT · 把「偏好」变成「策略」的演进与上下游关系</div>
+    <div class="nav">
+      <a href="/">← 工作台</a><a href="/optimization.html">算法优化实验台</a><a href="/ops-console.html">审计运维控制台</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- 1. 上下游关系 -->
+  <section>
+    <h2><span class="bar"></span>一、上下游关系：从 Pretrain 到部署优化是一条单向依赖链</h2>
+    <div class="lead">对齐（Alignment）不是孤立环节。它依赖上游的预训练/SFT/奖励模型，产出又流向下游的部署优化。理解这条链，才能讲清「为什么需要 PPO/DPO/GRPO」以及「本项目处在哪」。下面高亮块即本项目定位（最下游）。</div>
+    <div class="pipe" id="pipe"></div>
+    <p class="lead" style="margin-top:14px" id="pipe-note">加载中…</p>
+  </section>
+
+  <!-- 2. 策略对比 -->
+  <section>
+    <h2><span class="bar"></span>二、三种对齐策略：机制、优劣与适用场景</h2>
+    <div class="lead">核心区别在「是否在线采样」「要不要显式奖励模型（RM）与价值网络（value）」「隐式奖励还是显式奖励」。下表把 PPO/DPO/GRPO 与 RLAIF 放在一张表里对比。</div>
+    <table id="cmp"><thead><tr><th>方法</th><th>模式</th><th>在线采样</th><th>额外模型</th><th>优点</th><th>缺点 / 风险</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <!-- 3. 仿真结果 -->
+  <section>
+    <h2><span class="bar"></span>三、可复现仿真：在同一张 2D 偏好测试台真跑三种方法</h2>
+    <div class="lead">我们用纯 numpy/CPU 在统一任务（特征 φ(x,y)=[x;y]，地面真值方向定义偏好）上训练同一类线性策略 π_θ，比较谁收敛更快、更稳、需要多少机制。数据由 <code>python sft/rl_alignment.py</code> 生成，确定性可复现。</div>
+    <div class="cards" id="mcards"></div>
+    <div class="charts">
+      <div class="chartbox">
+        <h4>测试集准确率随训练步数变化（越高越准，越快到顶越好）</h4>
+        <svg id="accChart" width="100%" height="220" viewBox="0 0 600 220" preserveAspectRatio="none"></svg>
+        <div class="legend">
+          <span><i style="background:var(--ppo)"></i>PPO</span>
+          <span><i style="background:var(--dpo)"></i>DPO</span>
+          <span><i style="background:var(--grpo)"></i>GRPO</span>
+        </div>
+      </div>
+      <div class="chartbox">
+        <h4>收敛步数 / 稳定性（步数越少越快；稳定性=末段准确率标准差，越小越稳）</h4>
+        <svg id="barChart" width="100%" height="220" viewBox="0 0 320 220"></svg>
+      </div>
+    </div>
+    <div style="margin-top:14px"><button class="btn" id="rerun" onclick="rerun()">重算仿真（秒级）</button> <span id="rerun-msg" style="font-size:12px;color:var(--muted)"></span></div>
+  </section>
+
+  <!-- 4. 结论 -->
+  <section>
+    <h2><span class="bar"></span>四、关键结论（面试可直接讲）</h2>
+    <ul class="takeaways" id="takeaways"></ul>
+  </section>
+
+  <div class="foot">审计智能一体化运维平台 · 强化学习对齐讲解 · 纯 numpy/CPU 仿真，零外部依赖</div>
+</div>
+
+<script>
+const COL={ppo:"#7c3aed",dpo:"#1858c9",grpo:"#0e9f6e"};
+async function getJSON(u){const r=await fetch(u);if(!r.ok)throw new Error(u+" "+r.status);return r.json();}
+
+function renderPipe(pipeline,note){
+  document.getElementById("pipe").innerHTML=pipeline.map(p=>`
+    <div class="stage ${p.stage.includes('部署优化')?'hot':''}">
+      <div class="n">${p.stage.split(' ')[0]}</div>
+      <div class="t">${p.stage.split(' ').slice(1).join(' ')}</div>
+      <div class="io">${p.io}</div>
+      <div class="d">${p.desc}</div>
+    </div>`).join("");
+  document.getElementById("pipe-note").textContent=note;
+}
+
+function renderCmp(cmp){
+  document.getElementById("cmp").querySelector("tbody").innerHTML=cmp.map(c=>{
+    const on=c.sampling.includes("在线")?'<span class="tag on">在线采样</span>':'<span class="tag off">离线</span>';
+    return `<tr>
+      <td class="method" style="color:${COL[c.method.split(' ')[0].toLowerCase()]||'#16243b'}">${c.method}</td>
+      <td>${c.mode}</td><td>${on}</td><td>${c.extra_models}</td>
+      <td>${c.pros}</td><td>${c.cons}</td></tr>`;
+  }).join("");
+}
+
+function renderCards(m){
+  const defs=[["ppo","PPO (RLHF)","m.methods.ppo"],["dpo","DPO (2023)","m.methods.dpo"],["grpo","GRPO (2024)","m.methods.grpo"]];
+  const data={ppo:m.methods.ppo,dpo:m.methods.dpo,grpo:m.methods.grpo};
+  document.getElementById("mcards").innerHTML=Object.entries(data).map(([k,v])=>`
+    <div class="mc">
+      <div class="h"><span class="dot" style="background:${COL[k]}"></span>${k.toUpperCase()}</div>
+      <div class="row"><span>最终准确率</span><b>${(v.final_acc*100).toFixed(1)}%</b></div>
+      <div class="row"><span>收敛到 90% 步数</span><b>${v.steps_to_90??'—'}</b></div>
+      <div class="row"><span>末段稳定性(std)</span><b>${v.stability.toFixed(4)}</b></div>
+      <div class="row"><span>在线采样</span><b>${v.online_sampling?'需要':'不需要'}</b></div>
+      <div class="row"><span>所需额外模型</span><b style="font-size:11px">${v.extra_models}</b></div>
+    </div>`).join("");
+}
+
+function drawAcc(m){
+  const svg=document.getElementById("accChart");const W=600,H=220,pad=34;
+  const series={PPO:m.methods.ppo.acc_curve,DPO:m.methods.dpo.acc_curve,GRPO:m.methods.grpo.acc_curve};
+  const steps=Math.max(...Object.values(series).map(s=>s.length));
+  const x=i=>pad+(W-2*pad)*i/(steps-1);
+  const y=v=>H-pad-(H-2*pad)*v; // v in [0,1]
+  let g=`<line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#cdd8ea"/>`;
+  g+=`<line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H-pad}" stroke="#cdd8ea"/>`;
+  [0,.25,.5,.75,1].forEach(t=>{g+=`<text x="6" y="${y(t)+4}" font-size="10" fill="#8aa">${Math.round(t*100)}</text>`;});
+  for(const [k,arr] of Object.entries(series)){
+    const pts=arr.map((v,i)=>`${x(i)},${y(v)}`).join(" ");
+    g+=`<polyline fill="none" stroke="${COL[k.toLowerCase()]}" stroke-width="2.4" points="${pts}"/>`;
+  }
+  svg.innerHTML=g;
+}
+
+function drawBars(m){
+  const svg=document.getElementById("barChart");const W=320,H=220;
+  const data=[["PPO",m.methods.ppo.steps_to_90],["DPO",m.methods.dpo.steps_to_90],["GRPO",m.methods.grpo.steps_to_90]];
+  const max=Math.max(...data.map(d=>d[1]||1));
+  const bw=46,gap=24,base=H-30;
+  let g="";
+  data.forEach((d,i)=>{
+    const v=d[1]||0;const h=(v/max)*(H-70);const x=20+i*(bw+gap);
+    g+=`<rect x="${x}" y="${base-h}" width="${bw}" height="${h}" rx="6" fill="${COL[d[0].toLowerCase()]}"/>
+        <text x="${x+bw/2}" y="${base-h-6}" font-size="11" fill="#33425c" text-anchor="middle">${v??'—'}</text>
+        <text x="${x+bw/2}" y="${base+16}" font-size="11" fill="#33425c" text-anchor="middle">${d[0]}</text>`;
+  });
+  // 稳定性次级条
+  const st=[["PPO",m.methods.ppo.stability],["DPO",m.methods.dpo.stability],["GRPO",m.methods.grpo.stability]];
+  const smax=Math.max(...st.map(d=>d[1]),0.001);
+  st.forEach((d,i)=>{
+    const v=d[1];const h=(v/smax)*(40);const x=20+i*(bw+gap)+bw/2-3;
+    g+=`<rect x="${x}" y="${base-12-h-30}" width="6" height="${h+30}" rx="3" fill="#f0a"/>`;
+  });
+  g+=`<text x="${W/2}" y="16" font-size="10" fill="#8aa" text-anchor="middle">柱=收敛步数(少=快) · 粉细条=稳定性(std,短=稳)</text>`;
+  svg.innerHTML=g;
+}
+
+async function rerun(){
+  document.getElementById("rerun-msg").textContent="计算中…";
+  try{await (await fetch("/api/opt/rl-run",{method:"POST"})).json();const d=await getJSON("/api/opt/rl-report");renderAll(d);document.getElementById("rerun-msg").textContent="已重算 ✅";}
+  catch(e){document.getElementById("rerun-msg").textContent="失败："+e.message;}
+}
+
+function renderAll(d){
+  renderPipe(d.pipeline, d.takeaways[0]);
+  renderCmp(d.comparison);
+  renderCards(d.methods);
+  drawAcc(d);drawBars(d);
+  document.getElementById("takeaways").innerHTML=d.takeaways.map(t=>`<li>${t}</li>`).join("");
+}
+
+(async function(){
+  try{
+    const d=await getJSON("/api/opt/rl-report");
+    renderAll(d);
+  }catch(e){
+    document.getElementById("pipe-note").innerHTML='<span class="err">加载失败：'+e.message+'（请先运行 python sft/rl_alignment.py）</span>';
+  }
+})();
+</script>
+</body>
+</html>

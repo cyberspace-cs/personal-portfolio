@@ -89,6 +89,12 @@ export default function Projects() {
                     >
                       <ExternalLink size={16} />
                       <span>{t.projectsDemo}</span>
+                      {project.demo.startsWith('/demos') && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-[10px] font-semibold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          LIVE
+                        </span>
+                      )}
                     </a>
                   )}
                 </div>

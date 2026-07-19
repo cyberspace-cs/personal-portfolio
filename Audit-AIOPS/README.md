@@ -104,7 +104,11 @@ Audit-AIOPS/
 │   │   ├── retrieval_hybrid.py # ★混合检索 TF-IDF+FAISS+RRF+图RAG+多模态RAG（实体共现图/双层检索/表格-截图统一检索）
 │   │   ├── multimodal_encoder.py # ★可插拔视觉编码器（proxy / 混元视觉 / 千问-VL，RAG-Anything「多模态→文本」视觉编码路径，env 门控+无密钥降级）
 │   │   └── knowledge.py     # RAG 问答服务
+│   │   ├── experiment_store.py # ★科研实验记录仓库（真实文件入库/实体抽取/共现图/混合检索/效果指标，AdventureX 原型）
+│   │   └── ops_data.py      # ★审计运维真实数据引擎（10 类审计支持+3 类运维 确定性种子生成/多用户智能体/ITSM+运维 KPI/痛点洞察，落盘）
 │   ├── api/routers.py       # REST 路由
+│   ├── api/experiments.py   # ★科研实验记录 Agent API（upload/seed/query/graph/metrics/list/delete）
+│   ├── api/ops.py           # ★审计运维控制台 API（summary/tickets/alerts/changes/agents/pain-points/seed）
 │   └── skills/              # ★Agent 技能中心（领域技能注册表，呼应 OpenSpace「skill 进化」）
 │       ├── __init__.py
 │       └── registry.py       # 技能定义 + resolve_skills / 审批技能识别
@@ -115,8 +119,10 @@ Audit-AIOPS/
 │   ├── agent-demo.html      # Agent 编排可视化（意图→拆单→审批→记忆）
 │   ├── knowledge-hybrid.html# ★混合检索四路对比（关键词 vs 混合 RRF vs 图 RAG 增强 vs 多模态 RAG）+ 视觉编码模式徽标
 │   ├── voice.html           # 语音入口（录音→ASR→工单）
-│   ├── service-catalog.html # 服务目录
+│   ├── service-catalog.html # 服务目录（蓝鲸经验细化：SLA/自助化/监控指标/痛点/AI 价值）
 │   └── optimization.html    # ★算法侧推理优化实验台（蒸馏/INT8/缓存加速可视化）
+│   ├── experiment-agent.html # ★科研实验记录智能体（AdventureX 黑客松：真实数据接入+接地问答+跨实验图谱+效果量化）
+│   └── ops-console.html    # ★审计运维控制台（真实数据驱动：多用户智能体/工单看板/告警流/变更留痕/痛点洞察/服务目录细化）
 ├── step1-岗位调研.md         # 四厂+混元/千问 三类岗位核心技能
 ├── step2-项目岗位匹配.md     # 岗位→模块→技术栈 映射
 ├── step3-技术提取.md         # 三份参考 PDF 的 Agent/LLM 核心点
@@ -215,6 +221,28 @@ curl http://127.0.0.1:8001/api/skills
 curl -X POST http://127.0.0.1:8001/api/skills/resolve \
   -H "Content-Type: application/json" \
   -d '{"text":"我要申请 Ukey 制作并走审批"}'
+
+# CLI-native OA 工具清单（每个工具带 cli 命令模板；呼应 HKUDS / CLI-Anything）
+curl http://127.0.0.1:8001/api/tools
+# Agent 原生调用一个 OA CLI 工具（name + args 即一次 CLI 调用，背后由 OA-MCP 执行）
+curl -X POST http://127.0.0.1:8001/api/tools/invoke \
+  -H "Content-Type: application/json" \
+  -d '{"name":"oa_catalog_list","args":{}}'
+
+# ===== 科研实验记录智能体（AdventureX 黑客松原型）=====
+# ① 真实用户数据接入：上传实验记录文件（.md/.csv/.json/截图，multipart）
+curl -X POST http://127.0.0.1:8001/api/experiments/upload -F "file=@E1-Pt-TiO2.md"
+# ② 加载示例实验（真实文件落盘后入库，一键体验）
+curl -X POST http://127.0.0.1:8001/api/experiments/seed -H "Content-Type: application/json" -d '{"force":false}'
+# ③ 基于用户真实数据的接地问答（带来源、可追溯）
+curl -X POST http://127.0.0.1:8001/api/experiments/query -H "Content-Type: application/json" -d '{"question":"哪种催化剂在 25°C 下产氢速率最高？","top_k":3}'
+# ④ 跨实验知识图谱（实体共现图：节点=实体，边=同实验共现）
+curl http://127.0.0.1:8001/api/experiments/graph
+# ⑤ 平台效果指标（随真实上传数据实时计算）
+curl http://127.0.0.1:8001/api/experiments/metrics
+# ⑥ 已接入记录清单 / 删除某条
+curl http://127.0.0.1:8001/api/experiments/list
+curl -X DELETE http://127.0.0.1:8001/api/experiments/EXP-001
 
 # 智能监控指标
 curl http://127.0.0.1:8000/api/monitor
@@ -317,13 +345,79 @@ Python · FastAPI · Pydantic · 混元/千问（OpenAI 兼容）· RAG（TF-IDF
 - **接入点**：`MultimodalRetriever` 每图经 `encode_image(path, cap)` 取描述（proxy=预撰写 / real=VLM 实时）再进入跨模态打分；端点 `GET /api/knowledge/multimodal-encoder-status` 暴露当前模式与可用 provider；演示页 `/knowledge-hybrid.html` 多模态区块展示 `encoder_mode` 徽标。真实截图放入约定见 [`assets/screenshots/README.md`](assets/screenshots/README.md)。
 - 至此多模态 RAG 从「代理可复现」走向「接真实视觉模型可生产」：演示用审计样本（Ukey 制作截图、权限变更审批表、资产台账、审计留痕截图等）已内置，生产只需补真实截图 + 配密钥。
 
+### 方向 11 · CLI-native OA 工具层（HKUDS / CLI-Anything 落地）⭐
+- **核心思想（CLI-Anything）**：CLI 是 Agent 的「原生接口」——文本命令无歧义、省 token、可脚本化、可审计。把 OA 的内部操作暴露为**统一的 CLI 式命令**，Agent 就能像人在终端敲命令一样原生驱动 OA，不必依赖 GUI 自动化或硬编码 HTTP 拼装。
+- **落地**：扩展 `app/services/oa_mcp.py`，新增 `OA_TOOLS` 注册表——把审批提交/查询/审批、工单推进、服务目录、监控告警封装为 6 个 CLI 式工具（如 `oa approval submit --type ukey --applicant 张三 --owner 李工`、`oa catalog list`），每个工具同时有结构化 schema 与一个 `cli` 命令模板；`call_oa_tool(name, args, oa)` 即一次 CLI 调用，背后由 `MockOAClient` / `McpOAClient`（OA-MCP 适配层）执行，零依赖可演示。
+- **编排消费**：在 `app/skills/registry.py` 新增 `oa_cli` 技能（演进来源标 `CLI-Anything（HKUDS）`），其 `tools` 直接引用 6 个 OA CLI 工具；编排层经 `resolve_skills()` 命中后，Agent 即可原生调用。端点 `GET /api/tools`（工具清单 + cli 模板）、`POST /api/tools/invoke`（原生调用）；演示页 `/agent-demo.html` 新增「⌨️ OA-CLI 原生工具」面板，渲染命令模板并支持「试一试」实时调用。技术文档 [`docs/cli-native.md`](docs/cli-native.md)。
+- 至此 HKUDS 谱系里与本项目最相关的几条主线**全部落地**：Agent=Model+Harness（做薄）、ReAct 编排、混合检索、推理加速、成本可控、**图 RAG（LightRAG）、多模态 RAG（RAG-Anything）、Prompt Cache（nanobot）、skill 进化（OpenSpace）、CLI-native（CLI-Anything）**。
+
+### 方向 12 · 科研实验记录智能体（AdventureX 黑客松原型）⭐
+- **背景与定位**：面向 AdventureX 黑客松「科研 / 实验记录 Agent」现场主题，**把 Audit-AIOPS 已经验证的混合检索 / 图 RAG / 多模态编码能力，迁移到科研实验记录场景**。核心是用户最关心的两点：**真实用户数据接入** + **平台起到的效果**。
+- **① 真实用户数据接入（最最关键）**：`POST /api/experiments/upload` 接收研究者自己的真实实验记录——`.md/.txt/.csv/.json/.jsonl` 文本记录，以及 `.png/.jpg` 等截图（经可插拔视觉编码转文本）。文件解析 → 结构化 → **科研实体抽取**（领域词典 + 化学式正则 + 数值参数归一，纯 CPU 零依赖）→ 落盘入库（`data/experiments/records.jsonl` + `uploads/`），成为可被检索的私有知识库。**平台不替用户编造数据，所有问答都基于用户自己上传的内容。**
+- **② 平台效果（可实时量化的价值证据）**：`GET /api/experiments/metrics` 从真实入库数据实时计算——已接入记录数、抽取科研实体数、**跨实验关联数**（同一材料/方法/参数出现在 ≥2 个实验）、**潜在重复实验预警**（实体 Jaccard 相似度 ≥0.5 即预警，典型如「基准实验 vs 重复性验证」）、估算为研究者节省的时间。指标随用户上传量真实变化，是平台价值的直接证据。
+- **③ 基于用户数据的接地问答**：`POST /api/experiments/query` 复用混合检索（关键词 TF-IDF + FAISS 向量 + RRF 融合）对用户**自己的实验**做检索，回答**标注来源、可回溯到原始文件、绝不幻觉**；未命中如实告知。
+- **④ 跨实验知识图谱**：`GET /api/experiments/graph` 返回科研实体共现图（节点=材料/方法/参数，边=同实验共现，权=共现记录数），演示页用 canvas 力导向可视化，把零散实验连成知识网络。
+- **落地代码**：`app/services/experiment_store.py`（仓库 + 抽取 + 共现图 + 检索 + 指标 + 示例数据落盘）、`app/api/experiments.py`（7 个端点）、`static/experiment-agent.html`（政务蓝白演示页：上传面板 + 接地问答 + KPI 看板 + 知识图谱 + 重复预警）。示例数据见 `app/services/experiment_store.py::_SEED_EXPERIMENTS`（光催化分解水制氢研究线，8 个互相引用的实验，含 1 对「基准 vs 重复性验证」重复预警）。
+- 技术文档 [`docs/experiment-agent.md`](docs/experiment-agent.md)；演示页 `/experiment-agent.html`（点「加载示例数据」秒级体验，或上传你自己的实验记录）。
+
+### 方向 13 · 审计运维控制台（真实数据驱动，蓝鲸经验落地）⭐
+- **背景与定位**：审计人员最在意「审计技术支持」和「日常运维」的真实数据，**不能缺**。本方向以用户给定的**十大审计技术支持（ukey/perm/mail/resource/ups/lottery/web/terminal/meeting/backup）+ 三大日常运维（devops/appops/platops）** 为权威分类（见 `app/services/catalog.py`），借鉴蓝鲸（BlueKing）的 CMDB / 监控告警 / ITSM / 故障自愈 / 工作门户经验，构建**真实大量数据驱动的运维控制台**，显著提升工作台停留体验。
+- **① 真实数据引擎（确定性种子 + 落盘）**：`app/services/ops_data.py` 用固定种子生成 **148 条审计技术支持工单、107 条日常运维告警、50 条变更记录**，落盘 `data/ops/ops_data.json`（重启不丢）。数据全部围绕真实审计场景（Ukey 回收、权限越权、远程邮件、底稿备份、应用超时、证书过期…），**不编造**。
+- **② 多用户运维智能体（贴合痛点）**：内置 6 个智能体 persona（系统运维/数据库/安全/应用支持/自动化/审计业务支持），各自承接工单与告警、自动化处置占比、CSAT，模拟多用户协作；页面「多用户智能体」面板展示其活跃度与效能。
+- **③ 真实量化 KPI（ITSM + 运维）**：由真实数据计算——工单已解决率 / **自动化率** / **SLA 达标率** / **MTTR** / **CSAT** / FCR / 重开率；运维主机在线率 / **告警收敛（降噪）率** / **自愈率** / 平均恢复时长；变更**双人审批率 100%**（呼应审计留痕）。指标随数据真实变化，是平台价值的直接证据。
+- **④ 痛点洞察（由数据推导）**：自动计算权限类工单占比、高频重复工单、告警噪声、P0/P1 SLA 敏感性、全程可追溯率，并给出 AIOps 改进建议（自助化、知识库聚类、告警收敛、紧急通道）。
+- **⑤ 蓝鲸式服务目录细化**：`app/models.py` 的 `ServiceItem` 扩展 SLA/自助化/监控指标/工单字段/痛点/AI 价值/月单量字段，`service-catalog.html` 与运维控制台「服务目录」Tab 均渲染这些细化信息。
+- **落地代码**：`app/services/ops_data.py`、`app/api/ops.py`（7 端点）、`static/ops-console.html`（政务蓝白控制台：KPI 条 + 多用户智能体 + 工单看板 + 告警流 + 变更留痕 + 痛点洞察 + 服务目录细化）、`static/service-catalog.html`（细化）。首页 `index.html` 新增「运维控制台」入口与状态条联动。
+- 技术文档 [`docs/ops-console.md`](docs/ops-console.md)；演示页 `/ops-console.html`（默认即真实数据，可点 `POST /api/ops/seed` 重新生成）。
+
+### 运维控制台 API 示例
+```bash
+# 工作台总览：ITSM + 运维 + 变更 KPI、多用户智能体、痛点洞察
+curl http://127.0.0.1:8001/api/ops/summary
+# 审计技术支持工单（可按 service/status/priority/auto 过滤）
+curl "http://127.0.0.1:8001/api/ops/tickets?status=resolved&auto=1"
+# 日常运维告警（可按 service/severity/status/auto 过滤）
+curl "http://127.0.0.1:8001/api/ops/alerts?severity=致命"
+# 变更记录（双人审批留痕）
+curl http://127.0.0.1:8001/api/ops/changes
+# 多用户智能体画像 / 痛点洞察 / 重新生成真实数据
+curl http://127.0.0.1:8001/api/ops/agents
+curl http://127.0.0.1:8001/api/ops/pain-points
+curl -X POST http://127.0.0.1:8001/api/ops/seed
+# 用（可插拔）LLM 基座对真实 KPI 做对话式智能分析（Mock 优雅降级为结构化模板）
+curl -X POST http://127.0.0.1:8001/api/ops/analyze
+```
+
+### 方向 14 · 强化学习对齐（PPO → DPO → GRPO）⭐
+- **为什么要讲清上下游关系**：对齐（Alignment）处在「Pretrain → SFT → (RM) → 对齐 → 部署优化」这条单向依赖链的中后段。越往下游越贴近「可用、可上线」——本项目落在最下游，把对齐好的模型低成本 serve 出来（蒸馏/INT8/剪枝/投机解码/Prompt Cache）。讲清这条链，才能说清「为什么需要 PPO/DPO/GRPO」。
+- **三种方法（同一张 2D 偏好测试台真跑，纯 numpy/CPU，秒级可复现）**：
+  - **DPO（2023）**：离线偏好对 + 隐式奖励（策略与参考策略的 logprob 差），**不需要显式 RM、不需要在线采样、只 2 个模型**（policy+ref），稳定易复现；代价：受静态偏好数据质量约束、无法在线探索。
+  - **PPO（RLHF）**：在线 RL，需 **4 个模型**（policy/value/ref/RM），带基线 + KL 惩罚的裁剪代理目标；可在线探索、上限高，但训练不稳、显存大、超参敏感。
+  - **GRPO（2024, DeepSeek-R1）**：保留 PPO 在线探索，但用**组内相对优势去掉 value 网络**（省显存/工程），适合可验证奖励（math/code/工具调用）。
+- **可复现结论（真实仿真数值）**：DPO 最终准确率 100%、3 步收敛、最稳；GRPO 92.5%、5 步；PPO 85%、15 步（本玩具为静态奖励，未发挥 PPO 在线探索上限，其真实上限在可验证奖励任务）。结论诚实：DPO 是偏好分类的稳快之选，GRPO 是「在线 + 轻量」的折中，PPO 上限高但最娇气。
+- **落地代码**：`sft/rl_alignment.py`（DPO/PPO/GRPO 偏好优化 numpy 仿真，输出 `sft/data/rl_report.json`）、`app/api/extra.py` 的 `GET /api/opt/rl-report` 与 `POST /api/opt/rl-run`、`static/rl-alignment.html`（政务蓝白：上下游流水线图 + 策略对比表 + 准确率/收敛/稳定性可视化 + 关键结论）。
+- 技术文档 [`docs/rl-alignment.md`](docs/rl-alignment.md)（待补，要点见本段）；演示页 `/rl-alignment.html`。
+
+### RL 对齐 API 示例
+```bash
+# 生成 RL 对齐仿真报告（纯 numpy/CPU，秒级）
+python sft/rl_alignment.py
+# 查看报告（DPO/PPO/GRPO 的最终准确率/收敛步数/稳定性/上下游流水线/对比表）
+curl http://127.0.0.1:8001/api/opt/rl-report
+# 运行时重算
+curl -X POST http://127.0.0.1:8001/api/opt/rl-run
+```
+
 ### 演示页面一览
 | 页面 | 地址 | 体现能力 |
 |---|---|---|
 | 工作台 | `/` | 统一入口 + AI 对话直达 + 进度卡片 + RAG 问答（大模型智能助手主界面） |
-| Agent 编排可视化 | `/agent-demo.html` | 意图识别→拆单→审批路由→记忆 全流程演示 + **🧩 Agent 技能中心**（8 技能清单） |
+| Agent 编排可视化 | `/agent-demo.html` | 意图识别→拆单→审批路由→记忆 全流程演示 + **🧩 Agent 技能中心**（9 技能清单）+ **⌨️ OA-CLI 原生工具**（6 个 CLI 式 OA 命令，可实时调用） |
 | 混合检索 | `/knowledge-hybrid.html` | **关键词 / 混合 RRF / 图 RAG 增强 三列对比 + 多模态 RAG 扩展区块** |
 | 语音入口 | `/voice.html` | 录音→ASR→工单 |
 | 监控大屏 | `/monitor.html` | 智能监控 KPI + 异常 |
-| 服务目录 | `/service-catalog.html` | 13 项点选式提交 |
+| 服务目录 | `/service-catalog.html` | 13 项点选式提交（蓝鲸经验细化：SLA/自助化/监控指标/痛点/AI 价值） |
 | **算法侧优化实验台** | `/optimization.html` | **蒸馏/量化/剪枝/投机解码/缓存/企业级并行/单轮成本/Prompt缓存 实测可视化（七区块 + §9）+ 单轮 token 成本计算器** |
+| **科研实验记录智能体** | `/experiment-agent.html` | **AdventureX 黑客松原型：真实文件接入 + 基于用户数据的接地问答 + 跨实验知识图谱 + 重复实验预警 + 效果实时量化（KPI 看板）** |
+| **审计运维控制台** | `/ops-console.html` | **真实数据驱动：多用户智能体 + 审计技术支持工单看板 + 日常运维告警流/收敛/自愈 + 变更双人审批留痕 + 痛点洞察 + 服务目录细化 + 🤖 LLM 智能分析** |
+| **强化学习对齐讲解** | `/rl-alignment.html` | **PPO→DPO→GRPO 演进：上下游关系图 + 策略优劣对比 + 纯 numpy 仿真可视化（准确率/收敛/稳定性）+ 关键结论** |

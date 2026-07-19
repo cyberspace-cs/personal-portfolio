@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>企业级 RAG 系统 · Demo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{background:radial-gradient(1200px 600px at 80% -10%,#0e749033,transparent),#0f172a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  .glass{background:rgba(30,41,59,.6);border:1px solid rgba(148,163,184,.18)}
+  .chip{background:rgba(56,189,248,.12);color:#7dd3fc;border:1px solid rgba(56,189,248,.25)}
+  .cite{border-left:3px solid #38bdf8;background:rgba(56,189,248,.06)}
+</style>
+</head>
+<body class="text-slate-200 min-h-screen">
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <header class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">企业级 RAG 系统</h1>
+      <p class="text-slate-400 text-sm mt-1">混合检索（BM25 + 向量）· 多文档理解 · 引用溯源</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="status" class="text-xs px-3 py-1 rounded-full chip">连接中…</span>
+      <a href="index.html" class="text-xs text-slate-400 hover:text-sky-400">← 全部 Demo</a>
+    </div>
+  </header>
+
+  <section class="glass rounded-2xl p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-3">① 知识库接入（每个文档以空行+《标题》开头）</h2>
+    <textarea id="docs" rows="9" class="w-full bg-slate-900/70 border border-slate-700 rounded-lg p-3 text-sm font-mono">《产品手册》
+我们的平台支持大模型微调和RAG检索。微调使用LoRA方法，显存占用低，适合单卡训练。RAG支持混合检索与引用溯源，回答可追溯到具体文档段落。
+
+《计费说明》
+平台按调用量和训练时长计费，新用户赠送免费额度。企业版支持私有化部署与SSO。
+
+《安全合规》
+所有数据传输采用TLS加密，支持审计日志与权限分级，满足企业安全合规要求。</textarea>
+    <button id="ingestBtn" class="mt-3 px-5 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium"> ingestion 知识库</button>
+    <span id="ingestInfo" class="text-xs text-slate-400 ml-3"></span>
+  </section>
+
+  <section class="glass rounded-2xl p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-3">② 提问</h2>
+    <div class="flex gap-2">
+      <input id="q" class="flex-1 bg-slate-900/70 border border-slate-700 rounded-lg p-3 text-sm" placeholder="例如：微调用什么方法？显存占用如何？" value="微调用什么方法，显存占用如何？" />
+      <button id="askBtn" class="px-5 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-medium">问一问</button>
+    </div>
+    <label class="flex items-center gap-2 text-xs text-slate-400 mt-3">
+      <input type="checkbox" id="usellm" /> 使用大模型生成式回答（需配置 OPENAI_API_KEY）
+    </label>
+  </section>
+
+  <section class="glass rounded-2xl p-6 mb-6 hidden" id="result">
+    <h2 class="text-lg font-semibold mb-3">③ 回答与引用</h2>
+    <div id="answer" class="bg-slate-900/70 border border-slate-700 rounded-lg p-4 text-sm leading-relaxed"></div>
+    <p class="text-xs text-slate-500 mt-2" id="meta"></p>
+    <div id="cites" class="mt-4 space-y-2"></div>
+  </section>
+</div>
+
+<script>
+const API = "http://localhost:8011";
+function setStatus(){ fetch(API+"/api/rag/health").then(r=>r.json()).then(d=>{
+  document.getElementById("status").textContent = d.llm_enabled ? "● 真实模型" : "● 规则降级";
+}).catch(()=> document.getElementById("status").textContent="● 未连接"); }
+setStatus();
+
+function parseDocs(txt){
+  const blocks = txt.split(/\n\s*《/).map(s=>s.trim()).filter(Boolean);
+  const docs = [];
+  for(let b of blocks){
+    if(!b.startsWith("《")) b = "《"+b;
+    const m = b.match(/^《(.+?)》\s*([\s\S]*)$/);
+    if(m) docs.push({ title:m[1], text:m[2].trim() });
+  }
+  return docs;
+}
+document.getElementById("ingestBtn").onclick = async ()=>{
+  const docs = parseDocs(document.getElementById("docs").value);
+  const r = await fetch(API+"/api/rag/ingest",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({docs})}).then(x=>x.json());
+  document.getElementById("ingestInfo").textContent = `✓ 接入 ${r.ingested_docs} 篇文档 / ${r.total_chunks} 个片段`;
+};
+document.getElementById("askBtn").onclick = async ()=>{
+  const q = document.getElementById("q").value;
+  const r = await fetch(API+"/api/rag/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q, top_k:3, use_llm:document.getElementById("usellm").checked})}).then(x=>x.json());
+  document.getElementById("result").classList.remove("hidden");
+  document.getElementById("answer").textContent = r.answer;
+  document.getElementById("meta").textContent = `检索模式：${r.retrieval_mode} · 上下文 ${r.context_tokens} tokens · LLM:${r.llm_enabled}`;
+  document.getElementById("cites").innerHTML = r.citations.map(c=>
+    `<div class="cite rounded-r-lg p-3 text-xs"><div class="flex justify-between text-sky-300 mb-1"><b>引用 [${c.ref}] 《${c.doc}》</b><span>score ${c.score}</span></div><div class="text-slate-300">${c.text}</div></div>`).join("");
+};
+</script>
+</body>
+</html>

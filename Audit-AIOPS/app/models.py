@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict
 from enum import Enum
 
 
@@ -17,6 +17,14 @@ class ServiceItem(BaseModel):
     icon: str
     approval_chain: List[str] = []
     automated: bool = False
+    # ===== 蓝鲸经验细化字段（均可选，向后兼容） =====
+    sla_hours: Dict[str, float] = {}        # 解决时限（小时）：{P0,P1,P2,P3}
+    self_service: bool = False               # 终端用户可门户自助提交（免人工分派）
+    monitor_metrics: List[str] = []          # 日常运维类：纳管的监控指标
+    request_fields: List[str] = []           # 工单模板关键字段（点选式提交）
+    pain_point: str = ""                     # 面向用户的真实痛点
+    ai_value: str = ""                        # 智能体 / AIOps 赋能价值
+    monthly_volume: int = 0                  # 典型月单量（真实感）
 
 
 class ChatRequest(BaseModel):

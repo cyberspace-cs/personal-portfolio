@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>科研实验记录智能体 · SciLog</title>
+<style>
+  :root{
+    --c-primary:#1858c9; --c-primary-deep:#0e3a8c; --c-primary-hover:#2e6fd6;
+    --c-accent:#22b8cf; --c-accent-2:#38bdf8;
+    --bg:#eef3f9; --surface:#ffffff; --surface-2:#f6f9fd; --line:#e3ebf5;
+    --text:#16243a; --muted:#64748b; --ok:#16a34a; --warn:#f59e0b; --err:#e11d48;
+    --shadow:0 6px 22px rgba(20,52,108,.08); --shadow-sm:0 2px 8px rgba(20,52,108,.06);
+    --radius:14px;
+    --font:"PingFang SC","Microsoft YaHei",-apple-system,"Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--text);background:
+      radial-gradient(1200px 500px at 80% -10%, rgba(56,189,248,.10), transparent 60%),
+      radial-gradient(900px 400px at 0% 0%, rgba(24,88,201,.08), transparent 55%), var(--bg);
+    min-height:100vh;font-size:14px;}
+  .topbar{height:60px;background:linear-gradient(100deg,var(--c-primary-deep) 0%,var(--c-primary) 55%,#1f6fdc 100%);
+    color:#fff;display:flex;align-items:center;padding:0 22px;position:sticky;top:0;z-index:30;
+    box-shadow:0 2px 16px rgba(14,58,140,.25);}
+  .topbar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--c-accent-2),var(--c-accent),transparent);opacity:.8}
+  .brand{display:flex;align-items:center;gap:12px}
+  .emblem{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center;
+    border:1px solid rgba(255,255,255,.25);box-shadow:inset 0 0 12px rgba(56,189,248,.35)}
+  .brand h1{font-size:17px;font-weight:700;letter-spacing:.5px;line-height:1.1}
+  .brand p{font-size:11px;opacity:.82;letter-spacing:2px;margin-top:2px}
+  .theme-badge{margin-left:18px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);
+    padding:5px 13px;border-radius:20px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px}
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:7px 13px;border-radius:10px;font-size:12px}
+  .pill b{color:#7dd3fc}
+
+  .banner{max-width:1640px;margin:18px auto 0;padding:0 22px}
+  .banner-inner{background:linear-gradient(120deg,#0e3a8c 0%,#1858c9 60%,#1f6fdc 100%);border-radius:var(--radius);
+    padding:20px 24px;color:#fff;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(24,88,201,.25)}
+  .banner-inner::before{content:"";position:absolute;right:-50px;top:-60px;width:260px;height:260px;
+    background:radial-gradient(circle,rgba(56,189,248,.35),transparent 70%)}
+  .banner-inner h2{font-size:20px;font-weight:700;margin-bottom:6px}
+  .banner-inner p{font-size:13px;opacity:.9;max-width:760px;line-height:1.6;position:relative;z-index:2}
+  .banner-inner .chips{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;position:relative;z-index:2}
+  .banner-inner .chip{font-size:12px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);
+    padding:5px 11px;border-radius:18px}
+
+  .kpis{max-width:1640px;margin:18px auto 0;padding:0 22px;display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c-accent)}
+  .kpi .k{font-size:12px;color:var(--muted)}
+  .kpi .v{font-size:26px;font-weight:800;margin-top:6px;color:var(--text)}
+  .kpi .v small{font-size:12px;font-weight:600;color:var(--muted);margin-left:3px}
+  .kpi .s{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
+
+  .layout{display:grid;grid-template-columns:320px 1fr 400px;gap:18px;padding:18px 22px 26px;max-width:1640px;margin:0 auto}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column}
+  .card-h{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+  .card-h .t{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .tag{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600}
+  .tag.blue{background:#e8f0fe;color:var(--c-primary)} .tag.green{background:#e7f7ee;color:var(--ok)}
+  .tag.cyan{background:#e3f7fb;color:#0e7490} .tag.warn{background:#fef3e2;color:#b45309}
+
+  /* 上传区 */
+  .upload-zone{border:2px dashed var(--line);margin:14px;border-radius:12px;padding:22px 14px;text-align:center;
+    cursor:pointer;transition:.18s;background:var(--surface-2)}
+  .upload-zone:hover{border-color:var(--c-accent-2);background:#eef9fd}
+  .upload-zone.drag{border-color:var(--c-primary);background:#e8f0fe}
+  .upload-zone .ic{font-size:30px}
+  .upload-zone p{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .upload-zone .fmt{font-size:11px;color:var(--c-primary);margin-top:6px;font-weight:600}
+  .actions{display:flex;gap:9px;padding:0 14px 14px}
+  .btn{flex:1;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;transition:.15s}
+  .btn.primary{background:linear-gradient(135deg,var(--c-primary),var(--c-primary-hover));color:#fff}
+  .btn.primary:hover{filter:brightness(1.06)} .btn.ghost{background:var(--surface-2);color:var(--c-primary);border:1px solid var(--line)}
+  .btn.ghost:hover{background:#e8f0fe}
+
+  .rec-list{flex:1;overflow:auto;max-height:340px}
+  .rec-item{display:flex;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);align-items:flex-start}
+  .rec-item:last-child{border-bottom:none}
+  .rec-item .rk{width:30px;height:30px;border-radius:8px;background:#eef4fe;color:var(--c-primary);display:grid;place-items:center;flex:none;font-size:13px;font-weight:700}
+  .rec-item .rb{min-width:0;flex:1}
+  .rec-item .rt{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rec-item .rm{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rec-item .rdel{color:var(--err);cursor:pointer;font-size:11px;opacity:.7}
+  .rec-item .rdel:hover{opacity:1}
+  .empty{color:var(--muted);font-size:12.5px;text-align:center;padding:24px 14px}
+
+  /* 问答 */
+  .chat{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:14px;min-height:420px;max-height:560px}
+  .msg{max-width:94%;padding:12px 14px;border-radius:12px;font-size:13.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+  .msg.user{align-self:flex-end;background:linear-gradient(135deg,#1858c9,#2e6fd6);color:#fff;border-bottom-right-radius:3px}
+  .msg.bot{align-self:flex-start;background:var(--surface-2);border:1px solid var(--line);border-bottom-left-radius:3px}
+  .msg.bot .src{margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);font-size:11.5px;color:var(--muted)}
+  .msg.bot .src a{color:var(--c-primary);cursor:pointer;text-decoration:none;font-weight:600}
+  .msg.bot .ents{margin-top:8px;display:flex;gap:5px;flex-wrap:wrap}
+  .ent{font-size:10.5px;background:#e8f0fe;color:var(--c-primary);padding:2px 8px;border-radius:10px}
+  .chat-input{display:flex;gap:10px;padding:14px 16px;border-top:1px solid var(--line);background:var(--surface)}
+  .chat-input input{flex:1;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13.5px;outline:none;font-family:var(--font)}
+  .chat-input input:focus{border-color:var(--c-accent-2)}
+  .chat-input button{background:linear-gradient(135deg,var(--c-accent),var(--c-accent-2));color:#062a3a;border:none;padding:0 20px;border-radius:10px;font-weight:700;cursor:pointer;font-size:13.5px}
+  .chat-input button:hover{filter:brightness(1.05)}
+  .suggest{display:flex;gap:7px;flex-wrap:wrap;padding:0 16px 14px}
+  .suggest span{font-size:11.5px;background:var(--surface-2);border:1px solid var(--line);padding:5px 10px;border-radius:16px;cursor:pointer;color:var(--muted)}
+  .suggest span:hover{background:#e8f0fe;color:var(--c-primary)}
+
+  /* 图谱 */
+  .graph-wrap{flex:1;position:relative;min-height:430px}
+  #graph{width:100%;height:100%;display:block}
+  .graph-legend{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.9);border:1px solid var(--line);
+    border-radius:10px;padding:9px 12px;font-size:11px;color:var(--muted);line-height:1.7}
+  .graph-legend b{color:var(--text)}
+  .dup-list{max-height:150px;overflow:auto}
+  .dup-item{display:flex;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line);font-size:12px;align-items:center}
+  .dup-item:last-child{border-bottom:none}
+  .dup-item .jac{margin-left:auto;font-weight:700;color:var(--warn)}
+  .dup-item .ids{color:var(--muted);font-size:11px}
+  .footer{text-align:center;color:var(--muted);font-size:12px;padding:8px 0 22px;max-width:1640px;margin:0 auto}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--c-primary-deep);color:#fff;
+    padding:11px 20px;border-radius:12px;font-size:13px;box-shadow:var(--shadow);opacity:0;transition:.3s;z-index:50;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="emblem">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8">
+        <path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3"/><path d="M7 15h10" stroke="#7dd3fc"/>
+      </svg>
+    </div>
+    <div><h1>科研实验记录智能体</h1><p>SciLog · 真实数据 · 可追溯</p></div>
+  </div>
+  <div class="theme-badge">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4 2 7L12 17l-6.5 5 2-7L2 9h7z"/></svg>
+    AdventureX 黑客松 · 科研/实验记录 Agent
+  </div>
+  <div class="top-right">
+    <div class="pill">基座：<b id="basePill">mock</b></div>
+    <div class="pill">端口：<b>8001</b></div>
+  </div>
+</header>
+
+<div class="banner">
+  <div class="banner-inner">
+    <h2>把你散落的实验记录，接成一个会思考的知识库</h2>
+    <p>上传你真实的实验笔记（.md/.csv/.json/截图）——平台秒级完成结构化、实体抽取与跨实验关联，
+       所有问答都基于<b>你自己的数据</b>、可回溯到原始文件，绝不编造。下方指标随你的数据实时变化，是平台效果的直接证据。</p>
+    <div class="chips">
+      <span class="chip">① 真实文件接入</span><span class="chip">② 接地问答·可追溯</span>
+      <span class="chip">③ 跨实验知识图谱</span><span class="chip">④ 重复实验预警</span><span class="chip">⑤ 效果实时量化</span>
+    </div>
+  </div>
+</div>
+
+<div class="kpis" id="kpis">
+  <div class="kpi"><div class="k">已接入记录</div><div class="v" id="kRecords">0<small>条</small></div><div class="s" id="kKinds">等待上传…</div></div>
+  <div class="kpi"><div class="k">抽取科研实体</div><div class="v" id="kEntities">0<small>个</small></div><div class="s">材料/方法/参数/指标</div></div>
+  <div class="kpi"><div class="k">跨实验关联</div><div class="v" id="kCross">0<small>条</small></div><div class="s">同一要素串起≥2个实验</div></div>
+  <div class="kpi"><div class="k">潜在重复实验</div><div class="v" id="kDup">0<small>对</small></div><div class="s" id="kDupNote">无重复预警</div></div>
+  <div class="kpi"><div class="k">估算节省时间</div><div class="v" id="kTime">0<small>h</small></div><div class="s">结构化+检索提速</div></div>
+</div>
+
+<div class="layout">
+  <!-- 左：上传 + 列表 -->
+  <aside class="card">
+    <div class="card-h"><div class="t">📥 真实数据接入</div><span class="tag blue" id="listTag">0 条</span></div>
+    <div class="upload-zone" id="drop">
+      <div class="ic">🧪</div>
+      <p>拖拽实验记录到此，或点击选择文件</p>
+      <div class="fmt">支持 .md .txt .csv .json .jsonl / 截图(.png .jpg)</div>
+      <input type="file" id="file" multiple style="display:none" />
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="seedBtn">加载示例数据</button>
+      <button class="btn primary" id="clearBtn">清空</button>
+    </div>
+    <div class="rec-list" id="recList"><div class="empty">尚未接入任何记录</div></div>
+  </aside>
+
+  <!-- 中：接地问答 -->
+  <main class="card">
+    <div class="card-h"><div class="t">💬 基于你的数据问答</div><span class="tag cyan">接地·可追溯</span></div>
+    <div class="chat" id="chat">
+      <div class="msg bot">你好，我是你的实验记录智能体。上传实验数据后，直接问我「哪种催化剂产氢速率最高？」「E1 和 E7 有什么区别？」这类问题，我会基于你真实上传的内容回答并标注来源。</div>
+    </div>
+    <div class="suggest">
+      <span>哪种催化剂在 25°C 下产氢速率最高？</span>
+      <span>可见光下哪些实验表现好？</span>
+      <span>哪些实验用了 TiO2？</span>
+      <span>有没有重复的基准实验？</span>
+    </div>
+    <div class="chat-input">
+      <input id="q" placeholder="例如：对比 Pt/TiO2 与 CdS 的产氢性能…" />
+      <button id="askBtn">提问</button>
+    </div>
+  </main>
+
+  <!-- 右：知识图谱 + 重复预警 -->
+  <aside class="card">
+    <div class="card-h"><div class="t">🕸️ 跨实验知识图谱</div><span class="tag green">实时</span></div>
+    <div class="graph-wrap"><canvas id="graph"></canvas>
+      <div class="graph-legend"><b>节点</b>=科研实体（材料/方法/参数）<br><b>大小</b>=出现记录数 · <b>连线</b>=同实验共现</div>
+    </div>
+    <div class="card-h" style="border-top:1px solid var(--line)"><div class="t">⚠️ 潜在重复实验预警</div><span class="tag warn" id="dupTag">0</span></div>
+    <div class="dup-list" id="dupList"><div class="empty">暂无重复预警</div></div>
+  </aside>
+</div>
+
+<div class="footer">科研实验记录智能体 · SciLog（AdventureX 黑客松原型）· 复用混合检索 / 图 RAG / 多模态编码能力 · 政务蓝白风格</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = "";
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200);}
+function fmtTime(){return new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"});}
+
+// ---------- 指标 ----------
+async function loadMetrics(){
+  try{
+    const r = await fetch(API+"/api/experiments/metrics"); const m = await r.json();
+    document.getElementById("kRecords").innerHTML = m.records + "<small>条</small>";
+    document.getElementById("kEntities").innerHTML = m.entities + "<small>个</small>";
+    document.getElementById("kCross").innerHTML = m.cross_links + "<small>条</small>";
+    document.getElementById("kDup").innerHTML = m.potential_duplicates + "<small>对</small>";
+    document.getElementById("kTime").innerHTML = m.estimated_time_saved_hours + "<small>h</small>";
+    const kinds = m.kinds||{};
+    document.getElementById("kKinds").textContent = Object.entries(kinds).map(([k,v])=>k+":"+v).join(" · ")||"等待上传…";
+    document.getElementById("kDupNote").textContent = m.potential_duplicates>0 ? "已发现相似实验，建议合并" : "无重复预警";
+    document.getElementById("dupTag").textContent = m.potential_duplicates;
+    renderDups(m.duplicate_pairs||[]);
+    return m;
+  }catch(e){ toast("指标加载失败："+e.message); }
+}
+function renderDups(pairs){
+  const box=document.getElementById("dupList");
+  if(!pairs.length){box.innerHTML='<div class="empty">暂无重复预警</div>';return;}
+  box.innerHTML = pairs.map(p=>`
+    <div class="dup-item">
+      <div><div>${p.a_title||p.a} ↔ ${p.b_title||p.b}</div>
+      <div class="ids">共有：${p.shared.join("、")}</div></div>
+      <div class="jac">${Math.round(p.jaccard*100)}%</div>
+    </div>`).join("");
+}
+
+// ---------- 记录列表 ----------
+async function loadList(){
+  try{
+    const r = await fetch(API+"/api/experiments/list"); const d = await r.json();
+    document.getElementById("listTag").textContent = d.total+" 条";
+    const box=document.getElementById("recList");
+    if(!d.records.length){box.innerHTML='<div class="empty">尚未接入任何记录</div>';return;}
+    box.innerHTML = d.records.map(r=>`
+      <div class="rec-item">
+        <div class="rk">${r.kind==="image"?"🖼️":r.kind==="csv"?"📊":"📄"}</div>
+        <div class="rb">
+          <div class="rt" title="${r.title}">${r.title}</div>
+          <div class="rm">${r.id} · ${r.source_file} · ${(r.entities||[]).slice(0,4).join("、")||"—"}</div>
+        </div>
+        <div class="rdel" data-id="${r.id}">删除</div>
+      </div>`).join("");
+    box.querySelectorAll(".rdel").forEach(el=>el.onclick=()=>delRec(el.dataset.id));
+  }catch(e){ toast("列表加载失败："+e.message); }
+}
+async function delRec(id){
+  try{ await fetch(API+"/api/experiments/"+id,{method:"DELETE"}); toast("已删除 "+id); await refreshAll(); }
+  catch(e){ toast("删除失败："+e.message); }
+}
+
+// ---------- 图谱（力导向） ----------
+let graphData={nodes:[],edges:[]}, anim=null;
+async function loadGraph(){
+  try{
+    const r=await fetch(API+"/api/experiments/graph"); graphData=await r.json();
+    drawGraph();
+  }catch(e){}
+}
+function drawGraph(){
+  const cv=document.getElementById("graph"); const wrap=cv.parentElement;
+  const dpr=window.devicePixelRatio||1;
+  const W=wrap.clientWidth, H=wrap.clientHeight;
+  cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+"px"; cv.style.height=H+"px";
+  const ctx=cv.getContext("2d"); ctx.scale(dpr,dpr);
+  // 取出现频次最高的前 40 个实体，并只保留"共同出现≥2次"的强连线，避免毛线团
+  const topNodes = [...graphData.nodes].sort((a,b)=>b.records-a.records).slice(0,40);
+  const keep = new Set(topNodes.map(n=>n.id));
+  const nodes = topNodes.map((n,i)=>({...n,x:W/2+Math.cos(i)*140,y:H/2+Math.sin(i)*140,vx:0,vy:0}));
+  const idx={}; nodes.forEach((n,i)=>idx[n.id]=i);
+  const edges = graphData.edges.filter(e=>keep.has(e.source)&&keep.has(e.target)&&e.weight>=2);
+  function tick(){
+    for(let i=0;i<nodes.length;i++){nodes[i].vx*=0.85;nodes[i].vy*=0.85;
+      nodes[i].vx+=(W/2-nodes[i].x)*0.002; nodes[i].vy+=(H/2-nodes[i].y)*0.002;}
+    for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+      let dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y; let d=Math.hypot(dx,dy)||1;
+      let f=1200/(d*d); let fx=dx/d*f, fy=dy/d*f;
+      nodes[i].vx+=fx;nodes[i].vy+=fy;nodes[j].vx-=fx;nodes[j].vy-=fy;}
+    edges.forEach(e=>{const a=nodes[idx[e.source]],b=nodes[idx[e.target]];
+      let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1; let f=(d-70)*0.01;
+      a.vx+=dx/d*f;a.vy+=dy/d*f;b.vx-=dx/d*f;b.vy-=dy/d*f;});
+    nodes.forEach(n=>{n.x+=Math.max(-8,Math.min(8,n.vx));n.y+=Math.max(-8,Math.min(8,n.vy));
+      n.x=Math.max(20,Math.min(W-20,n.x));n.y=Math.max(20,Math.min(H-20,n.y));});
+  }
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    edges.forEach(e=>{const a=nodes[idx[e.source]],b=nodes[idx[e.target]];
+      ctx.strokeStyle="rgba(34,184,207,"+Math.min(0.5,0.12+e.weight*0.06)+")";
+      ctx.lineWidth=Math.min(3,0.6+e.weight*0.4);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();});
+    nodes.forEach(n=>{const r=6+Math.min(14,n.records*2.2);
+      const g=ctx.createRadialGradient(n.x,n.y,1,n.x,n.y,r);
+      g.addColorStop(0,"#38bdf8");g.addColorStop(1,"#1858c9");
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(n.x,n.y,r,0,7);ctx.fill();
+      ctx.fillStyle="#16243a";ctx.font="11px "+getComputedStyle(document.body).fontFamily;
+      ctx.textAlign="center";ctx.fillText(n.label.length>10?n.label.slice(0,9)+"…":n.label,n.x,n.y-r-4);});
+  }
+  let frames=0;
+  if(anim)cancelAnimationFrame(anim);
+  function loop(){tick();render();frames++;if(frames<260){anim=requestAnimationFrame(loop);}else{render();}}
+  loop();
+}
+
+// ---------- 问答 ----------
+function addMsg(role,text,extra){
+  const c=document.getElementById("chat");
+  const d=document.createElement("div"); d.className="msg "+role;
+  d.textContent=text;
+  if(extra&&extra.sources&&extra.sources.length){
+    const s=document.createElement("div"); s.className="src";
+    s.innerHTML="📚 来源："+extra.sources.map(t=>`<a>${t}</a>`).join("；");
+    d.appendChild(s);
+  }
+  if(extra&&extra.retrieved){
+    const e=document.createElement("div"); e.className="ents";
+    extra.retrieved.slice(0,3).forEach(h=>{(h.entities||[]).slice(0,5).forEach(en=>{const sp=document.createElement("span");sp.className="ent";sp.textContent=en;e.appendChild(sp);});});
+    if(e.children.length)d.appendChild(e);
+  }
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
+}
+async function ask(){
+  const inp=document.getElementById("q"); const q=inp.value.trim(); if(!q)return;
+  addMsg("user",q); inp.value="";
+  try{
+    const r=await fetch(API+"/api/experiments/query",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q,top_k:3})});
+    const d=await r.json(); addMsg("bot",d.answer,{sources:d.sources,retrieved:d.retrieved});
+  }catch(e){ addMsg("bot","问答失败："+e.message); }
+}
+
+// ---------- 上传 / 示例 / 清空 ----------
+async function uploadFiles(files){
+  if(!files.length)return;
+  let ok=0;
+  for(const f of files){
+    const fd=new FormData(); fd.append("file",f);
+    try{ const r=await fetch(API+"/api/experiments/upload",{method:"POST",body:fd});
+      if(r.ok)ok++; else toast("上传失败："+f.name); }
+    catch(e){ toast("上传错误："+f.name); }
+  }
+  toast("已接入 "+ok+" 个文件"); await refreshAll();
+}
+async function refreshAll(){ await Promise.all([loadMetrics(),loadList(),loadGraph()]); }
+
+document.getElementById("drop").onclick=()=>document.getElementById("file").click();
+document.getElementById("file").onchange=e=>uploadFiles([...e.target.files]);
+const dz=document.getElementById("drop");
+["dragover","dragenter"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add("drag");}));
+["dragleave","drop"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove("drag");}));
+dz.addEventListener("drop",e=>uploadFiles([...e.dataTransfer.files]));
+document.getElementById("seedBtn").onclick=async()=>{
+  try{ const r=await fetch(API+"/api/experiments/seed",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({force:false})}); const d=await r.json();
+    toast("已加载示例 "+d.seeded+" 条"); await refreshAll(); }
+  catch(e){ toast("加载失败："+e.message); }
+};
+document.getElementById("clearBtn").onclick=async()=>{
+  if(!confirm("确认清空全部已接入记录？"))return;
+  const list=await (await fetch(API+"/api/experiments/list")).json();
+  for(const r of list.records){ await fetch(API+"/api/experiments/"+r.id,{method:"DELETE"}); }
+  toast("已清空"); await refreshAll();
+};
+document.getElementById("askBtn").onclick=ask;
+document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Enter")ask();});
+document.querySelectorAll(".suggest span").forEach(s=>s.onclick=()=>{document.getElementById("q").value=s.textContent;ask();});
+
+// base 标识
+fetch(API+"/api/health").then(r=>r.ok&&(document.getElementById("basePill").textContent="运行中")).catch(()=>{});
+// 启动时尝试加载已有数据
+refreshAll();
+</script>
+</body>
+</html>

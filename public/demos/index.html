@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI 项目 Demo 画廊</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{background:radial-gradient(1200px 700px at 50% -10%,#1e3a8a44,transparent),#0f172a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  .card{background:rgba(30,41,59,.6);border:1px solid rgba(148,163,184,.18);transition:.3s}
+  .card:hover{border-color:rgba(56,189,248,.5);transform:translateY(-4px);box-shadow:0 12px 40px -12px rgba(56,189,248,.35)}
+</style>
+</head>
+<body class="text-slate-200 min-h-screen">
+<div class="max-w-5xl mx-auto px-4 py-12">
+  <header class="text-center mb-10">
+    <h1 class="text-4xl font-bold bg-gradient-to-r from-sky-400 via-indigo-400 to-pink-400 bg-clip-text text-transparent">AI 项目 Demo 画廊</h1>
+    <p class="text-slate-400 mt-2">大模型 / Agent 全栈项目 · 统一 FastAPI 后端驱动（内置 Prompt / RAG / Skill / MCP / Context Harness Loop 内核）</p>
+  </header>
+
+  <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5" id="grid"></div>
+
+  <div class="glass mt-10 rounded-2xl p-6" style="background:rgba(30,41,59,.6);border:1px solid rgba(148,163,184,.18)">
+    <h2 class="text-lg font-semibold mb-2">运行方式</h2>
+    <pre class="text-xs text-emerald-300 bg-slate-900/70 rounded-lg p-4 whitespace-pre-wrap"># 1) 启动后端（默认 8011 端口，无需任何 API Key 即可运行）
+cd backend
+pip install -r requirements.txt
+python -m uvicorn app.main:app --port 8011 --reload
+# 可选：配置真实模型
+set OPENAI_API_KEY=sk-xxx
+set OPENAI_BASE_URL=https://your-endpoint/v1
+
+# 2) 启动前端（另一个终端）
+npm install && npm run dev
+# 打开 http://localhost:5173 → Projects 区点击「演示」</pre>
+    <p class="text-xs text-slate-500 mt-3">无 Key 时所有项目以规则降级模式完整演示；配置 Key 后自动升级为真实大模型生成。交互式 Demo 接口位于 <code>http://localhost:8011</code>。</p>
+  </div>
+</div>
+
+<script>
+const items = [
+  {n:"大模型微调平台", d:"LoRA/QLoRA 端到端：数据→训练(实时loss)→导出→部署", f:"finetune.html", c:"from-sky-400 to-indigo-400"},
+  {n:"企业级 RAG 系统", d:"混合检索 + 多文档理解 + 引用溯源", f:"rag.html", c:"from-sky-400 to-cyan-400"},
+  {n:"AI 代码助手", d:"生成/补全/重构/解释 · Skill+MCP", f:"code.html", c:"from-violet-400 to-sky-400"},
+  {n:"多模态对话机器人", d:"文本情感感知 + 图像理解 + 语音转录", f:"multimodal.html", c:"from-pink-400 to-sky-400"},
+  {n:"智能客服", d:"意图路由 + MCP 工具 + FAQ 知识库", f:"chatbot.html", c:"from-teal-400 to-sky-400"},
+  {n:"Audit-AIOPS 审计异常检测", d:"日志异常检测 + 根因分析 + MCP 工具（自包含演示）", f:"audit-aiops.html", c:"from-violet-400 to-sky-400"},
+  {n:"专属刷题教练", d:"多源题库聚合智能备考平台（独立作品）", f:"../shuati-coach.html", c:"from-amber-400 to-rose-400"},
+];
+document.getElementById("grid").innerHTML = items.map(it=>
+  `<a href="${it.f}" class="card rounded-2xl p-6 block">
+     <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${it.c} mb-4"></div>
+     <h3 class="text-lg font-semibold text-slate-100">${it.n}</h3>
+     <p class="text-sm text-slate-400 mt-1">${it.d}</p>
+     <span class="text-xs text-sky-400 mt-3 inline-block">打开 Demo →</span>
+   </a>`).join("");
+</script>
+</body>
+</html>

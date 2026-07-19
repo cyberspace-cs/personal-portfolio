@@ -42,7 +42,7 @@
 | **RAG-Anything 多模态** | 纯文本知识库 → ✅已加多模态元数据检索层 | 把表格/截图纳入统一检索；视觉编码已做成可插拔（proxy / 混元视觉 / 千问-VL），配密钥 + 真实截图即真·视觉嵌入 | P2（⭐已落地，含可插拔真实编码） |
 | **MiniRAG 极简 CPU 友好** | 已有 CPU 可复现优化 demo | 把优化实验台定位为「MiniRAG 式极简可复现」范本，强化面试差异点 | P0（叙事） |
 | **OpenSpace skill 进化** | 优化工作流记在 MEMORY.md | ✅已建 `app/skills/registry.py` 领域技能注册表（8 技能：触发/是否需审批/工具/版本/演进来源），编排层零改动即可增删；前端技能中心面板 | P1（⭐已落地） |
-| **CLI-Anything Agent-native** | OA 对接走 MCP 适配层 | 对内部 OA/ITSM 增加 CLI/API-native 适配（比 GUI 自动化稳），降低 token 与出错率 | P2 |
+| **CLI-Anything Agent-native** | OA 对接走 MCP 适配层 | ✅已对内部 OA 增加 CLI-native 适配：`app/services/oa_mcp.py` 的 `OA_TOOLS` 把审批/工单/目录/告警封装为 6 个 CLI 式工具（如 `oa approval submit --type ukey --applicant 张三`），`call_oa_tool(name,args)` 即一次 CLI 调用，比 GUI 自动化稳、省 token、可审计 | P2（⭐已落地） |
 | **成本控制（Token 经济学）** | 有缓存但无成本量化 → ✅已加成本量化 | `/api/opt/cost-report` + 实验台 §8「单轮 token 成本 / 降本计算器」，呼应黄超「自负盈亏」 | P1（⭐已落地） |
 | **ToB 生产级稳定** | 有双人审批 + Checkpoint | 在面经强调「ToB 容错远低于 ToC，故我们加双人审批与 Checkpoint 恢复」 | P0（叙事） |
 
@@ -62,7 +62,7 @@
 
 ### P2 · 前瞻探索（按需）
 7. **多模态 RAG**（吸收 RAG-Anything）：✅ **已落地**。在 `retrieval_hybrid.py` 加 `MultimodalRetriever`，把文档附带的「表格/截图描述」作为多模态元数据纳入统一检索（内置审计样本：Ukey 制作截图、权限变更表、资产台账、留痕截图等），端点 `/api/knowledge/multimodal`、演示页 `/knowledge-hybrid.html` 多模态区块。真实视觉编码需接混元多模态/千问-VL，本环境以描述文本代理、零依赖可复现。
-8. **CLI-native 适配**（吸收 CLI-Anything）：对内部系统提供 CLI/API-native 接口，替代 GUI 自动化。
+8. **CLI-native 适配**（吸收 CLI-Anything）：✅ **已落地**。在 `app/services/oa_mcp.py` 把 OA 操作封装为 `OA_TOOLS`（6 个 CLI 式工具：`oa approval submit/query/approve`、`oa workorder advance`、`oa catalog list`、`oa alert raise`），每个工具带结构化 schema + `cli` 命令模板；`call_oa_tool(name,args)` 即一次 CLI 调用，背后由 OA-MCP 适配层（MockOAClient / McpOAClient）执行，零依赖可演示。并新增 `oa_cli` 技能（演进来源 `CLI-Anything（HKUDS）`），端点 `/api/tools`、`/api/tools/invoke`，演示页 `/agent-demo.html`「⌨️ OA-CLI 原生工具」面板，文档 `docs/cli-native.md`。
 
 ---
 

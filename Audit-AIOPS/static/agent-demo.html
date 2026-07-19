@@ -48,6 +48,18 @@
   .skill.appr{border-left:4px solid var(--amber)}
   .skill .appr-tag{display:inline-block;font-size:10px;background:#fff3e6;color:var(--amber);padding:2px 8px;border-radius:10px;margin-top:6px}
   .skill .evo{font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+  .tools-wrap{max-width:1080px;margin:8px auto 0;padding:0 24px}
+  .tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .tool{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(20,40,80,.04)}
+  .tool h4{font-size:14px;color:var(--blue-deep);margin:0 0 4px}
+  .tool .sum{font-size:12px;color:var(--ink);line-height:1.5;margin-bottom:8px}
+  .tool .cli{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;background:#0f1b2d;color:#7ee0a6;padding:9px 11px;border-radius:9px;white-space:pre-wrap;word-break:break-all;line-height:1.5}
+  .tool .params{margin-top:8px;font-size:11px;color:var(--muted)}
+  .tool .params code{background:#eef3fc;color:var(--blue);padding:1px 6px;border-radius:5px;font-size:10.5px}
+  .tbar{display:flex;gap:12px;align-items:flex-start;margin-top:14px;flex-wrap:wrap}
+  .tbar button{background:var(--blue);color:#fff;border:none;border-radius:9px;padding:9px 14px;font-size:13px;cursor:pointer}
+  .tbar button:hover{filter:brightness(1.06)}
+  .tout{flex:1;min-width:280px;background:#0f1b2d;color:#cfe;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;padding:11px 13px;border-radius:9px;white-space:pre-wrap;word-break:break-all;margin:0;min-height:54px}
 </style>
 </head>
 <body>
@@ -111,6 +123,18 @@
   <div class="sgrid" id="sgrid"><div style="color:var(--muted)">加载中…</div></div>
 </div>
 
+<div class="tools-wrap">
+  <div class="skills-head">
+    <h2>⌨️ OA-CLI 原生工具</h2>
+    <div class="ph">CLI 是 Agent 的原生接口（呼应 HKUDS / CLI-Anything）—— 每个 OA 操作先定义成一条命令，Agent 像在终端敲命令一样驱动 OA，省 token、无 GUI 自动化、可审计；背后由 OA-MCP 适配层执行</div>
+  </div>
+  <div class="tgrid" id="tgrid"><div style="color:var(--muted)">加载中…</div></div>
+  <div class="tbar">
+    <button onclick="demoCli()">▶ 试一试：oa catalog list</button>
+    <pre id="tout" class="tout"># 点击按钮，Agent 原生调用 CLI 工具（oa_catalog_list）并回显结果…</pre>
+  </div>
+</div>
+
 <footer>审计智能一体化运维平台 · Agent 编排可视化</footer>
 
 <script>
@@ -170,7 +194,35 @@ async function loadSkills(){
     }).join('');
   }catch(e){ document.getElementById('sgrid').innerHTML='<div style="color:var(--red)">加载失败：'+e+'</div>'; }
 }
+
+async function loadTools(){
+  try{
+    const r = await fetch('/api/tools');
+    if(!r.ok){ document.getElementById('tgrid').innerHTML='<div style="color:var(--red)">工具加载失败</div>'; return; }
+    const d = await r.json();
+    document.getElementById('tgrid').innerHTML = d.tools.map(t=>{
+      const ps = (t.params||[]).map(p=>`<code>${p.name}</code>${p.required?'*':''}`).join('  ');
+      return `<div class="tool">
+        <h4>${t.name}</h4>
+        <div class="sum">${t.summary}</div>
+        <div class="cli">$ ${t.cli}</div>
+        <div class="params">参数：${ps||'无'}</div>
+      </div>`;
+    }).join('');
+  }catch(e){ document.getElementById('tgrid').innerHTML='<div style="color:var(--red)">加载失败：'+e+'</div>'; }
+}
+
+async function demoCli(){
+  const out = document.getElementById('tout');
+  out.textContent = '$ oa catalog list\n调用中…';
+  try{
+    const r = await fetch('/api/tools/invoke',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'oa_catalog_list',args:{}})});
+    const d = await r.json();
+    out.textContent = '$ oa catalog list\n'+JSON.stringify(d,null,2);
+  }catch(e){ out.textContent = '调用失败：'+e; }
+}
 loadSkills();
+loadTools();
 </script>
 </body>
 </html>

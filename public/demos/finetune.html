@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>大模型微调平台 · Demo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  body{background:radial-gradient(1200px 600px at 80% -10%,#1e3a8a33,transparent),#0f172a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  .glass{background:rgba(30,41,59,.6);border:1px solid rgba(148,163,184,.18)}
+  .glow{box-shadow:0 0 0 1px rgba(56,189,248,.15),0 10px 40px -10px rgba(56,189,248,.25)}
+  pre{white-space:pre-wrap;word-break:break-all}
+  .chip{background:rgba(56,189,248,.12);color:#7dd3fc;border:1px solid rgba(56,189,248,.25)}
+</style>
+</head>
+<body class="text-slate-200 min-h-screen">
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <header class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">大模型微调平台</h1>
+      <p class="text-slate-400 text-sm mt-1">端到端 LoRA / QLoRA 微调 · 数据 → 训练 → 部署</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="status" class="text-xs px-3 py-1 rounded-full chip">连接中…</span>
+      <a href="index.html" class="text-xs text-slate-400 hover:text-sky-400">← 全部 Demo</a>
+    </div>
+  </header>
+
+  <!-- 1. 数据接入 -->
+  <section class="glass rounded-2xl p-6 mb-6 glow">
+    <h2 class="text-lg font-semibold text-slate-100 mb-3">① 数据接入</h2>
+    <textarea id="data" rows="7" class="w-full bg-slate-900/70 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 font-mono" placeholder="Alpaca / JSONL / CSV">[
+  {"instruction":"将下面的中文翻译成英文","input":"今天天气真好","output":"The weather is nice today."},
+  {"instruction":"用一句话总结","input":"大模型正在改变软件工程","output":"大模型正在重塑软件开发范式。"},
+  {"instruction":"解释概念","input":"什么是LoRA","output":"LoRA是一种低秩适配方法，以极少参数微调大模型。"}
+]</textarea>
+    <div class="flex items-center gap-3 mt-3">
+      <select id="fmt" class="bg-slate-900/70 border border-slate-700 rounded-lg p-2 text-sm">
+        <option value="auto">自动识别</option><option value="alpaca">Alpaca JSON</option>
+        <option value="jsonl">JSONL</option><option value="csv">CSV</option>
+      </select>
+      <button id="ingestBtn" class="px-5 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium">接入数据</button>
+      <span id="ingestInfo" class="text-xs text-slate-400"></span>
+    </div>
+  </section>
+
+  <!-- 2. 训练配置 -->
+  <section class="glass rounded-2xl p-6 mb-6">
+    <h2 class="text-lg font-semibold text-slate-100 mb-3">② 训练配置</h2>
+    <div class="grid md:grid-cols-3 gap-4 text-sm">
+      <label class="block">基座模型
+        <input id="base" value="Qwen2.5-3B-Instruct" class="mt-1 w-full bg-slate-900/70 border border-slate-700 rounded-lg p-2" />
+      </label>
+      <label class="block">方法
+        <select id="method" class="mt-1 w-full bg-slate-900/70 border border-slate-700 rounded-lg p-2">
+          <option>LoRA</option><option>QLoRA</option>
+        </select>
+      </label>
+      <label class="block">秩 r
+        <input id="r" type="number" value="8" class="mt-1 w-full bg-slate-900/70 border border-slate-700 rounded-lg p-2" />
+      </label>
+      <label class="block">alpha
+        <input id="alpha" type="number" value="16" class="mt-1 w-full bg-slate-900/70 border border-slate-700 rounded-lg p-2" />
+      </label>
+      <label class="block">学习率
+        <input id="lr" type="number" step="0.0001" value="0.0002" class="mt-1 w-full bg-slate-900/70 border border-slate-700 rounded-lg p-2" />
+      </label>
+      <label class="block">轮次 epochs
+        <input id="epochs" type="number" value="3" class="mt-1 w-full bg-slate-900/70 border border-slate-700 rounded-lg p-2" />
+      </label>
+      <label class="block">批大小 batch
+        <input id="batch" type="number" value="4" class="mt-1 w-full bg-slate-900/70 border border-slate-700 rounded-lg p-2" />
+      </label>
+    </div>
+    <button id="trainBtn" class="mt-4 px-5 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-medium">开始训练</button>
+  </section>
+
+  <!-- 3. 训练监控 -->
+  <section class="glass rounded-2xl p-6 mb-6 hidden" id="monitor">
+    <h2 class="text-lg font-semibold text-slate-100 mb-3">③ 训练监控</h2>
+    <div class="mb-3">
+      <div class="flex justify-between text-xs text-slate-400 mb-1"><span id="progText">0%</span><span id="stepText"></span></div>
+      <div class="w-full h-2 bg-slate-700 rounded-full overflow-hidden"><div id="progBar" class="h-full bg-gradient-to-r from-sky-400 to-indigo-400 w-0"></div></div>
+    </div>
+    <canvas id="lossChart" height="120"></canvas>
+  </section>
+
+  <!-- 4. 导出 / 部署 -->
+  <section class="glass rounded-2xl p-6 mb-6 hidden" id="deploySec">
+    <h2 class="text-lg font-semibold text-slate-100 mb-3">④ 导出 & 部署</h2>
+    <div class="flex gap-3 mb-4">
+      <button id="exportBtn" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm">导出 Adapter 配置</button>
+      <button id="deployBtn" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm">生成部署命令</button>
+    </div>
+    <pre id="deployOut" class="bg-slate-900/70 border border-slate-700 rounded-lg p-4 text-xs text-emerald-300"></pre>
+  </section>
+
+  <p class="text-xs text-slate-500 text-center">后端：FastAPI（无 Key 亦可运行，规则降级模拟训练；配置 OPENAI_API_KEY 可接入真实模型）</p>
+</div>
+
+<script>
+const API = "http://localhost:8011";
+let datasetId = "", jobId = "", chart = null, timer = null;
+
+async function api(path, body){
+  const opt = { headers:{"Content-Type":"application/json"} };
+  if(body){ opt.method="POST"; opt.body=JSON.stringify(body); }
+  const r = await fetch(API+path, opt);
+  return r.json();
+}
+function setStatus(){ fetch(API+"/api/health").then(r=>r.json()).then(d=>{
+  document.getElementById("status").textContent = d.llm_enabled ? "● 真实模型" : "● 规则降级";
+}).catch(()=> document.getElementById("status").textContent = "● 未连接"); }
+setStatus();
+
+document.getElementById("ingestBtn").onclick = async ()=>{
+  const res = await api("/api/finetune/ingest", { content: document.getElementById("data").value, format: document.getElementById("fmt").value });
+  if(res.detail){ alert(res.detail); return; }
+  datasetId = res.dataset_id;
+  document.getElementById("ingestInfo").textContent = `✓ ${res.num_samples} 条样本 · 格式 ${res.format} · 平均 ${res.avg_tokens} tokens`;
+};
+
+document.getElementById("trainBtn").onclick = async ()=>{
+  if(!datasetId){ alert("请先接入数据"); return; }
+  const cfg = { base_model:document.getElementById("base").value, method:document.getElementById("method").value,
+    r:+document.getElementById("r").value, alpha:+document.getElementById("alpha").value, lr:+document.getElementById("lr").value,
+    epochs:+document.getElementById("epochs").value, batch_size:+document.getElementById("batch").value, data_ref:datasetId };
+  const res = await api("/api/finetune/train", cfg);
+  jobId = res.job_id;
+  document.getElementById("monitor").classList.remove("hidden");
+  document.getElementById("deploySec").classList.remove("hidden");
+  poll();
+};
+
+function poll(){
+  timer = setInterval(async ()=>{
+    const st = await api("/api/finetune/train/"+jobId);
+    document.getElementById("progBar").style.width = (st.progress*100)+"%";
+    document.getElementById("progText").textContent = Math.round(st.progress*100)+"%";
+    document.getElementById("stepText").textContent = `step ${st.step}/${st.total_steps} · GPU ${st.gpu_mem}`;
+    draw(st.loss_curve);
+    if(st.status==="done"){ clearInterval(timer); document.getElementById("progText").textContent="完成 ✓"; }
+  }, 600);
+}
+function draw(curve){
+  const ctx = document.getElementById("lossChart");
+  if(!chart) chart = new Chart(ctx, { type:"line", data:{ labels:curve.map((_,i)=>i+1), datasets:[{ label:"loss", data:curve, borderColor:"#38bdf8", backgroundColor:"rgba(56,189,248,.15)", fill:true, tension:.3, pointRadius:0 }] }, options:{ plugins:{legend:{display:false}}, scales:{ x:{ticks:{color:"#64748b"},grid:{color:"#1e293b"}}, y:{ticks:{color:"#64748b"},grid:{color:"#1e293b"}} } } });
+  else { chart.data.labels=curve.map((_,i)=>i+1); chart.data.datasets[0].data=curve; chart.update(); }
+}
+document.getElementById("exportBtn").onclick = async ()=>{
+  const r = await api("/api/finetune/train/"+jobId+"/export");
+  document.getElementById("deployOut").textContent = JSON.stringify(r.adapter_config, null, 2);
+};
+document.getElementById("deployBtn").onclick = async ()=>{
+  const r = await api("/api/finetune/train/"+jobId+"/deploy");
+  document.getElementById("deployOut").textContent = "# vLLM\n"+r.vllm_command+"\n\n# 推理代码片段\n"+r.inference_snippet;
+};
+</script>
+</body>
+</html>
