@@ -99,4 +99,30 @@
     const y=$('#year'); if(y) y.textContent=new Date().getFullYear();
     window.observeReveal();
   };
+
+  /* ---------- THEME TOGGLE (light/dark) ----------
+     Shared across all demo pages. Preference stored in
+     localStorage['theme']; the inline <head> script already
+     applied the attribute before first paint to avoid a flash. */
+  function syncThemeBtn(t){
+    $$('.theme-toggle').forEach(b=> b.setAttribute('aria-pressed', t==='light' ? 'true':'false'));
+  }
+  window.initTheme = function(){
+    let t;
+    try{ t = localStorage.getItem('theme'); }catch(e){}
+    if(t!=='light' && t!=='dark') t='dark';
+    document.documentElement.setAttribute('data-theme', t);
+    syncThemeBtn(t);
+  };
+  window.toggleTheme = function(){
+    const cur = document.documentElement.getAttribute('data-theme')==='light' ? 'light':'dark';
+    const next = cur==='light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    try{ localStorage.setItem('theme', next); }catch(e){}
+    syncThemeBtn(next);
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    window.initTheme();
+    $$('.theme-toggle').forEach(b=> b.addEventListener('click', window.toggleTheme));
+  });
 })();
