@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🌸 樱花校园模拟 · Sakura Campus</title>
+<script>(function(){try{var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<style>
+  :root{
+    --sky1:#bfe3ff; --sky2:#ffd9ec;
+    --ink:#3a3357; --ink-soft:#6b6391;
+    --card:rgba(255,255,255,.82); --line:rgba(120,90,160,.18);
+    --pink:#ff8fbf; --pink-d:#ff6fa3; --mint:#7fd6b0; --gold:#ffce5c;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);
+    background:linear-gradient(160deg,#ffe3f1 0%,#e7ecff 45%,#d9f3ff 100%);
+    min-height:100vh; -webkit-tap-highlight-color:transparent; overflow-x:hidden;
+  }
+  /* ---------- topbar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:30;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:10px 16px;
+    background:rgba(255,255,255,.72);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar a.back{
+    text-decoration:none; color:var(--ink-soft); font-weight:700; font-size:14px;
+    display:inline-flex; align-items:center; gap:4px; padding:6px 10px; border-radius:999px;
+    background:rgba(255,255,255,.7); border:1px solid var(--line);
+  }
+  .topbar a.back:hover{color:var(--pink-d)}
+  .brand{display:flex; align-items:center; gap:8px; margin-right:auto}
+  .brand .logo{font-size:22px}
+  .brand h1{font-size:17px; margin:0; font-weight:800; letter-spacing:.3px}
+  .brand small{display:block; font-size:11px; color:var(--ink-soft); font-weight:600}
+  .pill{
+    display:inline-flex; align-items:center; gap:6px; font-weight:800; font-size:14px;
+    padding:7px 13px; border-radius:999px; background:#fff; border:1px solid var(--line); color:var(--pink-d);
+  }
+  .tbtn{
+    border:1px solid var(--line); background:#fff; color:var(--ink); cursor:pointer;
+    width:38px; height:38px; border-radius:12px; font-size:16px; display:inline-flex; align-items:center; justify-content:center;
+    transition:transform .12s ease, background .2s;
+  }
+  .tbtn:hover{background:#fff5fb; transform:translateY(-1px)}
+  .tbtn:active{transform:scale(.94)}
+  .tbtn.on{background:#fff0f7; color:var(--pink-d); border-color:var(--pink)}
+  .tlabel{
+    border:1px solid var(--line); background:#fff; color:var(--ink); cursor:pointer;
+    height:38px; padding:0 14px; border-radius:12px; font-size:13px; font-weight:700;
+    display:inline-flex; align-items:center; gap:5px;
+  }
+  .tlabel:hover{background:#fff5fb}
+  /* ---------- stage ---------- */
+  .stage{max-width:1000px; margin:14px auto; padding:0 12px}
+  .frame{
+    position:relative; border-radius:22px; overflow:hidden;
+    box-shadow:0 18px 50px rgba(120,90,160,.28); border:1px solid rgba(255,255,255,.6);
+    background:#cdeffd;
+  }
+  canvas{display:block; width:100%; height:auto; touch-action:none}
+  .hint{
+    text-align:center; color:var(--ink-soft); font-size:12.5px; margin:10px 6px 18px;
+  }
+  /* ---------- floating panels ---------- */
+  .panel{
+    position:fixed; z-index:40; top:64px; right:14px; width:300px; max-width:calc(100vw - 28px);
+    background:var(--card); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--line); border-radius:18px; padding:16px 16px 18px;
+    box-shadow:0 16px 40px rgba(120,90,160,.3);
+    transform:translateY(-8px) scale(.98); opacity:0; pointer-events:none; transition:all .18s ease;
+  }
+  .panel.open{transform:none; opacity:1; pointer-events:auto}
+  .panel h3{margin:0 0 12px; font-size:15px; display:flex; align-items:center; gap:7px}
+  .panel .close{margin-left:auto; cursor:pointer; border:none; background:transparent; font-size:18px; color:var(--ink-soft)}
+  .task{display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:12px; background:rgba(255,255,255,.6); margin-bottom:8px; font-size:13.5px}
+  .task .box{width:20px; height:20px; border-radius:6px; border:2px solid var(--pink); display:flex; align-items:center; justify-content:center; font-size:13px; color:#fff; flex:0 0 auto}
+  .task.done .box{background:var(--mint); border-color:var(--mint)}
+  .task.done .txt{color:var(--ink-soft); text-decoration:line-through}
+  .task .prog{margin-left:auto; font-size:12px; color:var(--ink-soft); font-weight:700}
+  .ward-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:9px}
+  .ward{
+    aspect-ratio:1; border-radius:14px; border:2px solid var(--line); background:rgba(255,255,255,.7);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; cursor:pointer; font-size:11px; font-weight:700; color:var(--ink);
+    transition:transform .12s, border-color .2s;
+  }
+  .ward:hover{transform:translateY(-2px)}
+  .ward.equipped{border-color:var(--pink); background:#fff0f7}
+  .ward.locked{opacity:.5; cursor:not-allowed}
+  .ward .emo{font-size:22px}
+  .ward-sec{font-size:12px; font-weight:800; color:var(--ink-soft); margin:12px 0 7px}
+  /* ---------- touch controls ---------- */
+  .dpad{display:none; position:fixed; left:16px; bottom:18px; z-index:35; width:140px; height:140px}
+  .dpad .k{
+    position:absolute; width:46px; height:46px; border-radius:13px; background:rgba(255,255,255,.85);
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--ink);
+    box-shadow:0 4px 12px rgba(120,90,160,.2); user-select:none;
+  }
+  .dpad .k:active{background:#ffe3f1}
+  .dpad .up{left:47px; top:0} .dpad .down{left:47px; top:94px}
+  .dpad .left{left:0; top:47px} .dpad .right{left:94px; top:47px}
+  .act-btn{
+    position:fixed; right:18px; bottom:24px; z-index:35; width:74px; height:74px; border-radius:50%;
+    background:linear-gradient(135deg,var(--pink),var(--pink-d)); color:#fff; border:none; cursor:pointer;
+    font-size:14px; font-weight:800; box-shadow:0 8px 22px rgba(255,111,163,.5);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .act-btn:active{transform:scale(.93)}
+  @media (max-width:820px), (pointer:coarse){ .dpad{display:block} }
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed; left:50%; top:72px; transform:translate(-50%,-12px); z-index:50;
+    background:rgba(58,51,87,.92); color:#fff; padding:9px 16px; border-radius:999px; font-size:13.5px; font-weight:700;
+    opacity:0; transition:all .25s ease; pointer-events:none; max-width:86vw; text-align:center;
+  }
+  .toast.show{opacity:1; transform:translate(-50%,0)}
+  /* ---------- help overlay ---------- */
+  .overlay{
+    position:fixed; inset:0; z-index:60; background:rgba(40,30,60,.5); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; padding:18px;
+  }
+  .overlay.open{display:flex}
+  .sheet{
+    width:min(440px,94vw); max-height:86vh; overflow:auto; background:#fff; border-radius:22px; padding:22px 22px 24px;
+    box-shadow:0 24px 60px rgba(80,50,120,.4);
+  }
+  .sheet h2{margin:0 0 4px; font-size:19px; display:flex; align-items:center; gap:8px}
+  .sheet p.sub{margin:0 0 14px; color:var(--ink-soft); font-size:13px}
+  .sheet ul{margin:0; padding-left:18px; font-size:13.5px; line-height:1.9; color:var(--ink)}
+  .sheet .ok{
+    margin-top:16px; width:100%; padding:12px; border:none; border-radius:14px; cursor:pointer;
+    background:linear-gradient(135deg,var(--pink),var(--pink-d)); color:#fff; font-weight:800; font-size:15px;
+  }
+  .sheet .ok:active{transform:scale(.98)}
+  .foot{text-align:center; color:var(--ink-soft); font-size:12px; padding:6px 0 26px}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="back" href="../index.html">← 画廊</a>
+  <div class="brand">
+    <span class="logo">🌸</span>
+    <div><h1>樱花校园模拟</h1><small>Sakura Campus · 给小妹妹的治愈小世界</small></div>
+  </div>
+  <span class="pill" id="petalPill">🌸 <span id="petalCount">0</span></span>
+  <button class="tlabel" id="btnTasks">📋 任务</button>
+  <button class="tlabel" id="btnWard">👗 衣橱</button>
+  <button class="tbtn" id="btnDay" title="白天 / 夜晚">🌞</button>
+  <button class="tbtn" id="btnMute" title="音效开关">🔊</button>
+  <button class="tbtn" id="btnHelp" title="玩法说明">？</button>
+</header>
+
+<div class="stage">
+  <div class="frame">
+    <canvas id="game" width="1000" height="640"></canvas>
+  </div>
+  <div class="hint">用 <b>方向键 / WASD</b> 走动，靠近物件按 <b>空格</b> 或点一下互动 · 手机用左下摇杆 + 右下按钮 🌸</div>
+</div>
+
+<!-- 任务面板 -->
+<div class="panel" id="panelTasks">
+  <h3>📋 今日小任务 <button class="close" data-close="panelTasks">×</button></h3>
+  <div id="taskList"></div>
+</div>
+
+<!-- 衣橱面板 -->
+<div class="panel" id="panelWard">
+  <h3>👗 我的衣橱 <button class="close" data-close="panelWard">×</button></h3>
+  <div class="ward-sec">发型 / 头饰</div>
+  <div class="ward-grid" id="hatGrid"></div>
+  <div class="ward-sec">裙子 / 服装</div>
+  <div class="ward-grid" id="outfitGrid"></div>
+</div>
+
+<!-- 触屏控制 -->
+<div class="dpad" id="dpad">
+  <div class="k up" data-dir="up">▲</div>
+  <div class="k down" data-dir="down">▼</div>
+  <div class="k left" data-dir="left">◀</div>
+  <div class="k right" data-dir="right">▶</div>
+</div>
+<button class="act-btn" id="actBtn">互动</button>
+
+<div class="toast" id="toast"></div>
+
+<!-- 帮助 -->
+<div class="overlay" id="helpOverlay">
+  <div class="sheet">
+    <h2>🌸 欢迎来到樱花校园！</h2>
+    <p class="sub">这是一个没有输赢、只有开心的小世界，送给最可爱的小妹妹～</p>
+    <ul>
+      <li><b>走动：</b>电脑用方向键或 W A S D；手机用左下角摇杆。</li>
+      <li><b>捡花瓣：</b>天上会一直飘下粉色樱花，走过去碰到就收集啦（花瓣是钱钱 🌸）。</li>
+      <li><b>互动：</b>走到教室、花园、小猫、好友、秋千、礼物盒、樱花树旁边，按<b>空格</b>或点一下它们。</li>
+      <li><b>上课：</b>进教室回答一个小问题，答对有小星星 ⭐。</li>
+      <li><b>交朋友：</b>和好友打招呼免费涨爱心；送礼物要花花瓣，但爱心涨更多 💕。</li>
+      <li><b>开礼物：</b>礼物盒会随机送你好看的头饰或裙子，去「衣橱」换上吧！</li>
+      <li><b>每日任务：</b>点右上角「📋 任务」，全部完成有庆祝 🎉。</li>
+      <li><b>存档：</b>进度会自动保存，下次打开还在哦。</li>
+    </ul>
+    <button class="ok" id="helpOk">开始玩吧 ✨</button>
+  </div>
+</div>
+
+<div class="foot">用 Canvas 2D 手作的治愈小游戏 · 无广告 · 无联网 · 安全适合小朋友</div>
+
+<script>
+(function(){
+  "use strict";
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  var W = 1000, H = 640;
+
+  // 高清适配
+  function fitDPR(){
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  fitDPR();
+
+  // ---------- 存档 ----------
+  var SAVE_KEY = 'sakura-campus-save';
+  var today = new Date().toISOString().slice(0,10);
+  function defaultSave(){
+    return {
+      petals: 0,
+      date: today,
+      unlocked: { hats:['none'], outfits:['sakura'] },
+      equipped: { hat:'none', outfit:'sakura' },
+      friend: 0, cat: 0,
+      tasks: { petal:0, cls:0, cat:0, friend:0, gift:0 },
+      done: false,
+      night: false,
+      muted: false
+    };
+  }
+  var save;
+  try { save = JSON.parse(localStorage.getItem(SAVE_KEY)) || defaultSave(); }
+  catch(e){ save = defaultSave(); }
+  // 跨天重置每日任务
+  if(save.date !== today){ save.date = today; save.tasks={petal:0,cls:0,cat:0,friend:0,gift:0}; save.done=false; }
+  function persist(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){} }
+
+  // ---------- 数据定义 ----------
+  var OUTFITS = {
+    sakura: { name:'樱花裙', dress:'#ff9ec4', trim:'#ffd6ea', emoji:'🌸' },
+    sport:  { name:'运动服', dress:'#7ec8ff', trim:'#ffffff', emoji:'🏃' },
+    kimono: { name:'和服',   dress:'#b59cff', trim:'#ffe0a3', emoji:'🎴' },
+    magic:  { name:'魔法裙', dress:'#9b8cff', trim:'#ffe6fb', emoji:'🪄' }
+  };
+  var HATS = {
+    none:   { name:'自然发型', color:null,    emoji:'💇' },
+    bow:    { name:'蝴蝶结',   color:'#ff6f9c', emoji:'🎀' },
+    grad:   { name:'学士帽',   color:'#2b2b3a', emoji:'🎓' },
+    wreath: { name:'花环',     color:'#ffb3d1', emoji:'🌼' },
+    star:   { name:'星星夹',   color:'#ffd84d', emoji:'⭐' }
+  };
+  var GIFT_POOL = [
+    { kind:'hat',   id:'bow' }, { kind:'hat', id:'grad' },
+    { kind:'hat',   id:'wreath' }, { kind:'hat', id:'star' },
+    { kind:'outfit', id:'sport' }, { kind:'outfit', id:'kimono' }, { kind:'outfit', id:'magic' }
+  ];
+
+  // ---------- 音效 (WebAudio 合成，无外部文件) ----------
+  var actx = null;
+  function audio(){ if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return actx; }
+  function tone(freq, dur, type, vol){
+    if(save.muted) return; var a = audio(); if(!a) return;
+    try{
+      var o = a.createOscillator(), g = a.createGain();
+      o.type = type||'sine'; o.frequency.value = freq;
+      g.gain.value = 0.0001; o.connect(g); g.connect(a.destination);
+      var t = a.currentTime;
+      g.gain.exponentialRampToValueAtTime(vol||0.18, t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+(dur||0.18));
+      o.start(t); o.stop(t+(dur||0.18)+0.02);
+    }catch(e){}
+  }
+  function sCollect(){ tone(880,0.12,'triangle',0.16); setTimeout(function(){tone(1180,0.12,'triangle',0.13);},60); }
+  function sPop(){ tone(520,0.12,'sine',0.18); }
+  function sReward(){ [660,880,1100].forEach(function(f,i){ setTimeout(function(){tone(f,0.18,'triangle',0.16);}, i*90); }); }
+  function sOpen(){ [440,660,990,1320].forEach(function(f,i){ setTimeout(function(){tone(f,0.2,'sine',0.15);}, i*80); }); }
+
+  // ---------- 玩家 ----------
+  var player = { x:500, y:430, w:34, h:54, speed:165, face:1, moving:false, walk:0 };
+  var keys = {};
+  var solids = []; // {x,y,w,h} 不可进入的矩形
+
+  // ---------- 樱花花瓣 ----------
+  var petals = [];
+  function spawnPetal(){
+    petals.push({
+      x: Math.random()*W, y: -20,
+      vy: 26 + Math.random()*30, vx:(Math.random()-0.5)*22,
+      sway: Math.random()*Math.PI*2, sw: 1.4+Math.random()*1.2,
+      rot: Math.random()*Math.PI*2, vr:(Math.random()-0.5)*2,
+      s: 6+Math.random()*5, c: Math.random()<0.5?'#ffc1dd':'#ff9ec4'
+    });
+  }
+  for(var i=0;i<26;i++){ var p={x:Math.random()*W,y:Math.random()*H,vy:26+Math.random()*30,vx:(Math.random()-0.5)*22,sway:Math.random()*6.28,sw:1.4+Math.random()*1.2,rot:Math.random()*6.28,vr:(Math.random()-0.5)*2,s:6+Math.random()*5,c:Math.random()<0.5?'#ffc1dd':'#ff9ec4'}; petals.push(p); }
+
+  // ---------- 互动物件 ----------
+  // type: classroom / garden / cat / friend / swing / gift / tree
+  var spots = [
+    { id:'class', type:'class', x:150, y:170, w:150, h:120, label:'教室', emoji:'🏫' },
+    { id:'garden', type:'garden', x:760, y:150, w:150, h:100, label:'花园', emoji:'🌷' },
+    { id:'tree', type:'tree', x:500, y:120, w:120, h:150, label:'樱花树', emoji:'🌸' },
+    { id:'pond', type:'pond', x:610, y:430, w:200, h:90, label:'小池塘', emoji:'🐟' },
+    { id:'cat', type:'cat', x:300, y:470, w:60, h:50, label:'小猫', emoji:'🐱' },
+    { id:'friend', type:'friend', x:820, y:430, w:54, h:80, label:'好友小美', emoji:'👧' },
+    { id:'swing', type:'swing', x:120, y:420, w:80, h:90, label:'秋千', emoji:'🪀' },
+    { id:'gift', type:'gift', x:430, y:480, w:54, h:54, label:'礼物盒', emoji:'🎁' }
+  ];
+  // 建筑实体（碰撞）
+  solids.push({x:130,y:150,w:190,h:140});      // 教室
+  solids.push({x:740,y:130,w:190,h:130});      // 花园房
+  solids.push({x:585,y:410,w:250,h:130});      // 池塘
+  // 树干碰撞（樱花树）
+  solids.push({x:548,y:240,w:24,h:60});
+
+  // ---------- 互动状态 ----------
+  var near = null;            // 当前可互动的 spot
+  var busy = 0;               // 互动动画计时
+  var busyType = '';
+  var catMood = 0;            // 小猫进食动画
+  var waterGrow = 0;          // 花园浇水动画
+  var swingT = 0;             // 秋千摆动
+  var confetti = [];          // 庆祝粒子
+  var qa = null;              // 上课问答状态
+
+  // ---------- 输入 ----------
+  window.addEventListener('keydown', function(e){
+    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].indexOf(e.key)!==-1) e.preventDefault();
+    keys[e.key.toLowerCase()] = true;
+    if(e.key === ' ') tryInteract();
+  });
+  window.addEventListener('keyup', function(e){ keys[e.key.toLowerCase()] = false; });
+
+  // 触屏摇杆
+  var dpad = document.getElementById('dpad');
+  dpad.querySelectorAll('.k').forEach(function(k){
+    var dir = k.getAttribute('data-dir');
+    var on = function(e){ e.preventDefault(); keys[dir]=true; };
+    var off = function(e){ e.preventDefault(); keys[dir]=false; };
+    k.addEventListener('touchstart', on, {passive:false});
+    k.addEventListener('touchend', off, {passive:false});
+    k.addEventListener('touchcancel', off, {passive:false});
+    k.addEventListener('mousedown', on);
+    k.addEventListener('mouseup', off);
+    k.addEventListener('mouseleave', off);
+  });
+  document.getElementById('actBtn').addEventListener('click', tryInteract);
+
+  // 点击画布互动
+  canvas.addEventListener('pointerdown', function(e){
+    var r = canvas.getBoundingClientRect();
+    var mx = (e.clientX - r.left) / r.width * W;
+    var my = (e.clientY - r.top) / r.height * H;
+    // 找到点中的物件
+    for(var i=0;i<spots.length;i++){
+      var s = spots[i];
+      if(mx>=s.x-10 && mx<=s.x+s.w+10 && my>=s.y-10 && my<=s.y+s.h+10){
+        var d = Math.hypot(mx-player.x, my-player.y);
+        if(d < 150){ startInteract(s); } else { toast('走近一点再点哦～ 🌸'); }
+        return;
+      }
+    }
+  });
+
+  function tryInteract(){
+    if(busy>0 || qa) return;
+    if(near) startInteract(near);
+  }
+
+  // ---------- 互动逻辑 ----------
+  function startInteract(s){
+    if(s.type==='class'){ openClass(); return; }
+    if(s.type==='gift'){ openGift(); return; }
+    if(s.type==='cat'){ feedCat(); return; }
+    if(s.type==='friend'){ talkFriend(); return; }
+    if(s.type==='garden'){ waterGarden(); return; }
+    if(s.type==='swing'){ busy=1.6; busyType='swing'; swingT=0.01; sPop(); toast('荡荡秋千，好舒服呀～ 💕'); return; }
+    if(s.type==='tree'){ shakeTree(); return; }
+    if(s.type==='pond'){ busy=0.8; busyType='pond'; sPop(); toast('哇，小鱼在吐泡泡～ 🐟'); return; }
+  }
+
+  function openClass(){
+    var qs = [
+      {q:'樱花一般在几月开放？', a:['三月','七月','十二月'], ok:0},
+      {q:'小猫最爱吃什么？', a:['小鱼干','石头','辣椒'], ok:0},
+      {q:'下面哪个是好朋友的表现？', a:['一起分享','抢玩具','不理人'], ok:0},
+      {q:'天黑了要做什么？', a:['睡觉','大声吵闹','去池塘游泳'], ok:0},
+      {q:'捡到樱花花瓣可以做什么？', a:['存起来','丢掉','踩碎'], ok:0}
+    ];
+    var pick = qs[Math.floor(Math.random()*qs.length)];
+    qa = { q:pick.q, a:pick.a, ok:pick.ok, sel:-1, result:0 };
+    showQA();
+  }
+  function showQA(){
+    var ov = document.getElementById('qaOverlay');
+    if(!ov){
+      ov = document.createElement('div'); ov.id='qaOverlay'; ov.className='overlay open';
+      ov.innerHTML = '<div class="sheet"><h2>🏫 上课啦！</h2><p class="sub" id="qaQ"></p>'+
+        '<div id="qaOpts" style="display:flex;flex-direction:column;gap:10px"></div>'+
+        '<button class="ok" id="qaOk" style="display:none">太棒啦，回去玩吧 ✨</button></div>';
+      document.body.appendChild(ov);
+      ov.addEventListener('click', function(e){ if(e.target===ov && qa&&qa.result) closeQA(); });
+      document.getElementById('qaOk').addEventListener('click', closeQA);
+    }
+    document.getElementById('qaQ').textContent = qa.q;
+    var opts = document.getElementById('qaOpts'); opts.innerHTML='';
+    qa.a.forEach(function(t,idx){
+      var b = document.createElement('button');
+      b.className='ok'; b.style.background='#fff'; b.style.color='#3a3357'; b.style.border='2px solid rgba(120,90,160,.2)';
+      b.textContent = (idx+1)+'. '+t;
+      b.onclick = function(){ if(qa.result) return; qa.sel=idx; if(idx===qa.ok){ qa.result=1; sReward(); } else { qa.result=2; sPop(); }
+        // 显示对错
+        document.querySelectorAll('#qaOpts button').forEach(function(x,i){ x.style.opacity = (i===qa.ok||i===idx)?1:0.5; x.style.borderColor = (i===qa.ok)?'#7fd6b0':(i===idx?'#ff8787':'rgba(120,90,160,.2)'); });
+        document.getElementById('qaOk').style.display='block';
+        document.getElementById('qaQ').textContent = (qa.result===1? '答对啦！你真聪明 ⭐' : '再想想～正确答案是：'+qa.a[qa.ok]);
+      };
+      opts.appendChild(b);
+    });
+    document.getElementById('qaOk').style.display='none';
+    document.getElementById('qaQ').textContent = qa.q;
+    ov.classList.add('open');
+  }
+  function closeQA(){
+    if(qa.result===1){ save.petals+=8; bumpTask('cls'); toast('上课认真！+8 🌸 ⭐'); }
+    else { save.petals+=3; toast('勇敢举手啦！+3 🌸'); }
+    qa=null; persist(); updateHUD();
+    var ov=document.getElementById('qaOverlay'); if(ov) ov.classList.remove('open');
+  }
+
+  function feedCat(){
+    busy=1.0; busyType='cat'; catMood=0.01; sPop();
+    save.cat = Math.min(5, save.cat+1);
+    if(save.cat===5) toast('小猫和你成为好朋友啦！🐱💕'); else toast('喵～小猫吃饱了，好开心！');
+    save.petals+=2; bumpTask('cat'); persist(); updateHUD();
+  }
+  function talkFriend(){
+    busy=1.0; busyType='friend'; sPop();
+    // 选择：打招呼 / 送礼物
+    var ov=document.getElementById('friendOverlay');
+    if(!ov){
+      ov=document.createElement('div'); ov.id='friendOverlay'; ov.className='overlay';
+      ov.innerHTML='<div class="sheet"><h2>👧 好友小美</h2><p class="sub">要和好朋友做点什么呀？</p>'+
+        '<button class="ok" id="fHi" style="margin-bottom:10px">👋 打招呼（免费 +💕）</button>'+
+        '<button class="ok" id="fGift" style="background:linear-gradient(135deg,#ffce5c,#ffae3d)">🎁 送礼物（-5🌸，更多💕）</button></div>';
+      document.body.appendChild(ov);
+      ov.addEventListener('click',function(e){ if(e.target===ov) ov.classList.remove('open'); });
+      document.getElementById('fHi').onclick=function(){ ov.classList.remove('open'); doFriend(false); };
+      document.getElementById('fGift').onclick=function(){ ov.classList.remove('open'); doFriend(true); };
+    }
+    ov.classList.add('open');
+  }
+  function doFriend(gift){
+    if(gift){
+      if(save.petals<5){ toast('花瓣不够啦，先去捡一些吧～ 🌸'); return; }
+      save.petals-=5; save.friend=Math.min(5, save.friend+2); sReward();
+      toast('小美超开心！💕💕');
+    } else {
+      save.friend=Math.min(5, save.friend+1); sPop();
+      toast('小美对你笑了一下～ 💕');
+    }
+    bumpTask('friend'); persist(); updateHUD();
+  }
+  function waterGarden(){
+    busy=1.2; busyType='garden'; waterGrow=0.01; sPop();
+    save.petals+=4; toast('给小花浇水，它们更漂亮啦！+4 🌸');
+    persist(); updateHUD();
+  }
+  function shakeTree(){
+    busy=0.8; busyType='tree'; sPop();
+    for(var i=0;i<14;i++){ var a=Math.random()*Math.PI*2, sp=40+Math.random()*70;
+      petals.push({x:560,y:230,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-20,sway:Math.random()*6.28,sw:1.4+Math.random(),rot:Math.random()*6.28,vr:(Math.random()-0.5)*4,s:7+Math.random()*5,c:'#ffb3d6'}); }
+    toast('哗啦～樱花雨！🌸');
+  }
+  function openGift(){
+    busy=1.0; busyType='gift'; sOpen();
+    // 找一个未解锁的
+    var locked = GIFT_POOL.filter(function(g){ return save.unlocked[g.kind+'s'].indexOf(g.id)===-1; });
+    if(locked.length===0){
+      save.petals+=15; toast('衣橱全满啦！奖励你 +15 🌸 🎉'); persist(); updateHUD(); return;
+    }
+    var g = locked[Math.floor(Math.random()*locked.length)];
+    save.unlocked[g.kind+'s'].push(g.id);
+    save.equipped[g.kind] = g.id;
+    bumpTask('gift');
+    if(g.kind==='hat') toast('获得头饰：'+HATS[g.id].name+'！已穿上 👒');
+    else toast('获得服装：'+OUTFITS[g.id].name+'！已穿上 👗');
+    save.petals+=5; persist(); updateHUD(); renderWardrobe();
+  }
+
+  function bumpTask(id){
+    if(id==='gift' && false) return;
+    if(save.tasks[id] === undefined) return;
+    if(save.tasks[id] < 1){ save.tasks[id]=1; }
+    else if(id==='petal'){ /* 单独处理累计 */ }
+    checkAllTasks();
+  }
+  function addPetal(n){
+    save.petals += n;
+    if(save.tasks.petal < 8){ save.tasks.petal += n; if(save.tasks.petal>8) save.tasks.petal=8; }
+    updateHUD(); checkAllTasks();
+  }
+  function checkAllTasks(){
+    var all = save.tasks.petal>=8 && save.tasks.cls>=1 && save.tasks.cat>=1 && save.tasks.friend>=1 && save.tasks.gift>=1;
+    if(all && !save.done){
+      save.done = true; save.petals += 30;
+      celebrate(); toast('🎉 今日任务全部完成！你真棒！+30 🌸');
+      persist();
+    }
+    renderTasks();
+  }
+  function celebrate(){
+    for(var i=0;i<60;i++){ var a=Math.random()*Math.PI*2, sp=80+Math.random()*220;
+      confetti.push({x:W/2,y:H/2-40,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-60,life:1.6,c:['#ff9ec4','#ffce5c','#7fd6b0','#9b8cff','#ffffff'][i%5],s:5+Math.random()*6,rot:Math.random()*6.28,vr:(Math.random()-0.5)*8}); }
+    sReward();
+  }
+
+  // ---------- HUD ----------
+  function updateHUD(){
+    document.getElementById('petalCount').textContent = save.petals;
+  }
+  function renderTasks(){
+    var list = document.getElementById('taskList');
+    var defs = [
+      {id:'petal', t:'收集 8 片樱花花瓣', p:save.tasks.petal, g:8},
+      {id:'cls', t:'上一节课', p:save.tasks.cls, g:1},
+      {id:'cat', t:'给小猫喂一次食', p:save.tasks.cat, g:1},
+      {id:'friend', t:'和好友打一次招呼', p:save.tasks.friend, g:1},
+      {id:'gift', t:'打开一个礼物盒', p:save.tasks.gift, g:1}
+    ];
+    list.innerHTML='';
+    defs.forEach(function(d){
+      var done = d.p>=d.g;
+      var el = document.createElement('div'); el.className='task'+(done?' done':'');
+      el.innerHTML = '<div class="box">'+(done?'✓':'')+'</div><div class="txt">'+d.t+'</div>'+
+        '<div class="prog">'+Math.min(d.p,d.g)+'/'+d.g+'</div>';
+      list.appendChild(el);
+    });
+  }
+  function renderWardrobe(){
+    var hg = document.getElementById('hatGrid'), og = document.getElementById('outfitGrid');
+    hg.innerHTML=''; og.innerHTML='';
+    Object.keys(HATS).forEach(function(id){
+      var h=HATS[id], un=save.unlocked.hats.indexOf(id)!==-1, eq=save.equipped.hat===id;
+      var el=document.createElement('div'); el.className='ward'+(eq?' equipped':'')+(un?'':' locked');
+      el.innerHTML='<div class="emo">'+(un?h.emoji:'🔒')+'</div><div>'+(un?h.name:'未解锁')+'</div>';
+      if(un) el.onclick=function(){ save.equipped.hat=id; persist(); renderWardrobe(); sPop(); };
+      hg.appendChild(el);
+    });
+    Object.keys(OUTFITS).forEach(function(id){
+      var o=OUTFITS[id], un=save.unlocked.outfits.indexOf(id)!==-1, eq=save.equipped.outfit===id;
+      var el=document.createElement('div'); el.className='ward'+(eq?' equipped':'')+(un?'':' locked');
+      el.innerHTML='<div class="emo">'+(un?o.emoji:'🔒')+'</div><div>'+(un?o.name:'未解锁')+'</div>';
+      if(un) el.onclick=function(){ save.equipped.outfit=id; persist(); renderWardrobe(); sPop(); };
+      og.appendChild(el);
+    });
+  }
+
+  // 面板开关
+  function bindPanel(btnId, panelId){
+    document.getElementById(btnId).addEventListener('click', function(){
+      var p=document.getElementById(panelId);
+      var open = p.classList.contains('open');
+      document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('open');});
+      if(!open) p.classList.add('open');
+    });
+  }
+  bindPanel('btnTasks','panelTasks');
+  bindPanel('btnWard','panelWard');
+  document.querySelectorAll('.close').forEach(function(c){ c.addEventListener('click', function(){ document.getElementById(c.getAttribute('data-close')).classList.remove('open'); }); });
+
+  // 昼夜
+  var night = !!save.night;
+  function applyNight(){ document.getElementById('btnDay').textContent = night?'🌙':'🌞'; document.getElementById('btnDay').classList.toggle('on', night); }
+  document.getElementById('btnDay').addEventListener('click', function(){ night=!night; save.night=night; persist(); applyNight(); sPop(); });
+  applyNight();
+
+  // 静音
+  function applyMute(){ document.getElementById('btnMute').textContent = save.muted?'🔇':'🔊'; document.getElementById('btnMute').classList.toggle('on', save.muted); }
+  document.getElementById('btnMute').addEventListener('click', function(){ save.muted=!save.muted; persist(); applyMute(); if(!save.muted) sPop(); });
+  applyMute();
+
+  // 帮助
+  document.getElementById('btnHelp').addEventListener('click', function(){ document.getElementById('helpOverlay').classList.add('open'); });
+  document.getElementById('helpOk').addEventListener('click', function(){ document.getElementById('helpOverlay').classList.remove('open'); if(audio()&&audio().state==='suspended') audio().resume(); });
+
+  // toast
+  var toastTimer=null;
+  function toast(msg){
+    var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  }
+
+  // ---------- 绘制 ----------
+  function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+  function drawSky(){
+    var g = ctx.createLinearGradient(0,0,0,H);
+    if(night){ g.addColorStop(0,'#2a2350'); g.addColorStop(0.6,'#3b2f6b'); g.addColorStop(1,'#5a4a8f'); }
+    else { g.addColorStop(0,'#bfe3ff'); g.addColorStop(0.55,'#e3ecff'); g.addColorStop(1,'#ffd9ec'); }
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    if(night){
+      // 月亮 + 星星
+      ctx.fillStyle='rgba(255,250,220,.95)'; ctx.beginPath(); ctx.arc(860,90,34,0,6.28); ctx.fill();
+      ctx.fillStyle='#3b2f6b'; ctx.beginPath(); ctx.arc(845,80,30,0,6.28); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.85)';
+      for(var i=0;i<40;i++){ var sx=(i*97)%W, sy=(i*53)%260+10; var tw=0.4+0.6*Math.abs(Math.sin(perf/600+i)); ctx.globalAlpha=tw; ctx.fillRect(sx,sy,2,2); }
+      ctx.globalAlpha=1;
+    } else {
+      // 太阳
+      ctx.fillStyle='rgba(255,236,150,.9)'; ctx.beginPath(); ctx.arc(870,90,30,0,6.28); ctx.fill();
+      ctx.fillStyle='rgba(255,236,150,.25)'; ctx.beginPath(); ctx.arc(870,90,46,0,6.28); ctx.fill();
+    }
+  }
+  function drawGround(){
+    var g=ctx.createLinearGradient(0,300,0,H);
+    if(night){ g.addColorStop(0,'#5b7a55'); g.addColorStop(1,'#3f5a3c'); }
+    else { g.addColorStop(0,'#cdeeb0'); g.addColorStop(1,'#a9dd92'); }
+    ctx.fillStyle=g; ctx.fillRect(0,330,W,H-330);
+    // 小路
+    ctx.fillStyle = night?'rgba(220,210,180,.5)':'rgba(245,235,205,.95)';
+    ctx.beginPath(); ctx.moveTo(470,330); ctx.lineTo(560,330); ctx.lineTo(700,640); ctx.lineTo(360,640); ctx.closePath(); ctx.fill();
+  }
+  function drawBuilding(s, roof, wall){
+    ctx.fillStyle=wall; rr(s.x,s.y,s.w,s.h,14); ctx.fill();
+    ctx.fillStyle=roof; ctx.beginPath(); ctx.moveTo(s.x-8,s.y+6); ctx.lineTo(s.x+s.w/2,s.y-34); ctx.lineTo(s.x+s.w+8,s.y+6); ctx.closePath(); ctx.fill();
+    // 门
+    ctx.fillStyle='rgba(90,60,50,.85)'; rr(s.x+s.w/2-16,s.y+s.h-44,32,44,7); ctx.fill();
+    // 窗
+    ctx.fillStyle= night?'rgba(255,224,150,.9)':'rgba(180,225,255,.95)';
+    rr(s.x+18,s.y+22,30,28,6); ctx.fill(); rr(s.x+s.w-48,s.y+22,30,28,6); ctx.fill();
+    // 牌子
+    ctx.fillStyle='rgba(255,255,255,.9)'; rr(s.x+s.w/2-26,s.y+s.h-70,52,18,6); ctx.fill();
+    ctx.fillStyle='#6b4a7a'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center'; ctx.fillText(s.label, s.x+s.w/2, s.y+s.h-57);
+  }
+
+  function drawTree(s){
+    // 树干
+    ctx.fillStyle = night?'#5b4636':'#7a5a3a'; rr(548,236,24,64,8); ctx.fill();
+    // 树冠
+    var blobs = [[560,180,70],[520,200,52],[600,200,52],[560,150,54]];
+    ctx.fillStyle = night?'#caa0d8':'#ffb3d6';
+    blobs.forEach(function(b){ ctx.beginPath(); ctx.arc(b[0],b[1],b[2],0,6.28); ctx.fill(); });
+    ctx.fillStyle = night?'#e0b8e8':'#ffd0e6';
+    blobs.forEach(function(b){ ctx.beginPath(); ctx.arc(b[0]-12,b[1]-12,b[2]*0.5,0,6.28); ctx.fill(); });
+  }
+
+  function drawPond(){
+    var s=spots.find(function(x){return x.type==='pond';});
+    ctx.fillStyle = night?'rgba(60,90,140,.9)':'rgba(120,200,235,.92)';
+    ctx.beginPath(); ctx.ellipse(s.x+s.w/2,s.y+s.h/2,s.w/2,s.h/2,0,0,6.28); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.35)';
+    ctx.beginPath(); ctx.ellipse(s.x+s.w/2-30,s.y+s.h/2-8,40,14,0,0,6.28); ctx.fill();
+    // 荷叶
+    ctx.fillStyle='#7fd6a0'; ctx.beginPath(); ctx.arc(s.x+s.w/2+50,s.y+s.h/2+10,16,0,6.28); ctx.fill();
+    // 互动气泡由通用逻辑绘制
+  }
+
+  function drawSpot(s){
+    ctx.save();
+    if(s.type==='class'){ drawBuilding(s,'#ff8f6f','#fff3e6'); }
+    else if(s.type==='garden'){ drawBuilding(s,'#7fd6a0','#eafff2');
+      // 花
+      var fx=[s.x+30,s.x+70,s.x+110,s.x+150];
+      fx.forEach(function(x,i){ ctx.fillStyle=['#ff9ec4','#ffce5c','#ff8fbf','#fff'][i]; ctx.beginPath(); ctx.arc(x,s.y+s.h-26,9,0,6.28); ctx.fill(); ctx.fillStyle='#5b8f4a'; ctx.fillRect(x-2,s.y+s.h-20,4,12); }); }
+    else if(s.type==='tree'){ drawTree(s); }
+    else if(s.type==='pond'){ drawPond(); }
+    else if(s.type==='cat'){ drawCat(s); }
+    else if(s.type==='friend'){ drawFriend(s); }
+    else if(s.type==='swing'){ drawSwing(s); }
+    else if(s.type==='gift'){ drawGift(s); }
+    ctx.restore();
+  }
+
+  function drawCat(s){
+    var bob = catMood>0 ? Math.sin(perf/80)*3 : 0;
+    ctx.save(); ctx.translate(s.x+s.w/2, s.y+s.h/2+bob);
+    ctx.fillStyle='#f6a94d'; ctx.beginPath(); ctx.ellipse(0,6,26,18,0,0,6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(-18,-8,12,0,6.28); ctx.fill(); // 头
+    ctx.fillStyle='#f6a94d'; ctx.beginPath(); ctx.moveTo(-26,-16); ctx.lineTo(-22,-26); ctx.lineTo(-16,-18); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-12,-18); ctx.lineTo(-8,-27); ctx.lineTo(-4,-17); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#3a3357'; ctx.beginPath(); ctx.arc(-21,-9,2,0,6.28); ctx.fill(); ctx.beginPath(); ctx.arc(-15,-9,2,0,6.28); ctx.fill();
+    ctx.strokeStyle='#3a3357'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(-18,-4,4,0.2,2.8); ctx.stroke();
+    // 尾巴
+    ctx.strokeStyle='#f6a94d'; ctx.lineWidth=6; ctx.beginPath(); ctx.moveTo(24,8); ctx.quadraticCurveTo(40,0,36,-14); ctx.stroke();
+    if(catMood>0){ ctx.fillStyle='rgba(255,140,180,.9)'; ctx.font='14px sans-serif'; ctx.fillText('💕',6,-26); }
+    ctx.restore();
+  }
+
+  function drawFriend(s){
+    drawChibi(s.x+s.w/2, s.y+s.h/2, 1, OUTFITS.magic, HATS.bow, perf/400);
+    if(save.friend>0){ ctx.fillStyle='rgba(255,140,180,.9)'; ctx.font='13px sans-serif'; ctx.fillText('💕'.repeat(Math.min(3,save.friend)), s.x+s.w/2-14, s.y-6); }
+  }
+  function drawSwing(s){
+    ctx.strokeStyle = night?'rgba(255,255,255,.7)':'#8a6a4a'; ctx.lineWidth=5;
+    ctx.beginPath(); ctx.moveTo(s.x+14,s.y); ctx.lineTo(s.x+14,s.y+50); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s.x+s.w-14,s.y); ctx.lineTo(s.x+s.w-14,s.y+50); ctx.stroke();
+    var ang = swingT>0 ? Math.sin(perf/300)*0.4 : 0;
+    var bx = s.x+s.w/2 + Math.sin(ang)*22;
+    ctx.strokeStyle='#8a6a4a'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(s.x+14,s.y+50); ctx.lineTo(bx,s.y+58); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s.x+s.w-14,s.y+50); ctx.lineTo(bx,s.y+58); ctx.stroke();
+    ctx.fillStyle='#caa0d8'; rr(bx-18,s.y+56,36,10,5); ctx.fill();
+    // 小人坐在上面
+    if(swingT>0) drawChibi(bx, s.y+30, 1, OUTFITS.sport, HATS.none, perf/300);
+  }
+  function drawGift(s){
+    var pop = busyType==='gift'&&busy>0 ? 1+Math.sin(perf/60)*0.06 : 1;
+    ctx.save(); ctx.translate(s.x+s.w/2, s.y+s.h/2); ctx.scale(pop,pop);
+    ctx.fillStyle='#ff7fae'; rr(-22,-14,44,34,6); ctx.fill();
+    ctx.fillStyle='#ffd84d'; ctx.fillRect(-5,-14,10,34);
+    ctx.fillStyle='#ffd84d'; ctx.beginPath(); ctx.arc(0,-14,6,0,6.28); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0,-18); ctx.lineTo(-12,-26); ctx.lineTo(-4,-14); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0,-18); ctx.lineTo(12,-26); ctx.lineTo(4,-14); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  // 小人绘制（玩家 / 好友共用）
+  function drawChibi(cx, cy, face, outfit, hat, walk){
+    var O = OUTFITS[outfit] || OUTFITS.sakura;
+    var Ht = HATS[hat] || HATS.none;
+    var bob = Math.abs(Math.sin(walk*8))*3;
+    ctx.save(); ctx.translate(cx, cy - bob);
+    if(face<0) ctx.scale(-1,1);
+    // 影子
+    ctx.fillStyle='rgba(0,0,0,.12)'; ctx.beginPath(); ctx.ellipse(0,30,18,6,0,0,6.28); ctx.fill();
+    // 腿
+    ctx.fillStyle='#ffd9b8';
+    var ls = Math.sin(walk*8)*4;
+    rr(-9,18+Math.max(0,ls),8,14,4); ctx.fill();
+    rr(2,18+Math.max(0,-ls),8,14,4); ctx.fill();
+    // 裙子
+    ctx.fillStyle=O.dress; ctx.beginPath(); ctx.moveTo(-16,18); ctx.lineTo(16,18); ctx.lineTo(22,2); ctx.lineTo(-22,2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle=O.trim; rr(-22,0,44,5,2); ctx.fill();
+    // 手臂
+    ctx.fillStyle=O.dress; rr(-22,2,7,16,4); ctx.fill(); rr(15,2,7,16,4); ctx.fill();
+    // 头
+    ctx.fillStyle='#ffe0c4'; ctx.beginPath(); ctx.arc(0,-16,15,0,6.28); ctx.fill();
+    // 头发
+    ctx.fillStyle='#6b4a3a'; ctx.beginPath(); ctx.arc(0,-20,16,Math.PI,0); ctx.fill();
+    ctx.fillRect(-16,-20,5,12); ctx.fillRect(11,-20,5,12);
+    // 脸
+    ctx.fillStyle='#3a3357'; ctx.beginPath(); ctx.arc(-5,-16,2,0,6.28); ctx.fill(); ctx.beginPath(); ctx.arc(6,-16,2,0,6.28); ctx.fill();
+    ctx.fillStyle='rgba(255,140,170,.6)'; ctx.beginPath(); ctx.arc(-9,-11,3,0,6.28); ctx.fill(); ctx.beginPath(); ctx.arc(10,-11,3,0,6.28); ctx.fill();
+    ctx.strokeStyle='#c96'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.arc(0,-12,4,0.2,2.9); ctx.stroke();
+    // 头饰
+    if(Ht.color){
+      if(hat==='bow'){ ctx.fillStyle=Ht.color; ctx.beginPath(); ctx.moveTo(0,-30); ctx.lineTo(-12,-36); ctx.lineTo(-12,-26); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(0,-30); ctx.lineTo(12,-36); ctx.lineTo(12,-26); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.arc(0,-31,4,0,6.28); ctx.fill(); }
+      else if(hat==='grad'){ ctx.fillStyle=Ht.color; rr(-15,-34,30,8,2); ctx.fill(); ctx.beginPath(); ctx.moveTo(-15,-30); ctx.lineTo(15,-30); ctx.lineTo(28,-33); ctx.lineTo(-28,-33); ctx.closePath(); ctx.fill(); ctx.fillStyle='#ffd84d'; rr(-2,-44,4,12,2); ctx.fill(); }
+      else if(hat==='wreath'){ ctx.strokeStyle=Ht.color; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(0,-28,15,Math.PI*1.05,Math.PI*1.95); ctx.stroke(); ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(-12,-30,3,0,6.28); ctx.fill(); ctx.beginPath(); ctx.arc(12,-30,3,0,6.28); ctx.fill(); }
+      else if(hat==='star'){ ctx.fillStyle=Ht.color; ctx.beginPath(); ctx.arc(12,-30,5,0,6.28); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='7px sans-serif'; ctx.fillText('★',10.5,-28); }
+    }
+    ctx.restore();
+  }
+
+  function drawPlayer(){
+    player.moving = false;
+    var dx=0, dy=0;
+    if(keys['arrowleft']||keys['a']) dx-=1;
+    if(keys['arrowright']||keys['d']) dx+=1;
+    if(keys['arrowup']||keys['w']) dy-=1;
+    if(keys['arrowdown']||keys['s']) dy+=1;
+    if(dx||dy){
+      player.moving=true; if(dx) player.face = dx>0?1:-1;
+      var len=Math.hypot(dx,dy)||1; dx/=len; dy/=len;
+      var nx=player.x+dx*player.speed*dt, ny=player.y+dy*player.speed*dt;
+      if(!hitSolid(nx,player.y)) player.x=nx;
+      if(!hitSolid(player.x,ny)) player.y=ny;
+      player.x=Math.max(28,Math.min(W-28,player.x));
+      player.y=Math.max(360,Math.min(H-30,player.y));
+      player.walk += dt;
+    }
+    drawChibi(player.x, player.y, player.face, save.equipped.outfit, save.equipped.hat, player.moving?player.walk:0);
+  }
+  function hitSolid(x,y){
+    for(var i=0;i<solids.length;i++){ var s=solids[i];
+      if(x+14>s.x && x-14<s.x+s.w && y+24>s.y && y-24<s.y+s.h) return true; }
+    return false;
+  }
+
+  function drawPetals(){
+    for(var i=petals.length-1;i>=0;i--){
+      var p=petals[i];
+      p.sway+=p.sw*dt; p.x+= (p.vx + Math.sin(p.sway)*14)*dt; p.y+=p.vy*dt; p.rot+=p.vr*dt;
+      // 收集
+      if(Math.abs(p.x-player.x)<26 && Math.abs(p.y-player.y)<34){ petals.splice(i,1); if(!save.muted) sCollect(); addPetal(1); persist(); continue; }
+      if(p.y>H+20){ petals.splice(i,1); continue; }
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.fillStyle=p.c; ctx.beginPath();
+      ctx.ellipse(0,0,p.s,p.s*0.6,0,0,6.28); ctx.fill();
+      ctx.restore();
+    }
+    // 补充数量
+    if(petals.length<28 && Math.random()<0.06) spawnPetal();
+  }
+
+  function drawInteractHint(){
+    near=null; var best=1e9;
+    spots.forEach(function(s){
+      var cx=s.x+s.w/2, cy=s.y+s.h/2;
+      var d=Math.hypot(cx-player.x, cy-player.y);
+      if(d<best){ best=d; near=s; }
+    });
+    if(near && best<120 && busy<=0 && !qa){
+      var cx=near.x+near.w/2, cy=near.y-14;
+      ctx.fillStyle='rgba(58,51,87,.92)';
+      var txt='空格 / 点击';
+      ctx.font='bold 13px sans-serif'; var tw=ctx.measureText(txt).width;
+      rr(cx-tw/2-10, cy-22, tw+20, 22, 11); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.fillText(txt, cx, cy-7);
+      // 小三角
+      ctx.beginPath(); ctx.moveTo(cx-6,cy); ctx.lineTo(cx+6,cy); ctx.lineTo(cx,cy+7); ctx.closePath(); ctx.fill();
+    }
+  }
+
+  function drawConfetti(){
+    for(var i=confetti.length-1;i>=0;i--){ var c=confetti[i];
+      c.vy+=300*dt; c.x+=c.vx*dt; c.y+=c.vy*dt; c.life-=dt; c.rot+=c.vr*dt;
+      if(c.life<=0){ confetti.splice(i,1); continue; }
+      ctx.save(); ctx.globalAlpha=Math.max(0,c.life); ctx.translate(c.x,c.y); ctx.rotate(c.rot);
+      ctx.fillStyle=c.c; ctx.fillRect(-c.s/2,-c.s/2,c.s,c.s*0.6); ctx.restore();
+    }
+  }
+
+  // 互动动画推进
+  function tickBusy(){
+    if(busy>0){ busy-=dt; if(busyType==='cat') catMood=Math.min(1,catMood+dt*2); if(busyType==='garden') waterGrow=Math.min(1,waterGrow+dt*1.5); if(busyType==='swing') swingT=Math.min(1,swingT+dt); }
+    else { catMood=Math.max(0,catMood-dt*2); waterGrow=Math.max(0,waterGrow-dt); swingT=Math.max(0,swingT-dt); }
+  }
+
+  // ---------- 主循环 ----------
+  var perf=0, last=0, dt=0;
+  function loop(ts){
+    if(!last) last=ts; dt=Math.min(0.05,(ts-last)/1000); last=ts; perf=ts;
+    ctx.clearRect(0,0,W,H);
+    drawSky(); drawGround();
+    // 物件按 y 排序绘制（简单：先静态后动态）
+    drawSpot(spots.find(function(s){return s.type==='tree';}));
+    drawSpot(spots.find(function(s){return s.type==='class';}));
+    drawSpot(spots.find(function(s){return s.type==='garden';}));
+    drawSpot(spots.find(function(s){return s.type==='pond';}));
+    drawSpot(spots.find(function(s){return s.type==='swing';}));
+    drawSpot(spots.find(function(s){return s.type==='gift';}));
+    drawSpot(spots.find(function(s){return s.type==='cat';}));
+    drawSpot(spots.find(function(s){return s.type==='friend';}));
+    drawPetals();
+    drawPlayer();
+    drawInteractHint();
+    drawConfetti();
+    tickBusy();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // ---------- 初始化 ----------
+  updateHUD(); renderTasks(); renderWardrobe();
+  // 首次进入弹出帮助
+  if(!localStorage.getItem('sakura-seen')){ document.getElementById('helpOverlay').classList.add('open'); localStorage.setItem('sakura-seen','1'); }
+
+})();
+</script>
+</body>
+</html>
