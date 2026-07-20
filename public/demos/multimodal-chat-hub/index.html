@@ -3,73 +3,188 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multimodal Chat Hub · 多模态对话</title>
-<link rel="stylesheet" href="styles.css">
+<title>Multimodal Chat Hub · 多模态对话机器人</title>
+<link rel="stylesheet" href="../_shared.css">
+<style>
+  :root{ --accent:#e879f9; --accent-soft:rgba(232,121,249,.14); }
+</style>
 </head>
 <body>
+
+<!-- NAV -->
 <header class="topbar">
   <div class="container inner">
     <div class="brand">
-      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/><circle cx="9" cy="10" r="1"/><circle cx="15" cy="10" r="1"/></svg></span>
-      <div>Multimodal Hub<small>多模态对话 · 文本 / 视觉 / 语音</small></div>
+      <span class="mark">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/><circle cx="9" cy="10" r="1"/><circle cx="15" cy="10" r="1"/></svg>
+      </span>
+      <div>Multimodal Hub<small>多模态对话机器人 · 文本 / 视觉 / 语音</small></div>
     </div>
-    <span class="badge-live"><span class="dot"></span> 后端在线</span>
+    <nav class="top-links">
+      <a href="../index.html">← 全部 Demo</a>
+      <a href="#chat">对话</a>
+      <a href="#feat">能力</a>
+      <a href="#arch">架构</a>
+    </nav>
+    <span class="badge-live"><span class="dot"></span> 后端在线 :8004</span>
   </div>
 </header>
 
+<!-- HERO -->
 <section class="hero">
   <div class="container">
-    <h1>多模态 <span class="grad">对话机器人</span>：看得懂图，听得懂话</h1>
-    <p>文本情感与意图识别 + 图像视觉特征理解（Canvas 提取主色 / 亮度 / 边缘密度）+ 浏览器语音输入输出（Web Speech API），三种模态融合成自然应答。</p>
+    <span class="eyebrow"><span class="pip"></span> Multimodal Dialogue Agent</span>
+    <h1>多模态 <span class="grad-text">对话机器人</span></h1>
+    <p>文本情感感知 · 图像理解 · 语音转录 · 统一编排于 <b>Context Harness Loop</b>，让三种模态在同一上下文里自然对话。</p>
+    <div class="kv">
+      <div class="cell"><div class="k">3</div><div class="l">模态</div></div>
+      <div class="cell"><div class="k">8</div><div class="l">情绪维度</div></div>
+      <div class="cell"><div class="k">16</div><div class="l">上下文轮次</div></div>
+      <div class="cell"><div class="k">0-Key</div><div class="l">本地即可运行</div></div>
+    </div>
   </div>
 </section>
 
-<main class="container grid-2">
-  <!-- 对话区 -->
-  <div class="card">
-    <div class="card-h">
-      <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
-      <div><h3>多模态对话</h3><div class="sub">发文字、传图片、说话都行</div></div>
+<!-- PIPELINE -->
+<section class="section" id="arch">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>Agent 编排流水线</h2><div class="rule"></div><span class="tag">Context Harness Loop</span>
     </div>
-    <div class="chat" id="chat">
-      <div class="msg a"><div class="bubble">你好！我能理解文字、图片和语音。试试：发一句话看情感分析、上传图片看视觉理解、点麦克风用语音输入，或点 🔊 让我朗读回复。</div></div>
+    <div class="card reveal">
+      <div class="pipeline cols-4">
+        <div class="stage" id="p1"><div class="dot"></div><div class="t">① 输入感知</div><div class="d" id="p1d">文本/图/音</div></div>
+        <div class="stage" id="p2"><div class="dot"></div><div class="t">② 情感/语义理解</div><div class="d" id="p2d">—</div></div>
+        <div class="stage" id="p3"><div class="dot"></div><div class="t">③ Context Harness 编排</div><div class="d" id="p3d">—</div></div>
+        <div class="stage" id="p4"><div class="dot"></div><div class="t">④ 多模态回复</div><div class="d" id="p4d">—</div></div>
+      </div>
+      <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="runPipe">▶ 运行编排演示</button>
+        <button class="btn btn-ghost" id="clearCtx">清空上下文</button>
+      </div>
     </div>
-    <div class="preview" id="preview"><img id="previewImg"><button class="rm" id="rmImg">×</button></div>
-    <div class="inputbar">
-      <button class="iconbtn" id="imgBtn" title="上传图片"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></button>
-      <button class="iconbtn" id="micBtn" title="语音输入"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg></button>
-      <input id="textInput" placeholder="输入消息，回车发送…" onkeydown="if(event.key==='Enter')window.__send()">
-      <button class="iconbtn btn-send" id="sendBtn" title="发送"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button>
-    </div>
-    <input type="file" id="fileInput" accept="image/*" hidden>
-    <canvas id="cv" hidden></canvas>
   </div>
+</section>
 
-  <!-- 分析面板 -->
-  <div>
-    <div class="card">
+<!-- MAIN: chat + side panels -->
+<main class="section" id="chat" style="padding-top:0">
+  <div class="container grid-2">
+
+    <!-- LEFT: chat -->
+    <div class="card reveal">
       <div class="card-h">
-        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 4-5"/></svg></span>
-        <div><h3>最近一次分析</h3><div class="sub">情感 · 意图 · 视觉</div></div>
+        <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
+        <div><h3>多模态对话</h3><div class="sub">切换模态，实时交互</div></div>
       </div>
-      <div id="analysis"><div class="empty">发送消息后这里显示分析结果</div></div>
+
+      <div class="chat" id="chatBox"></div>
+
+      <div class="field" style="margin-top:16px;margin-bottom:0">
+        <label>输入模态</label>
+        <div class="chips" id="modChips" style="margin-bottom:12px">
+          <span class="opt on" data-mod="text">文本</span>
+          <span class="opt" data-mod="image">图像</span>
+          <span class="opt" data-mod="voice">语音</span>
+        </div>
+        <div style="display:flex;gap:10px">
+          <input class="input" id="msgInput" placeholder="输入消息，回车发送…" autocomplete="off">
+          <button class="btn btn-primary" id="sendBtn">发送</button>
+        </div>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-h">
-        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"/></svg></span>
-        <div><h3>支持的模态</h3></div>
+
+    <!-- RIGHT: context harness + emotion -->
+    <div>
+      <div class="card reveal">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 4-5"/></svg></span>
+          <div><h3>Context Harness</h3><div class="sub">记忆 / 上下文 · 每轮沉淀</div></div>
+        </div>
+        <div class="term" id="ctxTerm"><div class="empty">等待对话，上下文将逐轮写入…</div></div>
       </div>
-      <div class="mod-list">
-        <div class="mod"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg></span><div class="info"><div class="n">文本</div><div class="d">情感词典分析 + 规则意图识别</div></div></div>
-        <div class="mod"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span><div class="info"><div class="n">视觉</div><div class="d">Canvas 提取主色/亮度/边缘密度→语义</div></div></div>
-        <div class="mod"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg></span><div class="info"><div class="n">语音</div><div class="d">Web Speech API 语音识别 + 朗读</div></div></div>
+
+      <div class="card reveal" style="margin-top:20px">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg></span>
+          <div><h3>情感感知</h3><div class="sub">实时情绪 · 意图 · 上下文</div></div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat"><div class="n brand" id="stEmo">中性</div><div class="l">检测情绪</div></div>
+          <div class="stat"><div class="n ok" id="stConf">34%</div><div class="l">置信度</div></div>
+          <div class="stat"><div class="n" id="stCtx">0</div><div class="l">上下文长度</div></div>
+        </div>
       </div>
     </div>
+
   </div>
 </main>
 
-<footer class="container">Multimodal Chat Hub · FastAPI 多模态融合 + Canvas 视觉特征 + Web Speech · 蓝白科技感统一风格</footer>
+<!-- FEATURES -->
+<section class="section" id="feat">
+  <div class="container">
+    <div class="section-head reveal"><h2>核心能力</h2><div class="rule"></div><span class="tag">Why Multimodal Hub</span></div>
+    <div class="grid-3">
+      <div class="feat reveal"><div class="fi">😊</div><h4>情感感知</h4><p>基于 8 维情绪模型（喜悦/愤怒/悲伤/恐惧/惊讶/厌恶/信任/期待）实时识别用户情绪，调优回复语气。</p></div>
+      <div class="feat reveal"><div class="fi">🖼️</div><h4>图像理解</h4><p>提取画面主色、构图与场景语义，将视觉特征注入上下文，支持基于图片的连续追问。</p></div>
+      <div class="feat reveal"><div class="fi">🎙️</div><h4>语音转录</h4><p>语音输入自动转写为文本进入同一流水线，先展示转录原文再生成回复，过程可追溯。</p></div>
+      <div class="feat reveal"><div class="fi">🧠</div><h4>长期记忆</h4><p>每轮对话的意图、情绪与实体沉淀为记忆，跨轮次复用，避免重复澄清。</p></div>
+      <div class="feat reveal"><div class="fi">🔧</div><h4>工具调用</h4><p>Context Harness 可按意图路由到查询、翻译、播放等工具，结果回写统一上下文。</p></div>
+      <div class="feat reveal"><div class="fi">🔗</div><h4>多轮一致</h4><p>跨文本/图像/语音保持人格与事实一致，长程对话不漂移、不遗忘前情。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER CTA -->
+<div class="foot-cta">
+  <div class="container">
+    <a class="cta" href="http://localhost:8004" target="_blank" rel="noopener">启动完整后端体验（Multimodal Hub :8004）→</a>
+    <p>完整版含：真实情感模型 / 视觉编码器 / ASR · TTS，需先运行 <code>uvicorn app.main:app --port 8004</code></p>
+  </div>
+</div>
+
+<!-- VERSION HISTORY -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>完整版本历史</h2><div class="rule"></div><span class="tag">Changelog</span>
+    </div>
+    <div class="card reveal">
+      <div class="timeline">
+        <div class="tl-item on">
+          <div class="ver"><span class="vtag">v2.0</span><span class="when">2026.07.20</span></div>
+          <div class="what">Context Harness + 模态动画</div>
+          <div class="desc">并入统一设计体系，新增上下文预算面板，多模态输入切换更顺滑。</div>
+          <ul>
+            <li>Context Harness 上下文预算面板</li>
+            <li>图像理解 + 语音转录双模态输入</li>
+            <li>情感感知驱动的回复语气</li>
+          </ul>
+          <div class="tags"><span class="tg new">新功能</span><span class="tg opt">优化</span></div>
+          <div class="quote">「多模态不是堆按钮，是让上下文自己说话。」</div>
+        </div>
+        <div class="tl-item">
+          <div class="ver"><span class="vtag">v1.0</span><span class="when">2026.06.27</span></div>
+          <div class="what">三模态</div>
+          <div class="desc">文本情感感知 + 图像理解 + 语音转录 打通。</div>
+          <div class="tags"><span class="tg new">新功能</span></div>
+        </div>
+        <div class="tl-item">
+          <div class="ver"><span class="vtag">v0.8</span><span class="when">2026.06.12</span></div>
+          <div class="what">原型</div>
+          <div class="desc">纯文本对话验证对话内核。</div>
+          <div class="tags"><span class="tg new">新功能</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">Multimodal Chat Hub · FastAPI + 原生前端 · 统一暗色玻璃拟态风格 · ©<span id="year"></span> Tao Xie</div>
+</footer>
+
 <div class="toast" id="toast"></div>
+<script src="../_shared.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
