@@ -1,0 +1,75 @@
+/* Multimodal Chat Hub · 蓝白科技感统一主题 */
+:root{
+  --bg:#eef3fb;--bg-2:#f7faff;--surface:#ffffff;--ink:#0e1b3a;--ink-2:#48557a;--ink-3:#8a95b4;
+  --line:#e3e9f6;--brand:#2563eb;--brand-2:#0891b2;--brand-soft:#e8efff;--teal:#0d9488;
+  --ok:#059669;--rose:#e11d48;--amber:#d97706;--shadow-sm:0 2px 12px rgba(20,40,90,.07);--radius:16px;--radius-sm:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;
+  background:radial-gradient(700px 380px at 12% -5%,rgba(37,99,235,.10),transparent 70%),
+    radial-gradient(620px 360px at 100% 0%,rgba(8,145,178,.12),transparent 70%),var(--bg)}
+button,input,select,textarea{font-family:inherit}button{cursor:pointer;border:none;background:none}
+.container{max-width:1180px;margin:0 auto;padding:0 22px}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.topbar .inner{display:flex;align-items:center;justify-content:space-between;height:62px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:17px}
+.brand .mark{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;color:#fff;
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:0 6px 16px rgba(37,99,235,.4)}
+.brand .mark svg{width:20px;height:20px;stroke:#fff}
+.brand small{display:block;font-size:11px;color:var(--ink-3);font-weight:600}
+.badge-live{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--ok);background:#e7f8f0;border:1px solid #c3ecd9;padding:6px 12px;border-radius:999px}
+.badge-live .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:blink 1.6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.hero{padding:38px 0 14px}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:-.6px}
+.hero h1 .grad{background:linear-gradient(120deg,var(--brand),var(--brand-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--ink-2);font-size:15px;margin-top:10px;max-width:700px}
+.grid-2{display:grid;grid-template-columns:1.5fr 1fr;gap:22px;align-items:start;padding:16px 0 60px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:20px}
+.card + .card{margin-top:20px}
+.card-h{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.card-h .ci{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--brand-soft)}
+.card-h .ci svg{width:19px;height:19px;stroke:var(--brand)}
+.card-h h3{font-size:16px;font-weight:700}
+.card-h .sub{font-size:12px;color:var(--ink-3)}
+.chat{min-height:300px;max-height:460px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:4px}
+.msg{max-width:86%;display:flex;flex-direction:column;gap:6px}
+.msg.u{align-self:flex-end;align-items:flex-end}
+.msg .bubble{padding:12px 15px;border-radius:14px;font-size:14px;line-height:1.65}
+.msg.u .bubble{background:linear-gradient(120deg,var(--brand),var(--brand-2));color:#fff;border-bottom-right-radius:4px}
+.msg.a .bubble{background:var(--bg-2);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg img.thumb{max-width:180px;border-radius:12px;border:1px solid var(--line)}
+.msg .meta-tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px;background:var(--brand-soft);color:var(--brand)}
+.tag.senti-积极{background:#e7f8f0;color:var(--ok)}.tag.senti-消极{background:#ffe4e9;color:var(--rose)}.tag.senti-中性{background:#eef2f9;color:var(--ink-3)}
+.speak{font-size:11px;color:var(--brand);display:inline-flex;align-items:center;gap:4px;font-weight:600}
+.speak svg{width:13px;height:13px}
+.preview{position:relative;margin-top:10px;display:none}
+.preview img{max-width:100%;border-radius:var(--radius-sm);border:1px solid var(--line)}
+.preview .rm{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;width:24px;height:24px;border-radius:50%;font-size:15px}
+.inputbar{display:flex;gap:8px;margin-top:14px;align-items:center}
+.inputbar input{flex:1;padding:11px 13px;border:1px solid var(--line);border-radius:11px;font-size:14px;background:var(--bg-2)}
+.inputbar input:focus{outline:none;border-color:var(--brand);background:#fff}
+.iconbtn{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand);flex:0 0 auto;transition:.16s}
+.iconbtn:hover{background:#dbe6ff}
+.iconbtn.rec{background:var(--rose);color:#fff;animation:blink 1s infinite}
+.iconbtn svg{width:20px;height:20px}
+.btn-send{background:linear-gradient(120deg,var(--brand),var(--brand-2));color:#fff}
+.btn-send:hover{background:linear-gradient(120deg,var(--brand),var(--brand-2));transform:translateY(-1px)}
+.feat-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.feat{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;flex:1;min-width:80px;text-align:center}
+.feat .n{font-size:16px;font-weight:800;color:var(--brand)}
+.feat .l{font-size:11px;color:var(--ink-3);font-weight:600}
+.swatch{width:100%;height:40px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px}
+.mod-list{display:flex;flex-direction:column;gap:10px}
+.mod{display:flex;align-items:center;gap:11px;padding:11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--bg-2)}
+.mod .mi{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--brand-soft);flex:0 0 auto}
+.mod .mi svg{width:19px;height:19px;stroke:var(--brand)}
+.mod .info .n{font-size:13.5px;font-weight:700}
+.mod .info .d{font-size:11.5px;color:var(--ink-3)}
+.empty{text-align:center;color:var(--ink-3);font-size:13px;padding:30px 0}
+footer{border-top:1px solid var(--line);padding:26px 0;text-align:center;color:var(--ink-3);font-size:12.5px}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:#fff;padding:11px 20px;border-radius:10px;font-size:13.5px;font-weight:600;z-index:200;transition:.25s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:920px){.grid-2{grid-template-columns:1fr}.hero h1{font-size:26px}}

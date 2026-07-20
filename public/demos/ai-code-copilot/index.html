@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Code Copilot · AI 代码助手</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="container inner">
+    <div class="brand">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+      <div>Code Copilot<small>AI 代码助手 · 解释 / 审查 / 生成</small></div>
+    </div>
+    <span class="badge-live"><span class="dot"></span> 后端在线</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <h1>AI <span class="grad">代码助手</span>：解释 · 审查 · 生成 · 补全</h1>
+    <p>基于 Python AST 与多条 lint 规则的真实静态分析：解析结构与圈复杂度、检出代码坏味道并给修复建议、按意图生成脚手架、上下文智能补全。规则层可无缝替换为真实 LLM 后端。</p>
+  </div>
+</section>
+
+<main class="container grid-2">
+  <div class="card">
+    <div class="card-h">
+      <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span>
+      <div><h3>代码输入</h3></div>
+    </div>
+    <div class="tabs" id="tabs">
+      <button class="active" data-t="explain">代码解释</button>
+      <button data-t="review">代码审查</button>
+      <button data-t="generate">代码生成</button>
+      <button data-t="complete">智能补全</button>
+    </div>
+    <div id="genBar" style="display:none;margin-bottom:12px">
+      <input class="input" id="genPrompt" placeholder="描述你要生成的代码，如：写一个 FastAPI 接口 / 快速排序 / 爬虫" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--bg-2)">
+    </div>
+    <div class="editor">
+      <div class="bar"><i class="r"></i><i class="y"></i><i class="g"></i>
+        <select id="lang"><option value="python">Python</option><option value="javascript">JavaScript</option></select>
+      </div>
+      <textarea id="code" spellcheck="false"></textarea>
+    </div>
+    <div class="actions">
+      <button class="btn btn-ghost" id="sampleBtn">示例代码</button>
+      <button class="btn btn-primary" id="runBtn">运行分析</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">
+      <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="m9 11 3 3L22 4"/></svg></span>
+      <div><h3>分析结果</h3></div>
+    </div>
+    <div class="out" id="out"><div class="empty">在左侧输入代码并点击「运行分析」</div></div>
+  </div>
+</main>
+
+<footer class="container">AI Code Copilot · FastAPI + Python AST 静态分析 + 原生前端 · 蓝白科技感统一风格</footer>
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>

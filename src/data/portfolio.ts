@@ -167,7 +167,7 @@ export const projects: Project[] = [
     },
     tech: ["PyTorch", "LoRA", "QLoRA", "vLLM", "FastAPI", "Docker"],
     github: REPO,
-    demo: "/demos/finetune.html",
+    demo: "/demos/llm-finetune-studio/",
     icon: "sparkles",
   },
   {
@@ -178,7 +178,7 @@ export const projects: Project[] = [
     },
     tech: ["Hybrid Search", "BM25", "FastAPI", "Citation", "Context"],
     github: REPO,
-    demo: "/demos/rag.html",
+    demo: "/demos/rag-knowledge-hub/",
     icon: "search",
   },
   {
@@ -189,7 +189,7 @@ export const projects: Project[] = [
     },
     tech: ["AST", "Skill Routing", "MCP", "FastAPI"],
     github: REPO,
-    demo: "/demos/code.html",
+    demo: "/demos/ai-code-copilot/",
     icon: "code",
   },
   {
@@ -200,7 +200,7 @@ export const projects: Project[] = [
     },
     tech: ["Emotion NLP", "FastAPI", "Context Loop"],
     github: REPO,
-    demo: "/demos/multimodal.html",
+    demo: "/demos/multimodal-chat-hub/",
     icon: "message-circle",
   },
   {
@@ -211,7 +211,7 @@ export const projects: Project[] = [
     },
     tech: ["Skill", "MCP", "RAG", "FastAPI"],
     github: REPO,
-    demo: "/demos/chatbot.html",
+    demo: "/demos/smart-service-desk/",
     icon: "bot",
   },
   {

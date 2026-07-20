@@ -572,6 +572,141 @@
     </div>
   </section>
 
+  <!-- ============ 大模型落地 / AI Agent 架构展示 ============ -->
+  <style>
+    .agent-sec{padding:64px 0 40px;position:relative;overflow:hidden}
+    .agent-sec::before{content:"";position:absolute;inset:0;background:
+      radial-gradient(600px 300px at 15% 0%,rgba(59,91,219,.08),transparent 70%),
+      radial-gradient(600px 300px at 85% 100%,rgba(112,72,232,.08),transparent 70%);pointer-events:none}
+    .agent-wrap{position:relative;background:linear-gradient(180deg,#0f1e4d 0%,#16265c 100%);
+      border-radius:28px;padding:44px 40px;color:#fff;box-shadow:0 24px 60px rgba(15,30,77,.35);overflow:hidden}
+    .agent-wrap::after{content:"";position:absolute;inset:0;
+      background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+      background-size:40px 40px;mask-image:radial-gradient(circle at 50% 40%,#000,transparent 78%);pointer-events:none}
+    .agent-head{position:relative;z-index:1;text-align:center;margin-bottom:38px}
+    .agent-kicker{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:1.2px;
+      text-transform:uppercase;color:#9db4ff;background:rgba(93,124,250,.16);border:1px solid rgba(93,124,250,.35);
+      padding:6px 14px;border-radius:999px}
+    .agent-kicker .pulse{width:7px;height:7px;border-radius:50%;background:#5c7cfa;box-shadow:0 0 0 0 rgba(92,124,250,.7);animation:apulse 1.8s infinite}
+    @keyframes apulse{0%{box-shadow:0 0 0 0 rgba(92,124,250,.6)}70%{box-shadow:0 0 0 9px rgba(92,124,250,0)}100%{box-shadow:0 0 0 0 rgba(92,124,250,0)}}
+    .agent-head h2{font-size:32px;font-weight:800;letter-spacing:-.6px;margin:18px 0 12px}
+    .agent-head h2 .grad{background:linear-gradient(120deg,#7aa2ff,#b79cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .agent-head p{color:#c3ccf0;font-size:15.5px;max-width:640px;margin:0 auto}
+    .agent-flow{position:relative;z-index:1;display:flex;align-items:stretch;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:40px}
+    .flow-node{flex:1;min-width:150px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+      border-radius:16px;padding:18px 16px;text-align:center;backdrop-filter:blur(6px);transition:.25s}
+    .flow-node:hover{transform:translateY(-4px);border-color:rgba(122,162,255,.6);background:rgba(122,162,255,.12)}
+    .flow-node .fn-ic{width:42px;height:42px;margin:0 auto 12px;border-radius:12px;display:grid;place-items:center;
+      background:linear-gradient(135deg,#3b5bdb,#7048e8);box-shadow:0 8px 20px rgba(59,91,219,.4)}
+    .flow-node .fn-ic svg{width:22px;height:22px;stroke:#fff}
+    .flow-node .fn-t{font-size:15px;font-weight:700;margin-bottom:5px}
+    .flow-node .fn-d{font-size:12.5px;color:#aeb9e6;line-height:1.5}
+    .flow-node .fn-tag{display:inline-block;margin-top:10px;font-size:11px;font-weight:600;color:#9db4ff;
+      background:rgba(93,124,250,.18);padding:3px 9px;border-radius:6px}
+    .flow-arrow{display:grid;place-items:center;color:#5c7cfa;flex:0 0 auto;align-self:center}
+    .flow-arrow svg{width:26px;height:26px;animation:aflow 1.6s ease-in-out infinite}
+    @keyframes aflow{0%,100%{transform:translateX(0);opacity:.5}50%{transform:translateX(4px);opacity:1}}
+    .agent-caps{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .cap{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px 18px;transition:.25s}
+    .cap:hover{background:rgba(255,255,255,.09);border-color:rgba(122,162,255,.45);transform:translateY(-3px)}
+    .cap .cap-top{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+    .cap .cap-ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto}
+    .cap .cap-ic svg{width:20px;height:20px}
+    .cap h4{font-size:15.5px;font-weight:700}
+    .cap p{font-size:13px;color:#b8c1e8;line-height:1.6}
+    .cap .cap-stack{margin-top:11px;display:flex;flex-wrap:wrap;gap:6px}
+    .cap .cap-stack span{font-size:11px;font-weight:600;color:#9db4ff;background:rgba(93,124,250,.15);
+      border:1px solid rgba(93,124,250,.28);padding:3px 8px;border-radius:6px}
+    .agent-cta{position:relative;z-index:1;text-align:center;margin-top:38px}
+    .agent-cta .btn-ai{display:inline-flex;align-items:center;gap:9px;padding:14px 30px;border-radius:12px;font-size:15px;font-weight:700;
+      color:#0f1e4d;background:linear-gradient(120deg,#a7c0ff,#ffffff);box-shadow:0 12px 30px rgba(122,162,255,.4);transition:.2s;border:0;cursor:pointer}
+    .agent-cta .btn-ai:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(122,162,255,.55)}
+    .agent-cta .hint{display:block;margin-top:12px;font-size:12.5px;color:#93a0d0}
+    @media(max-width:820px){.agent-caps{grid-template-columns:1fr}.flow-arrow{transform:rotate(90deg)}.agent-wrap{padding:32px 20px}}
+  </style>
+  <section class="agent-sec">
+    <div class="container">
+      <div class="agent-wrap">
+        <div class="agent-head">
+          <span class="agent-kicker"><span class="pulse"></span> AI Agent · 大模型落地</span>
+          <h2>不只是刷题工具，更是懂你的 <span class="grad">备考 Agent</span></h2>
+          <p>底层由自研 Agent 编排引擎驱动：混元 / 通义双基座 + LangGraph 同构 Supervisor 多智能体路由 + 分层记忆 + RAG 引用溯源 + 反思校验，把每一次答疑都建立在你真实的错题与掌握度之上。</p>
+        </div>
+
+        <div class="agent-flow">
+          <div class="flow-node">
+            <div class="fn-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v1a3 3 0 0 0-3 3 3 3 0 0 0 0 6 3 3 0 0 0 3 3v1a3 3 0 0 0 6 0v-1a3 3 0 0 0 3-3 3 3 0 0 0 0-6 3 3 0 0 0-3-3V5a3 3 0 0 0-3-3Z"/></svg></div>
+            <div class="fn-t">Supervisor 路由</div>
+            <div class="fn-d">意图识别，分发到最合适的子 Agent</div>
+            <span class="fn-tag">意图分类</span>
+          </div>
+          <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+          <div class="flow-node">
+            <div class="fn-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+            <div class="fn-t">子 Agent 执行</div>
+            <div class="fn-d">诊断 · 错题本 · 计划 · RAG 答疑</div>
+            <span class="fn-tag">工具调用</span>
+          </div>
+          <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+          <div class="flow-node">
+            <div class="fn-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.7 9.7 0 0 0-6.7 2.8L3 8"/><path d="M3 3v5h5"/></svg></div>
+            <div class="fn-t">反思 Agent</div>
+            <div class="fn-d">质量校验 + 主动追加个性化建议</div>
+            <span class="fn-tag">自反思</span>
+          </div>
+          <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+          <div class="flow-node">
+            <div class="fn-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></div>
+            <div class="fn-t">带溯源回答</div>
+            <div class="fn-d">结论 + 引用来源 + 后续行动建议</div>
+            <span class="fn-tag">引用溯源</span>
+          </div>
+        </div>
+
+        <div class="agent-caps">
+          <div class="cap">
+            <div class="cap-top"><span class="cap-ic" style="background:rgba(122,162,255,.2)"><svg viewBox="0 0 24 24" fill="none" stroke="#7aa2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span><h4>混元 / 通义双基座</h4></div>
+            <p>可切换的大模型推理层，统一封装调用与降级；无 Key 时自动规则兜底，保证功能全程可用。</p>
+            <div class="cap-stack"><span>Hunyuan</span><span>Qwen</span><span>流式输出</span></div>
+          </div>
+          <div class="cap">
+            <div class="cap-top"><span class="cap-ic" style="background:rgba(179,156,255,.2)"><svg viewBox="0 0 24 24" fill="none" stroke="#b79cff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 6h6a3 3 0 0 1 3 3M9 18h6a3 3 0 0 0 3-3"/></svg></span><h4>LangGraph 同构编排</h4></div>
+            <p>StateGraph 多智能体图，Supervisor 条件路由到诊断/错题/计划/答疑子节点，生产可一键迁移。</p>
+            <div class="cap-stack"><span>StateGraph</span><span>Supervisor</span><span>多 Agent</span></div>
+          </div>
+          <div class="cap">
+            <div class="cap-top"><span class="cap-ic" style="background:rgba(12,166,120,.22)"><svg viewBox="0 0 24 24" fill="none" stroke="#3ddc9a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg></span><h4>分层记忆持久化</h4></div>
+            <p>身份 / 长期画像 / 诊断摘要 / 对话历史 / 当前 五段式上下文预算，SQLite 落盘，重启不丢。</p>
+            <div class="cap-stack"><span>五段式预算</span><span>SQLite</span><span>长短期</span></div>
+          </div>
+          <div class="cap">
+            <div class="cap-top"><span class="cap-ic" style="background:rgba(240,140,0,.22)"><svg viewBox="0 0 24 24" fill="none" stroke="#ffb454" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="8"/></svg></span><h4>RAG 引用溯源</h4></div>
+            <p>向量召回 + 相关度阈值判定，答案附带引用来源与置信分，低于阈值主动说明"暂无可靠依据"。</p>
+            <div class="cap-stack"><span>向量检索</span><span>阈值门控</span><span>可溯源</span></div>
+          </div>
+          <div class="cap">
+            <div class="cap-top"><span class="cap-ic" style="background:rgba(232,89,12,.22)"><svg viewBox="0 0 24 24" fill="none" stroke="#ff8a5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.7 9.7 0 0 0-6.7 2.8L3 8"/><path d="M3 3v5h5"/></svg></span><h4>反思 Agent 校验</h4></div>
+            <p>对标"规划-执行/反思"范式，回答后二次校验并按意图追加冲刺计划、打卡提醒等主动建议。</p>
+            <div class="cap-stack"><span>自反思</span><span>主动建议</span></div>
+          </div>
+          <div class="cap">
+            <div class="cap-top"><span class="cap-ic" style="background:rgba(59,91,219,.24)"><svg viewBox="0 0 24 24" fill="none" stroke="#7aa2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 4-5"/><circle cx="17" cy="9" r="1.5" fill="#ff8a5c" stroke="none"/></svg></span><h4>学习异常检测</h4></div>
+            <p>迁移 AIOps 异常检测思路，扫描正确率骤降、连续错误、掉线等指标，诊断时主动预警。</p>
+            <div class="cap-stack"><span>AIOps 迁移</span><span>主动预警</span></div>
+          </div>
+        </div>
+
+        <div class="agent-cta">
+          <button class="btn-ai" data-jump="quiz">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            体验 AI 教练智能讲题
+          </button>
+          <span class="hint">进入刷题，答题后点击「AI 智能讲题」，即可调用完整 Agent 推理链</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section>
     <div class="container">
       <div class="sec-head">
