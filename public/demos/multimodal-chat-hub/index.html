@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multimodal Chat Hub · 多模态对话</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="container inner">
+    <div class="brand">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/><circle cx="9" cy="10" r="1"/><circle cx="15" cy="10" r="1"/></svg></span>
+      <div>Multimodal Hub<small>多模态对话 · 文本 / 视觉 / 语音</small></div>
+    </div>
+    <span class="badge-live"><span class="dot"></span> 后端在线</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <h1>多模态 <span class="grad">对话机器人</span>：看得懂图，听得懂话</h1>
+    <p>文本情感与意图识别 + 图像视觉特征理解（Canvas 提取主色 / 亮度 / 边缘密度）+ 浏览器语音输入输出（Web Speech API），三种模态融合成自然应答。</p>
+  </div>
+</section>
+
+<main class="container grid-2">
+  <!-- 对话区 -->
+  <div class="card">
+    <div class="card-h">
+      <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
+      <div><h3>多模态对话</h3><div class="sub">发文字、传图片、说话都行</div></div>
+    </div>
+    <div class="chat" id="chat">
+      <div class="msg a"><div class="bubble">你好！我能理解文字、图片和语音。试试：发一句话看情感分析、上传图片看视觉理解、点麦克风用语音输入，或点 🔊 让我朗读回复。</div></div>
+    </div>
+    <div class="preview" id="preview"><img id="previewImg"><button class="rm" id="rmImg">×</button></div>
+    <div class="inputbar">
+      <button class="iconbtn" id="imgBtn" title="上传图片"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></button>
+      <button class="iconbtn" id="micBtn" title="语音输入"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg></button>
+      <input id="textInput" placeholder="输入消息，回车发送…" onkeydown="if(event.key==='Enter')window.__send()">
+      <button class="iconbtn btn-send" id="sendBtn" title="发送"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" hidden>
+    <canvas id="cv" hidden></canvas>
+  </div>
+
+  <!-- 分析面板 -->
+  <div>
+    <div class="card">
+      <div class="card-h">
+        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 4-5"/></svg></span>
+        <div><h3>最近一次分析</h3><div class="sub">情感 · 意图 · 视觉</div></div>
+      </div>
+      <div id="analysis"><div class="empty">发送消息后这里显示分析结果</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"/></svg></span>
+        <div><h3>支持的模态</h3></div>
+      </div>
+      <div class="mod-list">
+        <div class="mod"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg></span><div class="info"><div class="n">文本</div><div class="d">情感词典分析 + 规则意图识别</div></div></div>
+        <div class="mod"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span><div class="info"><div class="n">视觉</div><div class="d">Canvas 提取主色/亮度/边缘密度→语义</div></div></div>
+        <div class="mod"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg></span><div class="info"><div class="n">语音</div><div class="d">Web Speech API 语音识别 + 朗读</div></div></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="container">Multimodal Chat Hub · FastAPI 多模态融合 + Canvas 视觉特征 + Web Speech · 蓝白科技感统一风格</footer>
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>

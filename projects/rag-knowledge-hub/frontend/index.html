@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Knowledge Hub · 企业级检索增强问答</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="container inner">
+    <div class="brand">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="8"/></svg></span>
+      <div>Knowledge Hub<small>企业级 RAG · 可溯源问答</small></div>
+    </div>
+    <span class="badge-live"><span class="dot"></span> 后端在线</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <h1>企业级 <span class="grad">检索增强</span> 知识问答系统</h1>
+    <p>文档分块 → TF-IDF 向量化 → 混合检索（向量余弦 ⊕ BM25）→ 重排 → 阈值门控 → 抽取式生成 + 引用溯源。每个答案都附来源与置信度，相关度不足时主动拒答，从根源抑制幻觉。</p>
+    <div class="kv">
+      <div><div class="k" id="kvDocs">0</div><div class="l">知识文档</div></div>
+      <div><div class="k" id="kvChunks">0</div><div class="l">文本分块</div></div>
+      <div><div class="k">Hybrid</div><div class="l">混合检索</div></div>
+      <div><div class="k">溯源</div><div class="l">引用可查</div></div>
+    </div>
+  </div>
+</section>
+
+<main class="container grid-2">
+  <!-- 左：知识库管理 -->
+  <div>
+    <div class="card">
+      <div class="card-h">
+        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span>
+        <div><h3>文档入库</h3><div class="sub">自动分块 + 建索引</div></div>
+      </div>
+      <div class="field"><label>文档标题</label><input class="input" id="docTitle" placeholder="如：产品使用手册 v2"></div>
+      <div class="field"><label>文档内容</label><textarea id="docText" placeholder="粘贴文档正文，系统将自动按语义分块并构建检索索引…"></textarea></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" id="seedBtn">灌入示例</button>
+        <button class="btn btn-primary" id="ingestBtn" style="flex:1">入库并建索引</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+        <div><h3>知识库文档</h3><div class="sub" id="chunkInfo">共 0 个分块</div></div>
+      </div>
+      <div id="docList"><div class="empty">知识库为空，先入库或灌入示例</div></div>
+    </div>
+  </div>
+
+  <!-- 右：问答 -->
+  <div class="card">
+    <div class="card-h">
+      <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
+      <div><h3>知识问答</h3><div class="sub">带阈值门控与引用溯源</div></div>
+    </div>
+    <div class="chat" id="chat">
+      <div class="msg a"><div class="bubble">你好，我是基于知识库的问答助手。先在左侧入库文档（或点「灌入示例」），再向我提问，我会给出带引用来源的答案。</div></div>
+    </div>
+    <div class="chatbar">
+      <input class="input" id="qInput" placeholder="输入你的问题，如：什么是混合检索？" onkeydown="if(event.key==='Enter')window.__ask()">
+      <button class="btn btn-primary" id="askBtn">提问</button>
+    </div>
+  </div>
+</main>
+
+<footer class="container">RAG Knowledge Hub · FastAPI 纯 Python 检索链路 + 原生前端 · 蓝白科技感统一风格</footer>
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>

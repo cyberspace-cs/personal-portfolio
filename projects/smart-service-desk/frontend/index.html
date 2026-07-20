@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Service Desk · 智能客服</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="container inner">
+    <div class="brand">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></span>
+      <div>Service Desk<small>智能客服 · 意图路由 + FAQ</small></div>
+    </div>
+    <span class="badge-live"><span class="dot"></span> 后端在线</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <h1>智能 <span class="grad">客服机器人</span>：秒级应答，答不准就转人工</h1>
+    <p>意图路由（物流 / 退款 / 订单 / 投诉 / 咨询 / 转人工）+ FAQ 语义匹配（TF-IDF）+ 置信度门控自动转人工 + 快捷动作 + 工单系统 + 满意度统计。</p>
+  </div>
+</section>
+
+<div class="container stats-row" id="stats">
+  <div class="stat"><div class="n" id="sTotal">0</div><div class="l">总会话</div></div>
+  <div class="stat"><div class="n" id="sResolve">0%</div><div class="l">自助解决率</div></div>
+  <div class="stat"><div class="n" id="sEsc">0</div><div class="l">转人工</div></div>
+  <div class="stat"><div class="n" id="sTicket">0</div><div class="l">工单数</div></div>
+  <div class="stat"><div class="n" id="sSat">—</div><div class="l">满意度</div></div>
+</div>
+
+<main class="container grid-2">
+  <!-- 对话 -->
+  <div class="card">
+    <div class="card-h">
+      <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
+      <div><h3>在线咨询</h3><div class="sub">试试问物流、退款、支付方式…</div></div>
+    </div>
+    <div class="chips" id="quickChips">
+      <button class="chip">怎么查看物流信息？</button>
+      <button class="chip">如何申请退款？</button>
+      <button class="chip">支持哪些支付方式？</button>
+      <button class="chip">我要投诉</button>
+      <button class="chip">转人工</button>
+    </div>
+    <div class="chat" id="chat">
+      <div class="msg a"><div class="bubble">您好，我是智能客服小助手 👋 有什么可以帮您？可以点上方常见问题，或直接描述您的问题。</div></div>
+    </div>
+    <div class="inputbar">
+      <input id="msgInput" placeholder="请描述您的问题…" onkeydown="if(event.key==='Enter')window.__send()">
+      <button class="btn btn-primary" id="sendBtn">发送</button>
+    </div>
+  </div>
+
+  <!-- 侧栏 -->
+  <div>
+    <div class="card">
+      <div class="card-h">
+        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></span>
+        <div><h3>常见问题</h3><div class="sub">点击快速提问</div></div>
+      </div>
+      <div id="faqList"><div class="empty">加载中…</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg></span>
+        <div><h3>我的工单</h3></div>
+      </div>
+      <div id="ticketList"><div class="empty">暂无工单</div></div>
+    </div>
+  </div>
+</main>
+
+<footer class="container">Smart Service Desk · FastAPI 意图路由 + TF-IDF FAQ 匹配 + 工单系统 · 蓝白科技感统一风格</footer>
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
