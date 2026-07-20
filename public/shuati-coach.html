@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>专属刷题教练 · 多源数据聚合智能备考平台</title>
+<script>(function(){try{var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   :root{
@@ -31,6 +32,26 @@
     --radius-sm:10px;
     --blur:saturate(150%) blur(16px);
   }
+  /* ---------- THEME: light mode overrides ---------- */
+  :root[data-theme="light"]{
+    --bg:#eef2fb;
+    --surface:rgba(255,255,255,.72);
+    --surface-2:rgba(255,255,255,.52);
+    --ink:#0f172a;
+    --ink-2:#475569;
+    --ink-3:#94a3b8;
+    --line:rgba(15,23,42,.12);
+  }
+  :root[data-theme="light"] header{background:rgba(255,255,255,.74);border-bottom-color:var(--line)}
+  :root[data-theme="light"] .theme-toggle:hover{color:#0f172a;background:rgba(15,23,42,.06)}
+  .theme-toggle{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:11px;
+    background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2);cursor:pointer;
+    transition:.2s;flex:none;margin-left:8px}
+  .theme-toggle:hover{color:var(--brand);border-color:var(--brand)}
+  .theme-toggle svg{width:18px;height:18px;display:block}
+  .theme-toggle .i-sun{display:none}
+  :root[data-theme="light"] .theme-toggle .i-moon{display:none}
+  :root[data-theme="light"] .theme-toggle .i-sun{display:block}
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{
@@ -344,6 +365,16 @@
   .tl-item .tl-date{font-size:12px;font-weight:800;color:var(--brand);margin-bottom:4px;text-transform:uppercase}
   .tl-item .tl-title{font-size:18px;font-weight:800;margin-bottom:4px}
   .tl-item .tl-desc{font-size:14px;color:var(--ink-2);line-height:1.6}
+  .tl-item .ver-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .tl-item .ver-badge{font-size:11px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand-2));padding:3px 11px;border-radius:999px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.02em;box-shadow:0 2px 8px rgba(91,140,255,.35)}
+  .tl-item .ver-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .tl-item .ver-tag{font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;border:1px solid}
+  .tl-item .ver-tag.n{color:#7aa2ff;border-color:rgba(122,162,255,.4);background:rgba(122,162,255,.12)}
+  .tl-item .ver-tag.o{color:#34d399;border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.12)}
+  .tl-item .ver-tag.f{color:#ff8787;border-color:rgba(255,135,135,.4);background:rgba(255,135,135,.12)}
+  .tl-item .ver-tag.w{color:#aab4d4;border-color:rgba(170,180,212,.35);background:rgba(170,180,212,.1)}
+  .tl-item .ver-tag.u{color:#c4b5fd;border-color:rgba(196,181,253,.4);background:rgba(196,181,253,.12)}
+  .tl-item .ver-quote{margin-top:12px;padding:9px 14px;border-left:3px solid var(--brand);background:rgba(91,140,255,.08);border-radius:0 10px 10px 0;font-size:13px;color:var(--ink-2);font-style:italic;line-height:1.65}
 
   .highlight-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:800px;margin:0 auto}
   .hl-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:28px;transition:.2s;text-align:center}
@@ -515,6 +546,10 @@
     </nav>
     <div class="nav-cta">
       <a href="demos/index.html" title="返回 AI 项目 Demo 画廊" style="padding:9px 13px;border-radius:10px;font-size:13px;font-weight:600;color:var(--ink-2);border:1px solid var(--line);background:var(--surface-2);transition:.18s" onmouseover="this.style.color='var(--brand)';this.style.borderColor='var(--brand)'" onmouseout="this.style.color='var(--ink-2)';this.style.borderColor='var(--line)'">← 全部 Demo</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换浅色 / 深色" title="切换浅色 / 深色">
+        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
       <button class="login-btn" id="loginBtn" onclick="showAuthModal()">登录/注册</button>
       <div class="avatar" id="userAvatar" style="display:none">备</div>
       <span class="user-name" id="userNameDisplay" style="display:none"></span>
@@ -1100,31 +1135,40 @@
         <p>从想法到产品，一路走来的创作历程</p>
       </div>
 
-      <div style="margin-bottom:56px">
-        <h3 style="display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;font-size:22px;font-weight:800;margin-bottom:32px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2Z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7Z"/></svg>创作历程</h3>
-        <div class="timeline">
-          <div class="tl-item">
-            <div class="tl-date">2026年 4月</div>
-            <div class="tl-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2Z"/></svg>想法诞生</div>
-            <div class="tl-desc">在备考过程中发现考研、考公、大厂面试的题库分散在不同平台，反复切换效率极低。萌生了"能不能有一个平台统一管理所有刷题数据"的想法，开始绘制产品草图。</div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-date">2026年 5月</div>
-            <div class="tl-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.5 2.5-2.5-2.5 2.5-2.5Z"/></svg>初赛 Demo</div>
-            <div class="tl-desc">参加 TRAE AI 创造力大赛初赛，完成了第一版原型——包含 6 道题的基础刷题功能、静态数据中心和简单的推荐页面。验证了"多源聚合"这一核心概念。</div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-date">2026年 6月</div>
-            <div class="tl-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M3 3v18h18"/><path d="M7 16v-4M12 16V8M17 16v-8"/></svg>数据层重构</div>
-            <div class="tl-desc">引入 localStorage 持久化机制，让刷题记录、错题本、打卡数据真正"活"了起来。智能推荐引擎从静态 mock 数据升级为基于真实错题数据的动态分析。</div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-date">2026年 7月</div>
-            <div class="tl-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1Z"/><path d="M4 22v-7"/></svg>复赛成品</div>
-            <div class="tl-desc">全面升级题库至 21+ 题，新增模拟考场模式（限时答题+自动交卷+成绩单），打造完整的数据中心与智能推荐闭环。加入创作历程展示，让产品更具温度。</div>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:34px 36px;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);box-shadow:0 10px 30px rgba(0,0,0,.25)">
+          <h3 style="display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;font-size:22px;font-weight:800;margin-bottom:6px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>完整版本历史<span style="font-size:11px;font-weight:700;color:#7aa2ff;border:1px solid rgba(122,162,255,.4);background:rgba(122,162,255,.12);padding:2px 9px;border-radius:999px;letter-spacing:.05em">CHANGELOG</span></h3>
+          <p style="text-align:center;color:var(--ink-3);font-size:13px;margin-bottom:30px">记录每一次迭代，看见产品随时间生长</p>
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="ver-head"><span class="ver-badge">v1.0</span><span class="tl-date" style="margin:0">2026.05</span></div>
+              <div class="tl-title">初赛 Demo · 多源聚合雏形</div>
+              <div class="tl-desc">参加 TRAE AI 创造力大赛初赛，完成第一版原型——6 道题基础刷题、静态数据中心与简单推荐页，验证了「多源聚合」这一核心概念。</div>
+              <div class="ver-tags"><span class="ver-tag n">新功能</span><span class="ver-tag o">优化</span></div>
+              <div class="ver-quote">「先把能跑的东西做出来，再谈完美。」</div>
+            </div>
+            <div class="tl-item">
+              <div class="ver-head"><span class="ver-badge">v1.1</span><span class="tl-date" style="margin:0">2026.06</span></div>
+              <div class="tl-title">数据层重构 · 让数据活起来</div>
+              <div class="tl-desc">引入 localStorage 持久化机制，刷题记录、错题本、打卡数据真正落地；智能推荐引擎从静态 mock 升级为基于真实错题的动态分析。</div>
+              <div class="ver-tags"><span class="ver-tag n">新功能</span><span class="ver-tag o">优化</span><span class="ver-tag f">修复</span></div>
+              <div class="ver-quote">「让数据真正『活』起来，产品才算成立。」</div>
+            </div>
+            <div class="tl-item">
+              <div class="ver-head"><span class="ver-badge">v2.0</span><span class="tl-date" style="margin:0">2026.07</span></div>
+              <div class="tl-title">复赛成品 · 完整闭环</div>
+              <div class="tl-desc">题库扩至 21+ 题，新增模拟考场（限时答题 + 自动交卷 + 成绩单），打造完整的数据中心与智能推荐闭环，并加入创作历程展示。</div>
+              <div class="ver-tags"><span class="ver-tag n">新功能</span><span class="ver-tag u">UI优化</span><span class="ver-tag w">待修复</span></div>
+              <div class="ver-quote">「从能用到好用，差的是一个个打磨出来的细节。」</div>
+            </div>
+            <div class="tl-item">
+              <div class="ver-head"><span class="ver-badge">v2.1</span><span class="tl-date" style="margin:0">2026.07.20</span></div>
+              <div class="tl-title">视觉统一 · 全家桶一致</div>
+              <div class="tl-desc">整体改造为暗色玻璃拟态风格，与 6 个 Agent Demo 视觉统一；页头图标统一为内联 SVG 线性图标，并补齐这份「完整版本历史」历程。</div>
+              <div class="ver-tags"><span class="ver-tag n">新功能</span><span class="ver-tag o">优化</span><span class="ver-tag u">UI优化</span></div>
+              <div class="ver-quote">「统一的设计语言，是专业感的最低成本。」</div>
+            </div>
           </div>
         </div>
-      </div>
 
       <div style="margin-bottom:56px">
         <h3 style="display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;font-size:22px;font-weight:800;margin-bottom:32px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4Z"/><path d="M19 14l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8Z"/></svg>产品亮点</h3>
@@ -1995,7 +2039,7 @@ async function initCharts() {
   renderWrongList(wrongBook);
   renderWeakList(wrongBook);
 
-  const ink = '#4a5578', grid = '#e8ecf5';
+  const ink = '#9aa6c8', grid = 'rgba(255,255,255,.07)';
   Chart.defaults.font.family = '"PingFang SC","Microsoft YaHei",sans-serif';
   Chart.defaults.color = ink;
 
@@ -2020,8 +2064,8 @@ async function initCharts() {
       data: {
         labels: days.map(function(d) { return d.substring(5); }),
         datasets: [
-          { type: 'bar', label: '刷题量', data: dailyTotals, backgroundColor: '#5c7cfa', borderRadius: 6, yAxisID: 'y', order: 2 },
-          { type: 'line', label: '正确率(%)', data: dailyCorrects, borderColor: '#0ca678', backgroundColor: 'rgba(12,166,120,.1)', borderWidth: 3, tension: .4, fill: false, pointRadius: 4, pointBackgroundColor: '#0ca678', yAxisID: 'y1', order: 1, spanGaps: true }
+          { type: 'bar', label: '刷题量', data: dailyTotals, backgroundColor: '#5b8cff', borderRadius: 6, yAxisID: 'y', order: 2 },
+          { type: 'line', label: '正确率(%)', data: dailyCorrects, borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,.12)', borderWidth: 3, tension: .4, fill: false, pointRadius: 4, pointBackgroundColor: '#34d399', yAxisID: 'y1', order: 1, spanGaps: true }
         ]
       },
       options: {
@@ -2052,7 +2096,7 @@ async function initCharts() {
       type: 'radar',
       data: {
         labels: radarLabels,
-        datasets: [{ label: '掌握度', data: radarData, borderColor: '#3b5bdb', backgroundColor: 'rgba(59,91,219,.18)', borderWidth: 2, pointBackgroundColor: '#3b5bdb' }]
+        datasets: [{ label: '掌握度', data: radarData, borderColor: '#5b8cff', backgroundColor: 'rgba(91,140,255,.18)', borderWidth: 2, pointBackgroundColor: '#5b8cff' }]
       },
       options: {
         responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
@@ -2066,13 +2110,13 @@ async function initCharts() {
   quizHistory.forEach(function(r) { const c = r.cat || r.category || '其他'; catMap[c] = (catMap[c] || 0) + (r.total || 0); });
   const platLabels = Object.keys(catMap);
   const platData = Object.values(catMap);
-  const platColors = ['#3b5bdb', '#0ca678', '#f08c00', '#7048e8', '#e8590c'];
+  const platColors = ['#5b8cff', '#34d399', '#fbbf24', '#a78bfa', '#fb7185'];
 
   const pieCtx = el('pieChart');
   if (pieCtx) {
     chartInstances.pie = new Chart(pieCtx, {
       type: 'doughnut',
-      data: { labels: platLabels.length > 0 ? platLabels : ['暂无数据'], datasets: [{ data: platData.length > 0 ? platData : [1], backgroundColor: platColors, borderWidth: 3, borderColor: '#fff' }] },
+      data: { labels: platLabels.length > 0 ? platLabels : ['暂无数据'], datasets: [{ data: platData.length > 0 ? platData : [1], backgroundColor: platColors, borderWidth: 3, borderColor: 'rgba(10,14,26,.65)' }] },
       options: {
         responsive: true, maintainAspectRatio: false, cutout: '62%',
         plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, padding: 12, font: { size: 12 } } } }
@@ -2369,6 +2413,18 @@ document.getElementById('aiModal').addEventListener('click', function(e) {
   updateHomeStats();
   renderQ();
   buildNav();
+})();
+</script>
+<script>
+(function(){
+  var btn=document.getElementById('themeToggle');
+  function apply(t){ document.documentElement.setAttribute('data-theme',t);
+    if(btn) btn.setAttribute('aria-pressed', t==='light'?'true':'false'); }
+  if(btn){ btn.addEventListener('click', function(){
+    var cur=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';
+    var next=cur==='light'?'dark':'light';
+    try{localStorage.setItem('theme',next);}catch(e){} apply(next);
+  }); }
 })();
 </script>
 </body>
