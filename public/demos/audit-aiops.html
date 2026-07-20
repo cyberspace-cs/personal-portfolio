@@ -1,81 +1,168 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Audit-AIOPS · Demo</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit-AIOPS · 企业审计智能体</title>
+<link rel="stylesheet" href="_shared.css">
 <style>
-  body{background:radial-gradient(1200px 600px at 80% -10%,#7c3aed33,transparent),#0f172a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
-  .glass{background:rgba(30,41,59,.6);border:1px solid rgba(148,163,184,.18)}
-  .chip{background:rgba(167,139,250,.12);color:#c4b5fd;border:1px solid rgba(167,139,250,.28)}
-  .stage{transition:all .35s;opacity:.35}
-  .stage.on{opacity:1;transform:translateY(-2px)}
-  .stage.on .dot{background:#a78bfa;box-shadow:0 0 12px #a78bfa}
-  .dot{width:14px;height:14px;border-radius:9999px;background:#475569;transition:all .35s}
-  .wo{border-left:3px solid #a78bfa}
+  :root{ --accent:#a78bfa; --accent-soft:rgba(167,139,250,.14); }
 </style>
 </head>
-<body class="text-slate-200 min-h-screen">
-<div class="max-w-4xl mx-auto px-4 py-8">
-  <header class="flex items-center justify-between mb-8">
-    <div>
-      <h1 class="text-3xl font-bold bg-gradient-to-r from-violet-400 to-sky-400 bg-clip-text text-transparent">Audit-AIOPS</h1>
-      <p class="text-slate-400 text-sm mt-1">企业审计日志异常检测 Agent · 意图识别 → 智能拆单 → 审批路由 → 记忆沉淀</p>
-    </div>
-    <div class="flex items-center gap-3">
-      <span class="text-xs px-3 py-1 rounded-full chip">● 纯前端规则演示</span>
-      <a href="index.html" class="text-xs text-slate-400 hover:text-violet-400">← 全部 Demo</a>
-    </div>
-  </header>
+<body>
 
-  <section class="glass rounded-2xl p-6 mb-6">
-    <label class="text-sm text-slate-300">用工请求（自然语言）</label>
-    <textarea id="req" rows="3" class="w-full mt-2 bg-slate-900/70 border border-slate-700 rounded-lg p-3 text-sm" placeholder="例如：为审计三组开通远程邮件账号，并临时借用一台会议终端用于周五客户汇报">为审计三组开通远程邮件账号，并临时借用一台会议终端用于周五的客户汇报，另外给新同事配发 UKey。</textarea>
-    <div class="flex flex-wrap gap-2 mt-3">
-      <button class="sample text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700" data-q="申请一台笔记本和数据库只读权限，用于季度审计">资产+权限</button>
-      <button class="sample text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700" data-q="下周一要做营销抽奖活动，需要云算力资源和活动备案">抽奖+资源</button>
-      <button id="run" class="ml-auto px-5 py-2 rounded-lg bg-violet-500 hover:bg-violet-400 text-white text-sm font-medium">运行 Agent 编排演示 ▶</button>
+<!-- NAV -->
+<header class="topbar">
+  <div class="container inner">
+    <div class="brand">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+      </span>
+      <div>AIOPS<small>企业审计日志异常检测 Agent · 视觉基准</small></div>
     </div>
-  </section>
-
-  <!-- 编排流水线 -->
-  <section class="glass rounded-2xl p-6 mb-6">
-    <h2 class="text-sm text-slate-400 mb-4">Agent 编排流水线</h2>
-    <div class="grid grid-cols-4 gap-2 text-center">
-      <div class="stage" id="s1"><div class="dot mx-auto mb-2"></div><div class="text-xs font-medium">① 意图识别</div><div class="text-[10px] text-slate-500 mt-1" id="s1d">—</div></div>
-      <div class="stage" id="s2"><div class="dot mx-auto mb-2"></div><div class="text-xs font-medium">② 智能拆单</div><div class="text-[10px] text-slate-500 mt-1" id="s2d">—</div></div>
-      <div class="stage" id="s3"><div class="dot mx-auto mb-2"></div><div class="text-xs font-medium">③ 审批路由</div><div class="text-[10px] text-slate-500 mt-1" id="s3d">—</div></div>
-      <div class="stage" id="s4"><div class="dot mx-auto mb-2"></div><div class="text-xs font-medium">④ 记忆沉淀</div><div class="text-[10px] text-slate-500 mt-1" id="s4d">—</div></div>
-    </div>
-  </section>
-
-  <div class="grid md:grid-cols-2 gap-6">
-    <!-- 工单 -->
-    <section class="glass rounded-2xl p-6">
-      <h2 class="text-sm text-slate-400 mb-3">生成工单（拆单结果）</h2>
-      <div id="orders" class="space-y-3 text-sm"></div>
-    </section>
-    <!-- 工具调用 + 记忆 -->
-    <section class="space-y-6">
-      <div class="glass rounded-2xl p-6">
-        <h2 class="text-sm text-slate-400 mb-3">MCP 工具调用链</h2>
-        <div id="tools" class="space-y-2 text-xs font-mono text-violet-300"></div>
-      </div>
-      <div class="glass rounded-2xl p-6">
-        <h2 class="text-sm text-slate-400 mb-3">分层记忆（Memory）</h2>
-        <div id="mem" class="text-xs text-slate-300 leading-relaxed"></div>
-      </div>
-    </section>
+    <nav class="top-links">
+      <a href="#pipeline" class="active">编排流水线</a>
+      <a href="#orders">工单</a>
+      <a href="#mcp">MCP 工具</a>
+      <a href="#history">版本历史</a>
+      <a href="index.html">← 全部 Demo</a>
+    </nav>
+    <span class="badge-live"><span class="dot"></span> 后端在线 :8001</span>
   </div>
+</header>
 
-  <div class="mt-8 text-center">
-    <a href="http://localhost:8001" target="_blank" rel="noopener" class="inline-block px-5 py-2.5 rounded-lg border border-violet-400/40 text-violet-300 text-sm hover:bg-violet-500/10">启动完整后端体验（Audit-AIOPS :8001）→</a>
-    <p class="text-[11px] text-slate-500 mt-2">完整版含：异常检测 / 根因分析 / 告警收敛 / 可解释报告，需先运行 <code class="text-slate-400">python -m uvicorn app.main:app --port 8001</code></p>
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow"><span class="pip"></span> Audit Intelligence · Agent Ops</span>
+    <h1>企业审计 <span class="grad-text">AIOPS 智能体</span></h1>
+    <p>用工请求 → 意图识别 → 智能拆单 → 审批路由 → 记忆沉淀。一句话识别权限 / 资产 / 活动类需求，自动编排工单与 MCP 工具调用，操作全程审计留痕、可防篡改溯源。</p>
+    <div class="kv">
+      <div class="cell"><div class="k">9</div><div class="l">服务类别</div></div>
+      <div class="cell"><div class="k">4</div><div class="l">审批层级</div></div>
+      <div class="cell"><div class="k">9</div><div class="l">MCP 工具</div></div>
+      <div class="cell"><div class="k">100%</div><div class="l">操作留痕</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section class="section" id="pipeline">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>Agent 编排流水线</h2><div class="rule"></div><span class="tag">ReAct Loop</span>
+    </div>
+    <div class="card reveal">
+      <div class="pipeline cols-4">
+        <div class="stage" id="s1"><div class="dot"></div><div class="t">① 意图识别</div><div class="d" id="s1d">—</div></div>
+        <div class="stage" id="s2"><div class="dot"></div><div class="t">② 智能拆单</div><div class="d" id="s2d">—</div></div>
+        <div class="stage" id="s3"><div class="dot"></div><div class="t">③ 审批路由</div><div class="d" id="s3d">—</div></div>
+        <div class="stage" id="s4"><div class="dot"></div><div class="t">④ 记忆沉淀</div><div class="d" id="s4d">—</div></div>
+      </div>
+      <p style="margin-top:14px;font-size:12.5px;color:var(--text-mute)">提示：在下方填写用工请求并点击「运行 Agent 编排演示」，流水线将逐段点亮，并实时生成工单与工具调用链。</p>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN -->
+<main class="section" id="config" style="padding-top:0">
+  <div class="container grid-2">
+
+    <!-- LEFT -->
+    <div>
+      <div class="card reveal" id="reqCard">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
+          <div><h3>用工请求</h3><div class="sub">自然语言输入 · 支持多意图混合</div></div>
+        </div>
+        <div class="field">
+          <textarea id="req" class="input" rows="3" placeholder="例如：为审计三组开通远程邮件账号，并临时借用一台会议终端用于周五客户汇报">为审计三组开通远程邮件账号，并临时借用一台会议终端用于周五的客户汇报，另外给新同事配发 UKey。</textarea>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-ghost sample" data-q="申请一台笔记本和数据库只读权限，用于季度审计">资产+权限</button>
+          <button class="btn btn-ghost sample" data-q="下周一要做营销抽奖活动，需要云算力资源和活动备案">抽奖+资源</button>
+          <button class="btn btn-primary" id="run" style="margin-left:auto">▶ 运行 Agent 编排演示</button>
+        </div>
+      </div>
+
+      <div class="card reveal" id="orders" style="margin-top:20px">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span>
+          <div><h3>生成工单</h3><div class="sub">意图 → 工单 → 审批流（拆单结果）</div></div>
+        </div>
+        <div id="ordersBody"><div class="empty" style="color:var(--text-mute)">等待编排演示…</div></div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <div class="card reveal" id="mcp">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 17 6-6-6-6M12 19h8"/></svg></span>
+          <div><h3>MCP 工具调用链</h3><div class="sub">工单系统 · IAM · 资产 CMDB · 备案系统</div></div>
+        </div>
+        <div class="term" id="tools"><div class="empty">等待编排演示…</div></div>
+      </div>
+
+      <div class="card reveal" style="margin-top:20px">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg></span>
+          <div><h3>分层记忆（Memory）</h3><div class="sub">profile / short_term / long_term</div></div>
+        </div>
+        <div id="mem"><div class="meta">等待编排演示…</div></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER CTA -->
+<div class="foot-cta">
+  <div class="container">
+    <a class="cta" href="http://localhost:8001" target="_blank" rel="noopener">启动完整后端体验（Audit-AIOPS :8001）→</a>
+    <p>完整版含：异常检测 / 根因分析 / 告警收敛 / 可解释报告，需先运行 <code>python -m uvicorn app.main:app --port 8001</code></p>
   </div>
 </div>
 
+<!-- VERSION HISTORY -->
+<section class="section" id="history" style="padding-top:0">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>完整版本历史</h2><div class="rule"></div><span class="tag">Changelog</span>
+    </div>
+    <div class="card reveal">
+      <div class="timeline">
+        <div class="tl-item on">
+          <div class="ver"><span class="vtag">v2.0</span><span class="when">2026.07.20</span></div>
+          <div class="what">全面统一设计体系重制</div>
+          <div class="desc">并入统一蓝白科技感设计体系，与全部 Agent Demo 视觉与组件一致；流水线 / 工单 / MCP 工具链 / 分层记忆全部组件化。</div>
+          <ul>
+            <li>玻璃拟态 + 蓝白科技感，与作品集所有 Demo 视觉统一</li>
+            <li>编排流水线升级为可点击演示的 ReAct 动画</li>
+            <li>工单 / MCP 工具链 / 分层记忆使用统一卡片组件</li>
+            <li>补充「完整版本历史」历程时间线</li>
+          </ul>
+          <div class="tags"><span class="tg new">新功能</span><span class="tg opt">优化</span></div>
+          <div class="quote">「作为视觉基准，现在它和所有兄弟 Demo 长得一样了。」</div>
+        </div>
+        <div class="tl-item">
+          <div class="ver"><span class="vtag">v1.0</span><span class="when">2026.06.05</span></div>
+          <div class="what">初始参考样板</div>
+          <div class="desc">日志异常检测 + 根因分析 + MCP 工具，自包含演示，确立作品集视觉基准。</div>
+          <div class="tags"><span class="tg new">新功能</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">Audit-AIOPS · FastAPI + 原生前端 · 蓝白科技感统一风格 · ©<span id="year"></span> Tao Xie · <a href="index.html">← 全部 Demo</a></div>
+</footer>
+
+<div class="toast" id="toast"></div>
+<script src="_shared.js"></script>
 <script>
+/* ---------- data ---------- */
 const SERVICES = {
   ukey:  { name:"UKey / USBKey 申领", level:"组长审批", tools:["工单系统","IAM 身份"], kw:["ukey","usbkey","电脑钥匙","key","配发"] },
   mail:  { name:"邮箱 / 邮件账号开通", level:"处长审批", tools:["工单系统","邮件网关","IAM"], kw:["邮件","邮箱","mail","email","账号开通","开通远程"] },
@@ -104,94 +191,68 @@ function detect(text){
   return hit;
 }
 
-document.querySelectorAll(".sample").forEach(b=>b.onclick=()=>{document.getElementById("req").value=b.dataset.q;});
-
-function setStage(id,on,desc){const e=document.getElementById(id);e.classList.toggle("on",on);if(desc)document.getElementById(id+"d").textContent=desc;}
-
-async function run(){
-  const req = document.getElementById("req").value.trim();
-  if(!req) return;
-  ["s1","s2","s3","s4"].forEach(s=>setStage(s,false,"—"));
-  document.getElementById("orders").innerHTML="";document.getElementById("tools").innerHTML="";document.getElementById("mem").innerHTML="";
-
-  const keys = detect(req);
-  const n = keys.length;
-  setStage("s1",true,`命中 ${n} 类服务`); await wait(450);
-  setStage("s2",true,`拆为 ${n} 张工单`); await wait(450);
-
-  // 审批路由
-  const levels = [...new Set(keys.map(k=>SERVICES[k].level))];
-  setStage("s3",true, levels.join(" / ")); await wait(450);
-  setStage("s4",true,"已沉淀场景记忆"); await wait(200);
-
-  // 渲染工单
-  const orders = document.getElementById("orders");
+function renderOrders(keys){
+  const box = document.getElementById("ordersBody");
+  box.innerHTML = "";
   keys.forEach((k,i)=>{
     const s = SERVICES[k];
     const card = document.createElement("div");
-    card.className = "wo bg-slate-900/50 rounded-lg p-3";
-    card.innerHTML = `<div class="flex justify-between"><span class="font-medium text-slate-100">WO-${(i+1).toString().padStart(3,"0")} ${s.name}</span><span class="text-[10px] px-2 py-0.5 rounded chip">${s.level}</span></div>
-      <div class="text-[11px] text-slate-400 mt-1">审批流：${ROUTE[s.level]}</div>
-      <div class="text-[11px] text-slate-500 mt-1">MCP：${s.tools.join(" → ")}</div>`;
-    orders.appendChild(card);
+    card.className = "wo";
+    card.innerHTML =
+      `<div class="top"><span class="nm">WO-${(i+1).toString().padStart(3,"0")} ${window.esc(s.name)}</span><span class="chip">${window.esc(s.level)}</span></div>`+
+      `<div class="meta">审批流：${window.esc(ROUTE[s.level])}</div>`+
+      `<div class="meta">MCP：${window.esc(s.tools.join(" → "))}</div>`;
+    box.appendChild(card);
   });
+}
 
-  // 工具调用链
-  const tools = document.getElementById("tools");
+function renderTools(keys, n){
+  const box = document.getElementById("tools");
+  box.innerHTML = "";
   keys.forEach((k,i)=>{
     SERVICES[k].tools.forEach(tp=>{
-      const d=document.createElement("div");d.textContent=`→ [WO-${(i+1).toString().padStart(3,"0")}] call_tool(${tp}) ✓`;tools.appendChild(d);
+      window.termLine(box, `[WO-${(i+1).toString().padStart(3,"0")}] call_tool(${tp}) ✓`, "ok");
     });
   });
-  const root=document.createElement("div");root.className="text-slate-400";root.textContent=`→ 审计日志写入：${n} 条操作留痕（防篡改）`;tools.appendChild(root);
+  window.termLine(box, `审计日志写入：${n} 条操作留痕（防篡改）`, "acc");
+}
 
-  // 记忆
+function renderMem(req, keys){
   const scene = req.includes("汇报")||req.includes("客户") ? "客户汇报" : (req.includes("审计")?"季度审计":"日常办公");
   document.getElementById("mem").innerHTML =
-    `场景识别：<b class="text-violet-300">${scene}</b><br/>`+
-    `历史偏好：审计三组「远程办公类」需求默认 组长 + UKey 双因子校验。<br/>`+
-    `本次关联：${keys.map(k=>SERVICES[k].name).join("、")} → 已写入 profile / short_term 记忆，下次同类请求自动复用审批模板。`;
+    `<div class="meta">场景识别：<b style="color:var(--accent)">${window.esc(scene)}</b></div>`+
+    `<div class="meta">历史偏好：审计三组「远程办公类」需求默认 组长 + UKey 双因子校验。</div>`+
+    `<div class="meta">本次关联：${window.esc(keys.map(k=>SERVICES[k].name).join("、"))} → 已写入 profile / short_term 记忆，下次同类请求自动复用审批模板。</div>`;
 }
-function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+
+async function run(){
+  const req = document.getElementById("req").value.trim();
+  if(!req){ window.toast("请先填写用工请求"); return; }
+  document.getElementById("ordersBody").innerHTML = "";
+  document.getElementById("tools").innerHTML = "";
+  document.getElementById("mem").innerHTML = "";
+  const keys = detect(req);
+  const n = keys.length;
+  const levels = [...new Set(keys.map(k=>SERVICES[k].level))];
+  await window.runPipeline(["s1","s2","s3","s4"], {
+    delay: 480,
+    onStep: (i)=>{
+      if(i===0) window.setStageDesc("s1", `命中 ${n} 类服务`);
+      else if(i===1) window.setStageDesc("s2", `拆为 ${n} 张工单`);
+      else if(i===2) window.setStageDesc("s3", levels.join(" / "));
+      else if(i===3) window.setStageDesc("s4", "已沉淀场景记忆");
+    }
+  });
+  renderOrders(keys);
+  renderTools(keys, n);
+  renderMem(req, keys);
+}
+
+/* ---------- bind ---------- */
+document.querySelectorAll(".sample").forEach(b=> b.onclick = ()=>{ document.getElementById("req").value = b.dataset.q; });
 document.getElementById("run").onclick = run;
-run();
+window.boot();
+window.addEventListener("load", ()=> setTimeout(run, 400));
 </script>
-
-<!-- VERSION HISTORY -->
-<section class="max-w-5xl mx-auto px-6 py-16">
-  <div class="flex items-center gap-3 mb-8">
-    <h2 class="text-2xl font-bold text-white">完整版本历史</h2>
-    <span class="text-xs font-mono px-2 py-1 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/40">Changelog</span>
-  </div>
-  <div class="relative pl-8">
-    <div class="absolute left-3 top-2 bottom-2 w-0.5 bg-gradient-to-b from-violet-400/70 to-violet-400/5"></div>
-    <div class="relative mb-7">
-      <div class="absolute -left-8 top-1 w-4 h-4 rounded-full bg-violet-400 border-2 border-violet-200 shadow"></div>
-      <div class="flex items-center gap-3 mb-1">
-        <span class="text-xs font-mono text-violet-300 bg-violet-500/15 px-2 py-0.5 rounded-full">v2.0</span>
-        <span class="text-xs font-mono text-slate-400">2026.07.20</span>
-      </div>
-      <div class="text-white font-semibold mb-1">跟随统一设计体系升级</div>
-      <p class="text-sm text-slate-400 leading-relaxed">作为其他 Demo 的视觉基准，升级为玻璃拟态 + 紫蓝渐变风格，并补充异常时间线与根因拓扑。</p>
-      <div class="flex flex-wrap gap-2 mt-2">
-        <span class="text-[11px] font-mono px-2 py-0.5 rounded-full text-emerald-300 bg-emerald-500/10 border border-emerald-500/30">新功能</span>
-        <span class="text-[11px] font-mono px-2 py-0.5 rounded-full text-sky-300 bg-sky-500/10 border border-sky-500/30">优化</span>
-      </div>
-    </div>
-    <div class="relative">
-      <div class="absolute -left-8 top-1 w-4 h-4 rounded-full bg-slate-800 border-2 border-violet-400/60"></div>
-      <div class="flex items-center gap-3 mb-1">
-        <span class="text-xs font-mono text-violet-300 bg-violet-500/15 px-2 py-0.5 rounded-full">v1.0</span>
-        <span class="text-xs font-mono text-slate-400">2026.06.05</span>
-      </div>
-      <div class="text-white font-semibold mb-1">初始参考样板</div>
-      <p class="text-sm text-slate-400 leading-relaxed">日志异常检测 + 根因分析 + MCP 工具，自包含演示，确立作品集视觉基准。</p>
-      <div class="flex flex-wrap gap-2 mt-2">
-        <span class="text-[11px] font-mono px-2 py-0.5 rounded-full text-emerald-300 bg-emerald-500/10 border border-emerald-500/30">新功能</span>
-      </div>
-    </div>
-  </div>
-</section>
-
 </body>
 </html>
