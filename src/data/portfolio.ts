@@ -236,6 +236,17 @@ export const projects: Project[] = [
     demo: "/shuati-coach.html",
     icon: "graduation-cap",
   },
+  {
+    name: { en: "Sakura Campus Sim", zh: "樱花校园模拟" },
+    description: {
+      en: "A wholesome, no-pressure campus life simulator for kids: collect falling sakura petals, attend class, make friends, dress up, feed the cat and finish daily quests — all rendered in pure Canvas 2D.",
+      zh: "为小朋友打造的治愈系校园生活模拟：捡樱花花瓣、上课答题、交朋友、换装、喂小猫、完成每日小任务，全程用纯 Canvas 2D 手绘，无广告无联网。",
+    },
+    tech: ["Canvas 2D", "Vanilla JS", "WebAudio", "localStorage", "SPA"],
+    github: REPO,
+    demo: "/demos/sakura-campus/",
+    icon: "flower-2",
+  },
 ];
 
 export const education: Education[] = [
