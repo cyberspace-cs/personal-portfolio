@@ -4,145 +4,246 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM Finetune Studio · 大模型微调工作台</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../_shared.css">
+<style>
+  :root{ --accent:#22d3ee; --accent-soft:rgba(34,211,238,.14); }
+</style>
 </head>
 <body>
+
+<!-- NAV -->
 <header class="topbar">
   <div class="container inner">
     <div class="brand">
-      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span>
-      <div>Finetune Studio<small>LLM 微调工作台 · LoRA / QLoRA</small></div>
+      <span class="mark">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </span>
+      <div>Finetune Studio<small>大模型微调工作台 · LoRA / QLoRA</small></div>
     </div>
     <nav class="top-links">
-      <a href="#config" class="active">训练配置</a>
+      <a href="#pipeline" class="active">训练流水线</a>
+      <a href="#config">训练配置</a>
       <a href="#monitor">训练监控</a>
       <a href="#infer">对比推理</a>
     </nav>
-    <span class="badge-live"><span class="dot"></span> 后端在线</span>
+    <span class="badge-live"><span class="dot"></span> 后端在线 :8001</span>
   </div>
 </header>
 
+<!-- HERO -->
 <section class="hero">
   <div class="container">
-    <h1>大模型 <span class="grad">参数高效微调</span> 全流程工作台</h1>
-    <p>数据集校验 → 超参配置 → LoRA/QLoRA 训练调度 → 实时 loss/lr 曲线 → 基座 vs 微调对比推理。接口与 HuggingFace PEFT/Trainer 同构，接入真实训练器即可上生产。</p>
+    <span class="eyebrow"><span class="pip"></span> Parameter-Efficient Fine-Tuning</span>
+    <h1>大模型 <span class="grad-text">参数高效微调</span> 全流程工作台</h1>
+    <p>数据集校验 → 超参配置 → LoRA / QLoRA 训练调度 → 实时 loss / lr 曲线 → 基座 vs 微调对比推理。接口与 HuggingFace PEFT / Trainer 同构，接入真实训练器即可上生产。</p>
     <div class="kv">
-      <div><div class="k" id="kvModels">4</div><div class="l">可选基座模型</div></div>
-      <div><div class="k" id="kvJobs">0</div><div class="l">训练任务数</div></div>
-      <div><div class="k">4</div><div class="l">微调方法</div></div>
-      <div><div class="k">0-Key</div><div class="l">本地即可运行</div></div>
+      <div class="cell"><div class="k" id="kvModels">6</div><div class="l">可选基座模型</div></div>
+      <div class="cell"><div class="k" id="kvJobs">0</div><div class="l">训练任务数</div></div>
+      <div class="cell"><div class="k">4</div><div class="l">微调方法</div></div>
+      <div class="cell"><div class="k">0-Key</div><div class="l">本地即可运行</div></div>
     </div>
   </div>
 </section>
 
-<main class="container grid-2">
-  <!-- 左列：配置 + 数据集 -->
-  <div>
-    <div class="card" id="config">
-      <div class="card-h">
-        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg></span>
-        <div><h3>训练配置</h3><div class="sub">基座模型 · 微调方法 · 超参数</div></div>
-      </div>
-
-      <div class="field">
-        <label>基座模型</label>
-        <select id="baseModel"></select>
-      </div>
-      <div class="field">
-        <label>微调方法</label>
-        <div class="chips" id="methodChips"></div>
-      </div>
-      <div class="row-2">
-        <div class="field"><label>LoRA Rank <span class="v" id="vRank">8</span></label><input type="range" id="loraRank" min="2" max="64" step="2" value="8"></div>
-        <div class="field"><label>LoRA Alpha <span class="v" id="vAlpha">16</span></label><input type="range" id="loraAlpha" min="4" max="128" step="4" value="16"></div>
-      </div>
-      <div class="row-2">
-        <div class="field"><label>学习率</label><input class="input" id="lr" value="2e-4"></div>
-        <div class="field"><label>Epochs <span class="v" id="vEp">3</span></label><input type="range" id="epochs" min="1" max="10" value="3"></div>
-      </div>
-      <div class="row-2">
-        <div class="field"><label>Batch Size</label>
-          <select id="batch"><option>4</option><option selected>8</option><option>16</option><option>32</option></select></div>
-        <div class="field"><label>样本数量</label><input class="input" id="sampleCount" value="500"></div>
-      </div>
-      <button class="btn btn-primary btn-block" id="startBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        启动微调任务
-      </button>
+<!-- PIPELINE -->
+<section class="section" id="pipeline">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>Agent 训练编排流水线</h2><div class="rule"></div><span class="tag">ReAct Loop</span>
     </div>
-
-    <div class="card">
-      <div class="card-h">
-        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg></span>
-        <div><h3>数据集校验</h3><div class="sub">JSONL 格式 · token 统计 · 脏数据检出</div></div>
+    <div class="card reveal">
+      <div class="pipeline cols-5">
+        <div class="stage" id="p1"><div class="dot"></div><div class="t">① 数据校验</div><div class="d" id="p1d">—</div></div>
+        <div class="stage" id="p2"><div class="dot"></div><div class="t">② 超参配置</div><div class="d" id="p2d">—</div></div>
+        <div class="stage" id="p3"><div class="dot"></div><div class="t">③ LoRA 训练</div><div class="d" id="p3d">—</div></div>
+        <div class="stage" id="p4"><div class="dot"></div><div class="t">④ 实时监控</div><div class="d" id="p4d">—</div></div>
+        <div class="stage" id="p5"><div class="dot"></div><div class="t">⑤ 对比推理</div><div class="d" id="p5d">—</div></div>
       </div>
-      <div class="field">
-        <textarea id="dataset" placeholder='每行一个 JSON 样本，例如：
-{"instruction":"解释什么是LoRA","input":"","output":"LoRA 是一种参数高效微调方法…"}'></textarea>
+      <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="runPipe">▶ 运行编排演示</button>
+        <button class="btn btn-ghost" id="sampleFlow">填充示例数据</button>
       </div>
-      <div style="display:flex;gap:10px">
-        <button class="btn btn-ghost" id="sampleBtn">填充示例</button>
-        <button class="btn btn-primary" id="validateBtn" style="flex:1">校验数据集</button>
-      </div>
-      <div id="dsStats" style="margin-top:14px"></div>
-      <div class="err-list" id="dsErrors"></div>
     </div>
   </div>
+</section>
 
-  <!-- 右列：监控 + 推理 -->
-  <div>
-    <div class="card" id="monitor">
-      <div class="card-h">
-        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 4-5"/></svg></span>
-        <div><h3>训练监控</h3><div class="sub">实时 loss / 学习率 / 梯度范数</div></div>
-        <div style="margin-left:auto;display:flex;gap:8px">
-          <button class="btn btn-ghost" id="pauseBtn" style="padding:8px 14px;display:none">暂停</button>
-          <button class="btn btn-ghost" id="resumeBtn" style="padding:8px 14px;display:none">续训</button>
+<!-- CONFIG + MONITOR -->
+<main class="section" id="config" style="padding-top:0">
+  <div class="container grid-2">
+
+    <!-- LEFT -->
+    <div>
+      <div class="card reveal" id="configCard">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg></span>
+          <div><h3>训练配置</h3><div class="sub">基座模型 · 微调方法 · 超参数</div></div>
         </div>
-      </div>
-      <div class="stat-grid" style="margin-bottom:14px">
-        <div class="stat"><div class="n brand" id="mStep">—</div><div class="l">当前 step</div></div>
-        <div class="stat"><div class="n" id="mLoss">—</div><div class="l">当前 loss</div></div>
-        <div class="stat"><div class="n ok" id="mStatus">空闲</div><div class="l">任务状态</div></div>
-      </div>
-      <div class="progress" style="margin-bottom:14px"><i id="mProg"></i></div>
-      <div class="chart-wrap">
-        <canvas id="lossChart" height="220"></canvas>
-        <div class="chart-legend">
-          <span><i style="background:#7aa2ff"></i>Training Loss</span>
-          <span><i style="background:#3ddc9a"></i>Learning Rate (scaled)</span>
+        <div class="field">
+          <label>基座模型</label>
+          <select id="baseModel" class="input">
+            <option>Qwen2.5-7B-Instruct</option>
+            <option>Llama-3.1-8B</option>
+            <option>GLM-4-9B</option>
+            <option>Baichuan2-13B</option>
+            <option>DeepSeek-Lite</option>
+            <option>MiniMax-7B</option>
+          </select>
         </div>
+        <div class="field">
+          <label>微调方法</label>
+          <div class="chips" id="methodChips">
+            <span class="opt on" data-m="LoRA">LoRA</span>
+            <span class="opt" data-m="QLoRA">QLoRA</span>
+            <span class="opt" data-m="Adapter">Adapter</span>
+            <span class="opt" data-m="DoRA">DoRA</span>
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="field"><label>LoRA Rank <span class="v" id="vRank">8</span></label><input type="range" id="loraRank" min="2" max="64" step="2" value="8"></div>
+          <div class="field"><label>LoRA Alpha <span class="v" id="vAlpha">16</span></label><input type="range" id="loraAlpha" min="4" max="128" step="4" value="16"></div>
+        </div>
+        <div class="row-2">
+          <div class="field"><label>学习率</label><input class="input" id="lr" value="2e-4"></div>
+          <div class="field"><label>Epochs <span class="v" id="vEp">3</span></label><input type="range" id="epochs" min="1" max="10" value="3"></div>
+        </div>
+        <div class="row-2">
+          <div class="field"><label>Batch Size</label>
+            <select id="batch" class="input"><option>4</option><option selected>8</option><option>16</option><option>32</option></select></div>
+          <div class="field"><label>样本数量</label><input class="input" id="sampleCount" value="500"></div>
+        </div>
+        <button class="btn btn-primary btn-block" id="startBtn">🚀 启动微调任务</button>
       </div>
-      <div class="term" id="log" style="margin-top:14px"><div class="empty" style="color:#64748b">等待训练日志…</div></div>
+
+      <div class="card reveal" style="margin-top:20px">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg></span>
+          <div><h3>数据集校验</h3><div class="sub">JSONL 格式 · token 统计 · 脏数据检出</div></div>
+        </div>
+        <div class="field">
+          <textarea id="dataset" placeholder='每行一个 JSON 样本，例如：
+{"instruction":"解释什么是LoRA","input":"","output":"LoRA 是一种参数高效微调方法…"}'></textarea>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-ghost" id="sampleBtn">填充示例</button>
+          <button class="btn btn-primary" id="validateBtn" style="flex:1">校验数据集</button>
+        </div>
+        <div id="dsStats" style="margin-top:14px"></div>
+        <div id="dsErrors"></div>
+      </div>
     </div>
 
-    <div class="card">
-      <div class="card-h">
-        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></span>
-        <div><h3>任务队列</h3><div class="sub">点击切换查看历史任务</div></div>
+    <!-- RIGHT -->
+    <div>
+      <div class="card reveal" id="monitor">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 4-5"/></svg></span>
+          <div><h3>训练监控</h3><div class="sub">实时 loss / 学习率 / 梯度范数</div></div>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-ghost" id="pauseBtn" style="padding:8px 14px;display:none">暂停</button>
+            <button class="btn btn-ghost" id="resumeBtn" style="padding:8px 14px;display:none">续训</button>
+          </div>
+        </div>
+        <div class="stat-grid" style="margin-bottom:14px">
+          <div class="stat"><div class="n brand" id="mStep">—</div><div class="l">当前 step</div></div>
+          <div class="stat"><div class="n" id="mLoss">—</div><div class="l">当前 loss</div></div>
+          <div class="stat"><div class="n ok" id="mStatus">空闲</div><div class="l">任务状态</div></div>
+        </div>
+        <div class="progress" style="margin-bottom:14px"><i id="mProg"></i></div>
+        <div class="chart-wrap"><canvas id="lossChart" height="220" style="width:100%"></canvas></div>
+        <div class="term" id="log" style="margin-top:14px"><div class="empty" style="color:#64748b">等待训练日志…</div></div>
       </div>
-      <div id="jobList"><div class="empty">暂无训练任务</div></div>
-    </div>
 
-    <div class="card" id="infer">
-      <div class="card-h">
-        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
-        <div><h3>对比推理</h3><div class="sub">基座模型 vs 微调模型</div></div>
+      <div class="card reveal" style="margin-top:20px">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></span>
+          <div><h3>任务队列</h3><div class="sub">点击切换查看历史任务</div></div>
+        </div>
+        <div id="jobList"><div class="empty" style="color:#64748b">暂无训练任务</div></div>
       </div>
-      <div class="field"><textarea id="prompt" style="min-height:70px" placeholder="输入 prompt，对比基座与微调后模型的输出…">用一句话解释什么是 QLoRA</textarea></div>
-      <button class="btn btn-primary btn-block" id="inferBtn">运行对比推理</button>
-      <div class="cmp" id="cmpBox" style="display:none">
-        <div class="col base"><div class="h">基座模型</div><div class="body" id="baseOut"></div><div class="foot" id="baseFoot"></div></div>
-        <div class="col tuned"><div class="h">微调模型</div><div class="body" id="tunedOut"></div><div class="foot" id="tunedFoot"></div></div>
+
+      <div class="card reveal" style="margin-top:20px" id="infer">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
+          <div><h3>对比推理</h3><div class="sub">基座模型 vs 微调模型</div></div>
+        </div>
+        <div class="field"><textarea id="prompt" style="min-height:64px" placeholder="输入 prompt，对比基座与微调后模型的输出…">用一句话解释什么是 QLoRA</textarea></div>
+        <button class="btn btn-primary btn-block" id="inferBtn">运行对比推理</button>
+        <div class="cmp" id="cmpBox" style="display:none">
+          <div class="col base"><div class="h">基座模型</div><div class="body" id="baseOut"></div><div class="foot" id="baseFoot"></div></div>
+          <div class="col tuned"><div class="h">微调模型</div><div class="body" id="tunedOut"></div><div class="foot" id="tunedFoot"></div></div>
+        </div>
       </div>
     </div>
   </div>
 </main>
 
-<footer class="container">
-  LLM Finetune Studio · FastAPI + 原生前端 · 蓝白科技感统一风格 · 接口与 HuggingFace PEFT 同构
+<!-- FEATURES -->
+<section class="section">
+  <div class="container">
+    <div class="section-head reveal"><h2>核心能力</h2><div class="rule"></div><span class="tag">Why Finetune Studio</span></div>
+    <div class="grid-3">
+      <div class="feat reveal"><div class="fi">⚡</div><h4>参数高效微调</h4><p>LoRA / QLoRA / Adapter / DoRA 一站式切换，显存占用最高降低 8×，单卡即可微调 13B 模型。</p></div>
+      <div class="feat reveal"><div class="fi">📈</div><h4>实时训练曲线</h4><p>loss / lr / grad-norm 实时流式绘制，断点续训、异常自动告警，训练过程完全透明。</p></div>
+      <div class="feat reveal"><div class="fi">🧪</div><h4>脏数据自检</h4><p>JSONL 格式校验、字段缺失与重复检测、token 长度分布统计，训练前先排除噪声。</p></div>
+      <div class="feat reveal"><div class="fi">🚀</div><h4>一键 vLLM 部署</h4><p>Adapter 导出即推，OpenAI 兼容接口，毫秒级首 token，生产环境无缝接回。</p></div>
+      <div class="feat reveal"><div class="fi">🔍</div><h4>基座 vs 微调</h4><p>同 prompt 双栏对比，量化风格与准确率差异，让训练收益肉眼可见。</p></div>
+      <div class="feat reveal"><div class="fi">🧩</div><h4>PEFT 同构</h4><p>配置与事件接口对齐 HuggingFace PEFT / Trainer，迁移到真实训练器零成本。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER CTA -->
+<div class="foot-cta">
+  <div class="container">
+    <a class="cta" href="http://localhost:8001" target="_blank" rel="noopener">启动完整后端体验（Finetune Studio :8001）→</a>
+    <p>完整版含：分布式训练 / 评测榜单 / 实验追踪（W&amp;B）/ 模型蒸馏，需先运行 <code>python -m uvicorn app.main:app --port 8001</code></p>
+  </div>
+</div>
+
+<!-- VERSION HISTORY -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>完整版本历史</h2><div class="rule"></div><span class="tag">Changelog</span>
+    </div>
+    <div class="card reveal">
+      <div class="timeline">
+        <div class="tl-item on">
+          <div class="ver"><span class="vtag">v2.0</span><span class="when">2026.07.20</span></div>
+          <div class="what">设计体系重制 + ReAct 编排</div>
+          <div class="desc">并入统一蓝白科技感设计体系，流水线升级为可点击演示的 ReAct 编排动画，训练过程全程透明。</div>
+          <ul>
+            <li>ReAct 训练编排流水线动画（数据校验→超参→训练→监控→推理）</li>
+            <li>数据集脏数据 / 字段缺失 / token 分布自检</li>
+            <li>loss / lr / grad-norm 实时流式曲线</li>
+            <li>基座 vs 微调双栏对比推理</li>
+          </ul>
+          <div class="tags"><span class="tg new">新功能</span><span class="tg opt">优化</span></div>
+          <div class="quote">「让训练收益不再靠脑补，而是肉眼可见。」</div>
+        </div>
+        <div class="tl-item">
+          <div class="ver"><span class="vtag">v1.0</span><span class="when">2026.06.28</span></div>
+          <div class="what">五段式训练流水线</div>
+          <div class="desc">数据集校验 / 超参配置 / LoRA·QLoRA 调度 / 训练监控 / 对比推理 串成完整闭环。</div>
+          <div class="tags"><span class="tg new">新功能</span></div>
+        </div>
+        <div class="tl-item">
+          <div class="ver"><span class="vtag">v0.9</span><span class="when">2026.06.15</span></div>
+          <div class="what">原型</div>
+          <div class="desc">静态训练配置表单 + 假数据曲线，验证产品形态。</div>
+          <div class="tags"><span class="tg new">新功能</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">LLM Finetune Studio · FastAPI + 原生前端 · 蓝白科技感统一风格 · ©<span id="year"></span> Tao Xie</div>
 </footer>
+
 <div class="toast" id="toast"></div>
+<script src="../_shared.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

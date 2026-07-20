@@ -1,59 +1,123 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AI 项目 Demo 画廊</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  body{background:radial-gradient(1200px 700px at 50% -10%,#1e3a8a44,transparent),#0f172a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
-  .card{background:rgba(30,41,59,.6);border:1px solid rgba(148,163,184,.18);transition:.3s}
-  .card:hover{border-color:rgba(56,189,248,.5);transform:translateY(-4px);box-shadow:0 12px 40px -12px rgba(56,189,248,.35)}
-</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 项目 Demo 画廊 · Tao Xie</title>
+<link rel="stylesheet" href="./_shared.css">
+<style>:root{--accent:#a78bfa;--accent-soft:rgba(167,139,250,.14)}</style>
 </head>
-<body class="text-slate-200 min-h-screen">
-<div class="max-w-5xl mx-auto px-4 py-12">
-  <header class="text-center mb-10">
-    <h1 class="text-4xl font-bold bg-gradient-to-r from-sky-400 via-indigo-400 to-pink-400 bg-clip-text text-transparent">AI 项目 Demo 画廊</h1>
-    <p class="text-slate-400 mt-2">大模型 / Agent 全栈项目 · 统一 FastAPI 后端驱动（内置 Prompt / RAG / Skill / MCP / Context Harness Loop 内核）</p>
-  </header>
+<body>
 
-  <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5" id="grid"></div>
+<header class="topbar">
+  <div class="container inner">
+    <div class="brand">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </span>
+      <div>AI Demo 画廊<small>大模型 / Agent 全栈项目 · Tao Xie</small></div>
+    </div>
+    <span class="badge-live"><span class="dot"></span> 7 个可交互 Demo</span>
+  </div>
+</header>
 
-  <div class="glass mt-10 rounded-2xl p-6" style="background:rgba(30,41,59,.6);border:1px solid rgba(148,163,184,.18)">
-    <h2 class="text-lg font-semibold mb-2">运行方式</h2>
-    <pre class="text-xs text-emerald-300 bg-slate-900/70 rounded-lg p-4 whitespace-pre-wrap"># 1) 启动后端（默认 8011 端口，无需任何 API Key 即可运行）
-cd backend
-pip install -r requirements.txt
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow"><span class="pip"></span> Agent Application Gallery</span>
+    <h1>大模型 / <span class="grad-text">Agent 全栈</span> 项目演示集</h1>
+    <p>统一 FastAPI 后端驱动，内置 Prompt / RAG / Skill 路由 / MCP 工具 / Context Harness Loop 内核。无 API Key 时以规则降级模式完整演示，配置 Key 后自动升级为真实大模型生成。</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="grid-3" id="grid"></div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="card reveal">
+      <div class="card-h">
+        <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></span>
+        <div><h3>运行方式</h3><div class="sub">本地一键启动 · 无需任何 Key 即可演示</div></div>
+      </div>
+      <pre class="code"># 1) 启动后端（默认端口，规则降级模式可直接运行）
+cd backend &amp;&amp; pip install -r requirements.txt
 python -m uvicorn app.main:app --port 8011 --reload
-# 可选：配置真实模型
+
+# 2) 可选：配置真实模型
 set OPENAI_API_KEY=sk-xxx
 set OPENAI_BASE_URL=https://your-endpoint/v1
 
-# 2) 启动前端（另一个终端）
-npm install && npm run dev
-# 打开 http://localhost:5173 → Projects 区点击「演示」</pre>
-    <p class="text-xs text-slate-500 mt-3">无 Key 时所有项目以规则降级模式完整演示；配置 Key 后自动升级为真实大模型生成。交互式 Demo 接口位于 <code>http://localhost:8011</code>。</p>
+# 3) 启动前端
+npm install &amp;&amp; npm run dev   # → http://localhost:5173</pre>
+      <p style="font-size:12px;color:var(--text-mute);margin-top:12px">无 Key 时所有项目以规则降级模式完整演示；配置 Key 后自动升级为真实大模型生成。交互式后端接口位于 <code style="font-family:var(--mono);color:var(--text-dim)">http://localhost:8011</code>。</p>
+    </div>
   </div>
-</div>
+</section>
 
+<!-- VERSION HISTORY -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>完整版本历史</h2><div class="rule"></div><span class="tag">Changelog · 持续迭代</span>
+    </div>
+    <div class="card reveal">
+      <div class="timeline">
+        <div class="tl-item on">
+          <div class="ver"><span class="vtag">v2.0</span><span class="when">2026.07.20</span></div>
+          <div class="what">统一设计体系 + 版本历史上线</div>
+          <div class="desc">将 5 个核心 Agent Demo 重制为统一的蓝白科技感设计体系（_shared.css + _shared.js），接入「专属刷题教练」独立作品，并新增本版本历史，记录每一次迭代。</div>
+          <ul>
+            <li>5 个核心 Demo 视觉与交互统一重制</li>
+            <li>引入 ReAct 编排动画、实时曲线、MCP 工具可视化</li>
+            <li>新增「完整版本历史」历程展示</li>
+          </ul>
+          <div class="tags"><span class="tg opt">优化</span><span class="tg new">新功能</span></div>
+          <div class="quote">「希望访客看到的不是静态作品集，而是它一路长起来的样子。」</div>
+        </div>
+        <div class="tl-item">
+          <div class="ver"><span class="vtag">v1.5</span><span class="when">2026.06.10</span></div>
+          <div class="what">规则降级模式 · Agent 内核成型</div>
+          <div class="desc">无 API Key 时以规则模式完整演示；完善 Prompt / RAG / Skill 路由 / MCP 工具 / Context Harness 内核。</div>
+          <div class="tags"><span class="tg opt">优化</span><span class="tg fix">修复</span></div>
+        </div>
+        <div class="tl-item">
+          <div class="ver"><span class="vtag">v1.0</span><span class="when">2026.05.20</span></div>
+          <div class="what">作品集初始版本</div>
+          <div class="desc">搭建 7 个 Agent 项目原型，统一 FastAPI 后端骨架，确立大赛作品集方向。</div>
+          <div class="tags"><span class="tg new">新功能</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">AI Demo 画廊 · 统一 FastAPI + 原生前端 · 蓝白科技感设计体系 · ©<span id="year"></span> Tao Xie</div>
+</footer>
+
+<script src="./_shared.js"></script>
 <script>
 const items = [
-  {n:"大模型微调平台", d:"LoRA/QLoRA 端到端：数据→训练(实时loss)→导出→部署", f:"llm-finetune-studio/", c:"from-sky-400 to-indigo-400"},
-  {n:"企业级 RAG 系统", d:"混合检索 + 多文档理解 + 引用溯源", f:"rag-knowledge-hub/", c:"from-sky-400 to-cyan-400"},
-  {n:"AI 代码助手", d:"生成/补全/重构/解释 · Skill+MCP", f:"ai-code-copilot/", c:"from-violet-400 to-sky-400"},
-  {n:"多模态对话机器人", d:"文本情感感知 + 图像理解 + 语音转录", f:"multimodal-chat-hub/", c:"from-pink-400 to-sky-400"},
-  {n:"智能客服", d:"意图路由 + MCP 工具 + FAQ 知识库", f:"smart-service-desk/", c:"from-teal-400 to-sky-400"},
-  {n:"Audit-AIOPS 审计异常检测", d:"日志异常检测 + 根因分析 + MCP 工具（自包含演示）", f:"audit-aiops.html", c:"from-violet-400 to-sky-400"},
-  {n:"专属刷题教练", d:"多源题库聚合智能备考平台（独立作品）", f:"../shuati-coach.html", c:"from-amber-400 to-rose-400"},
+  {n:"大模型微调平台", d:"LoRA/QLoRA 端到端：数据→训练(实时 loss)→导出→部署", f:"llm-finetune-studio/", a:"#22d3ee", icon:"⚡"},
+  {n:"企业级 RAG 系统", d:"混合检索(BM25+向量) + 多文档理解 + 引用溯源", f:"rag-knowledge-hub/", a:"#34d399", icon:"🔍"},
+  {n:"AI 代码助手", d:"生成 / 补全 / 重构 / 解释 · Skill 路由 + MCP", f:"ai-code-copilot/", a:"#818cf8", icon:"💻"},
+  {n:"多模态对话机器人", d:"文本情感感知 + 图像理解 + 语音转录", f:"multimodal-chat-hub/", a:"#e879f9", icon:"🎭"},
+  {n:"智能客服 Agent", d:"意图路由 + MCP 工具 + FAQ 知识库闭环", f:"smart-service-desk/", a:"#fbbf24", icon:"🤖"},
+  {n:"Audit-AIOPS 审计异常检测", d:"日志异常检测 + 根因分析 + MCP（自包含演示）", f:"audit-aiops.html", a:"#a78bfa", icon:"🛡", tag:"参考样板"},
+  {n:"专属刷题教练", d:"多源题库聚合智能备考平台（独立作品）", f:"../shuati-coach.html", a:"#38bdf8", icon:"📚"},
 ];
-document.getElementById("grid").innerHTML = items.map(it=>
-  `<a href="${it.f}" class="card rounded-2xl p-6 block">
-     <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${it.c} mb-4"></div>
-     <h3 class="text-lg font-semibold text-slate-100">${it.n}</h3>
-     <p class="text-sm text-slate-400 mt-1">${it.d}</p>
-     <span class="text-xs text-sky-400 mt-3 inline-block">打开 Demo →</span>
+const grid = document.getElementById("grid");
+grid.innerHTML = items.map(it=>
+  `<a href="${it.f}" class="feat reveal" style="display:block;text-decoration:none">
+     <div class="fi" style="background:${it.a}22;color:${it.a};border-color:${it.a}55">${it.icon}</div>
+     <h4>${it.n} ${it.tag?`<span class="chip" style="background:${it.a}1f;color:${it.a};border-color:${it.a}44">${it.tag}</span>`:''}</h4>
+     <p>${it.d}</p>
+     <span style="font-size:12px;color:${it.a};margin-top:10px;display:inline-block">打开 Demo →</span>
    </a>`).join("");
+window.boot();
 </script>
 </body>
 </html>

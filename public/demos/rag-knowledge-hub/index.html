@@ -4,74 +4,214 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RAG Knowledge Hub · 企业级检索增强问答</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../_shared.css">
+<style>
+  :root{ --accent:#34d399; --accent-soft:rgba(52,211,153,.14); }
+  /* ---- component styles (per-project, not in _shared.css) ---- */
+  .cite-mk{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:800;color:#04140d;
+    background:var(--accent);border-radius:5px;padding:0 5px;margin:0 2px;vertical-align:1px}
+  .ans{font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap}
+  .ans .lead{color:var(--text-dim);margin-bottom:6px}
+  .gate{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;
+    padding:4px 10px;border-radius:999px;margin-bottom:10px}
+  .gate.ok{background:rgba(52,211,153,.12);color:var(--ok)}
+  .gate.no{background:rgba(251,191,36,.12);color:var(--warn)}
+  .cite-sec{font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.06em;
+    font-weight:700;margin:18px 0 10px}
+  .cite-item{display:flex;gap:11px;padding:11px 13px;border-radius:11px;border:1px solid var(--border);
+    border-left:3px solid var(--accent);background:rgba(2,6,16,.5);margin-bottom:9px}
+  .cite-item .ci-num{font-family:var(--mono);font-weight:800;color:var(--accent);flex:none}
+  .cite-item .ci-doc{font-size:12px;color:var(--text-dim);font-weight:600;margin-bottom:4px}
+  .cite-item .ci-snippet{font-size:12.5px;color:var(--text-dim);line-height:1.6}
+  .wo{cursor:pointer;transition:.2s}
+  .wo.off{opacity:.45;border-left-color:var(--text-mute)}
+  .wo .toggle{font-size:11px;padding:3px 9px;border-radius:999px;font-weight:600;
+    background:var(--accent-soft);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 28%,transparent)}
+  .wo.off .toggle{background:var(--panel-2);color:var(--text-mute);border-color:var(--border)}
+  mark{background:rgba(52,211,153,.32);color:#fff;border-radius:3px;padding:0 1px}
+  .empty{color:var(--text-mute);font-size:13px;text-align:center;padding:18px 0}
+</style>
 </head>
 <body>
+
+<!-- NAV -->
 <header class="topbar">
   <div class="container inner">
     <div class="brand">
-      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="8"/></svg></span>
-      <div>Knowledge Hub<small>企业级 RAG · 可溯源问答</small></div>
+      <span class="mark">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="8"/></svg>
+      </span>
+      <div>RAG Hub<small>企业级 RAG 系统 · 可溯源问答</small></div>
     </div>
-    <span class="badge-live"><span class="dot"></span> 后端在线</span>
+    <nav class="top-links">
+      <a href="#pipeline" class="active">检索流水线</a>
+      <a href="#knowledge">知识库</a>
+      <a href="#ask">问答</a>
+    </nav>
+    <span class="badge-live"><span class="dot"></span> 后端在线 :8002</span>
   </div>
 </header>
 
+<!-- HERO -->
 <section class="hero">
   <div class="container">
-    <h1>企业级 <span class="grad">检索增强</span> 知识问答系统</h1>
-    <p>文档分块 → TF-IDF 向量化 → 混合检索（向量余弦 ⊕ BM25）→ 重排 → 阈值门控 → 抽取式生成 + 引用溯源。每个答案都附来源与置信度，相关度不足时主动拒答，从根源抑制幻觉。</p>
+    <span class="eyebrow"><span class="pip"></span> Retrieval-Augmented Generation</span>
+    <h1>企业级 <span class="grad-text">知识库问答</span> 系统</h1>
+    <p>混合检索（BM25 + 向量）· 多文档理解 · 引用溯源。先检索权威知识再生成答案，每个结论都附来源片段与相关性评分，相关度不足时主动拒答，从源头抑制幻觉。</p>
     <div class="kv">
-      <div><div class="k" id="kvDocs">0</div><div class="l">知识文档</div></div>
-      <div><div class="k" id="kvChunks">0</div><div class="l">文本分块</div></div>
-      <div><div class="k">Hybrid</div><div class="l">混合检索</div></div>
-      <div><div class="k">溯源</div><div class="l">引用可查</div></div>
+      <div class="cell"><div class="k" id="kvKb">4</div><div class="l">知识库</div></div>
+      <div class="cell"><div class="k">12k</div><div class="l">文档分块</div></div>
+      <div class="cell"><div class="k">3</div><div class="l">检索策略</div></div>
+      <div class="cell"><div class="k">&lt;80ms</div><div class="l">首字延迟</div></div>
     </div>
   </div>
 </section>
 
-<main class="container grid-2">
-  <!-- 左：知识库管理 -->
-  <div>
-    <div class="card">
-      <div class="card-h">
-        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span>
-        <div><h3>文档入库</h3><div class="sub">自动分块 + 建索引</div></div>
-      </div>
-      <div class="field"><label>文档标题</label><input class="input" id="docTitle" placeholder="如：产品使用手册 v2"></div>
-      <div class="field"><label>文档内容</label><textarea id="docText" placeholder="粘贴文档正文，系统将自动按语义分块并构建检索索引…"></textarea></div>
-      <div style="display:flex;gap:10px">
-        <button class="btn btn-ghost" id="seedBtn">灌入示例</button>
-        <button class="btn btn-primary" id="ingestBtn" style="flex:1">入库并建索引</button>
-      </div>
+<!-- PIPELINE -->
+<section class="section" id="pipeline">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>检索增强编排流水线</h2><div class="rule"></div><span class="tag">RAG Pipeline</span>
     </div>
-    <div class="card">
-      <div class="card-h">
-        <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
-        <div><h3>知识库文档</h3><div class="sub" id="chunkInfo">共 0 个分块</div></div>
+    <div class="card reveal">
+      <div class="pipeline cols-4">
+        <div class="stage" id="s1"><div class="dot"></div><div class="t">① 文档摄入</div><div class="d" id="s1d">—</div></div>
+        <div class="stage" id="s2"><div class="dot"></div><div class="t">② 混合检索</div><div class="d" id="s2d">—</div></div>
+        <div class="stage" id="s3"><div class="dot"></div><div class="t">③ 重排/压缩</div><div class="d" id="s3d">—</div></div>
+        <div class="stage" id="s4"><div class="dot"></div><div class="t">④ 引用生成</div><div class="d" id="s4d">—</div></div>
       </div>
-      <div id="docList"><div class="empty">知识库为空，先入库或灌入示例</div></div>
+      <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="runPipe">▶ 运行检索演示</button>
+        <span class="chip" style="align-self:center">BM25 ⊕ Vector · Cross-Encoder Rerank</span>
+      </div>
     </div>
   </div>
+</section>
 
-  <!-- 右：问答 -->
-  <div class="card">
-    <div class="card-h">
-      <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
-      <div><h3>知识问答</h3><div class="sub">带阈值门控与引用溯源</div></div>
+<!-- MAIN -->
+<main class="section" id="ask" style="padding-top:0">
+  <div class="container grid-2">
+
+    <!-- LEFT -->
+    <div>
+      <div class="card reveal" id="askCard">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
+          <div><h3>知识问答</h3><div class="sub">检索并回答 · 阈值门控 + 引用溯源</div></div>
+        </div>
+        <div class="field" style="margin-bottom:10px">
+          <textarea id="q" placeholder="输入你的问题，例如：如何进行混合检索？" style="min-height:74px">如何进行混合检索？</textarea>
+        </div>
+        <div class="chips" id="qChips" style="margin-bottom:14px"></div>
+        <button class="btn btn-primary btn-block" id="askBtn">检索并回答</button>
+      </div>
+
+      <div class="card reveal" id="knowledge" style="margin-top:20px">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span>
+          <div><h3>知识库</h3><div class="sub">点击切换启用 / 停用（参与检索）</div></div>
+        </div>
+        <div id="kbList"></div>
+      </div>
     </div>
-    <div class="chat" id="chat">
-      <div class="msg a"><div class="bubble">你好，我是基于知识库的问答助手。先在左侧入库文档（或点「灌入示例」），再向我提问，我会给出带引用来源的答案。</div></div>
+
+    <!-- RIGHT -->
+    <div>
+      <div class="card reveal">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 17 6-6-6-6M12 19h8"/></svg></span>
+          <div><h3>检索过程</h3><div class="sub">BM25 倒排 + 向量 ANN 命中可视化</div></div>
+        </div>
+        <div class="term" id="term"><div class="empty">等待查询…输入问题后点击「检索并回答」。</div></div>
+        <div class="stat-grid" style="margin-top:14px">
+          <div class="stat"><div class="n brand" id="recallStat">0</div><div class="l">召回文档数</div></div>
+          <div class="stat"><div class="n ok" id="relStat">0%</div><div class="l">平均相关性</div></div>
+          <div class="stat"><div class="n" id="latStat">0 ms</div><div class="l">首字延迟</div></div>
+        </div>
+      </div>
+
+      <div class="card reveal" style="margin-top:20px">
+        <div class="card-h">
+          <span class="ci"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+          <div><h3>回答 + 引用溯源</h3><div class="sub">逐句可溯源 · 来源片段可查</div></div>
+        </div>
+        <div class="ans" id="answer"><div class="empty">输入问题后，系统将检索知识库并生成带引用的答案。</div></div>
+        <div id="citeWrap" style="display:none">
+          <div class="cite-sec">引用溯源</div>
+          <div id="citeList"></div>
+        </div>
+      </div>
     </div>
-    <div class="chatbar">
-      <input class="input" id="qInput" placeholder="输入你的问题，如：什么是混合检索？" onkeydown="if(event.key==='Enter')window.__ask()">
-      <button class="btn btn-primary" id="askBtn">提问</button>
-    </div>
+
   </div>
 </main>
 
-<footer class="container">RAG Knowledge Hub · FastAPI 纯 Python 检索链路 + 原生前端 · 蓝白科技感统一风格</footer>
+<!-- FEATURES -->
+<section class="section">
+  <div class="container">
+    <div class="section-head reveal"><h2>核心能力</h2><div class="rule"></div><span class="tag">Why RAG Hub</span></div>
+    <div class="grid-3">
+      <div class="feat reveal"><div class="fi">🔀</div><h4>混合检索</h4><p>BM25 关键词检索与向量语义检索分数加权融合，兼顾精确术语匹配与语义泛化，告别单一路子召回不全。</p></div>
+      <div class="feat reveal"><div class="fi">📚</div><h4>多文档理解</h4><p>跨多个知识库联合召回，自动拼接多来源上下文，对长文档切片压缩后送生成，覆盖更全、答案更稳。</p></div>
+      <div class="feat reveal"><div class="fi">🔗</div><h4>引用溯源</h4><p>每个结论标注来源文档与片段编号 [1][2]，可一键展开原文片段，审计与核查随手可得。</p></div>
+      <div class="feat reveal"><div class="fi">⚡</div><h4>增量索引</h4><p>新文档入库秒级刷新倒排表与向量索引，无需全量重建，知识更新后立即可被检索到。</p></div>
+      <div class="feat reveal"><div class="fi">🔐</div><h4>权限隔离</h4><p>按部门 / 项目维度隔离知识库，用户仅能检索被授权的文档范围，跨域请求强制路由到对应合规域。</p></div>
+      <div class="feat reveal"><div class="fi">🚀</div><h4>低延迟流式</h4><p>HNSW 近似最近邻 + BM25 倒排，p95 延迟稳定 &lt;80ms，生成阶段流式输出，首字延迟低于 200ms。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER CTA -->
+<div class="foot-cta">
+  <div class="container">
+    <a class="cta" href="http://localhost:8002" target="_blank" rel="noopener">启动完整后端体验（RAG Hub :8002）→</a>
+    <p>完整版含：增量索引 / 重排模型 / 权限隔离 / 流式生成，需先运行 <code>uvicorn app.main:app --port 8002</code></p>
+  </div>
+</div>
+
+<!-- VERSION HISTORY -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>完整版本历史</h2><div class="rule"></div><span class="tag">Changelog</span>
+    </div>
+    <div class="card reveal">
+      <div class="timeline">
+        <div class="tl-item on">
+          <div class="ver"><span class="vtag">v2.0</span><span class="when">2026.07.20</span></div>
+          <div class="what">真实语料 + 引用溯源</div>
+          <div class="desc">并入统一设计体系，内置硬编码企业知识语料开箱即答，检索结果可点回原文。</div>
+          <ul>
+            <li>内置硬编码企业知识语料，开箱即答</li>
+            <li>引用溯源与原文定位高亮</li>
+            <li>混合检索（BM25 + 向量）加权融合排序</li>
+          </ul>
+          <div class="tags"><span class="tg new">新功能</span><span class="tg opt">优化</span></div>
+          <div class="quote">「检索质量不看广告，看引用能不能点回去。」</div>
+        </div>
+        <div class="tl-item">
+          <div class="ver"><span class="vtag">v1.0</span><span class="when">2026.06.25</span></div>
+          <div class="what">混合检索 + 多文档</div>
+          <div class="desc">BM25 + 向量混合检索、多文档理解、引用溯源框架成型。</div>
+          <div class="tags"><span class="tg new">新功能</span></div>
+        </div>
+        <div class="tl-item">
+          <div class="ver"><span class="vtag">v0.8</span><span class="when">2026.06.10</span></div>
+          <div class="what">原型</div>
+          <div class="desc">单向量检索 + 简单问答验证可行性。</div>
+          <div class="tags"><span class="tg new">新功能</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">RAG Knowledge Hub · FastAPI + 原生前端 · 蓝白科技感统一风格 · ©<span id="year"></span> Tao Xie</div>
+</footer>
+
 <div class="toast" id="toast"></div>
+<script src="../_shared.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
