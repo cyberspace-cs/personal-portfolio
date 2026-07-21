@@ -56,3 +56,6 @@ project.private.config.json
 
 # 简历生成器调试残留（可手动删除）
 面试物料/resume-generator/output-peking/undefined-*
+
+# IDE / agent memory (含本地保密笔记，禁止提交)
+.codebuddy/
