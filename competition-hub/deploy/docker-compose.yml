@@ -1,0 +1,19 @@
+# 全栈一键编排：构建前端 + 运行后端（后端同源托管前端）
+# 用法（在 deploy/ 目录）：docker compose up -d --build
+# 访问 http://localhost:8000
+services:
+  competition-hub:
+    build:
+      context: ..            # competition-hub/ 根目录
+      dockerfile: Dockerfile
+    container_name: competition-hub
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    volumes:
+      - hub-data:/app/data   # 持久化 SQLite 数据
+    restart: unless-stopped
+
+volumes:
+  hub-data:

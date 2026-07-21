@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #05070f;
+  color: #e2e8f0;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+    'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background-image:
+    radial-gradient(900px 500px at 12% -8%, rgba(34, 211, 238, 0.10), transparent 60%),
+    radial-gradient(800px 500px at 100% 0%, rgba(168, 85, 247, 0.12), transparent 55%),
+    linear-gradient(180deg, #05070f 0%, #080b16 100%);
+  background-attachment: fixed;
+}
+
+/* 赛博网格背景 */
+.cyber-grid {
+  background-image:
+    linear-gradient(rgba(56, 189, 248, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.06) 1px, transparent 1px);
+  background-size: 38px 38px;
+}
+
+@layer components {
+  .glass {
+    @apply rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md;
+  }
+  .glass-strong {
+    @apply rounded-2xl border border-white/10 bg-ink-850/80 backdrop-blur-xl;
+  }
+  .neon-text {
+    text-shadow: 0 0 18px rgba(34, 211, 238, 0.55);
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium
+      transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-neon-cyan/90 to-neon-blue/90 text-ink-950 font-semibold
+      hover:shadow-glow hover:brightness-110;
+  }
+  .btn-ghost {
+    @apply btn border border-white/15 bg-white/5 text-slate-200 hover:bg-white/10;
+  }
+  .input {
+    @apply w-full rounded-xl border border-white/10 bg-ink-900/70 px-3 py-2 text-sm text-slate-100
+      outline-none transition focus:border-neon-cyan/60 focus:ring-2 focus:ring-neon-cyan/20
+      placeholder:text-slate-500;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5
+      text-xs font-medium text-slate-300 transition hover:border-neon-cyan/40 hover:text-white;
+  }
+  .chip-active {
+    @apply border-neon-cyan/60 bg-neon-cyan/15 text-neon-cyan shadow-glow;
+  }
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.25);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}

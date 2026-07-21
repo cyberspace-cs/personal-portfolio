@@ -1,0 +1,7 @@
+# 运行时生成
+data/*.db
+data/*.db-wal
+data/*.db-shm
+.venv/
+__pycache__/
+*.pyc
