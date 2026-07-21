@@ -1,0 +1,11 @@
+.head { display: flex; align-items: center; }
+.h-info { margin-left: 24rpx; }
+.h-name { font-size: 36rpx; font-weight: 800; display: block; }
+.score { color: #FD79A8; font-weight: 700; font-size: 24rpx; }
+.primary-btn { background: #6C5CE7; color: #fff; border-radius: 16rpx; margin: 8rpx 0 20rpx; }
+.rv-head { display: flex; justify-content: space-between; }
+.rv-dept { font-weight: 700; font-size: 28rpx; }
+.rv-stamp { font-size: 22rpx; color: #fff; background: #00B894; padding: 2rpx 12rpx; border-radius: 20rpx; }
+.rv-scores { margin: 8rpx 0; }
+.rv-content { font-size: 28rpx; }
+.empty { text-align: center; padding: 40rpx; }

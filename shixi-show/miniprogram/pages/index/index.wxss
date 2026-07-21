@@ -1,0 +1,15 @@
+.hero { padding: 16rpx 8rpx 24rpx; }
+.hero-title { font-size: 48rpx; font-weight: 800; color: #6C5CE7; display: block; }
+.hero-sub { font-size: 24rpx; color: #9AA0A6; }
+
+.company { display: flex; align-items: center; }
+.rank { width: 48rpx; font-size: 36rpx; font-weight: 800; color: #FD79A8; text-align: center; }
+.info { flex: 1; margin-left: 20rpx; }
+.name-row { display: flex; align-items: center; }
+.name { font-size: 32rpx; font-weight: 700; }
+.stamp { margin-left: 12rpx; font-size: 22rpx; color: #fff; background: #00B894; padding: 2rpx 12rpx; border-radius: 20rpx; }
+.tags { margin: 8rpx 0; }
+.tag { font-size: 22rpx; color: #6C5CE7; background: #EEE9FF; padding: 4rpx 12rpx; border-radius: 16rpx; margin-right: 10rpx; }
+.meta { font-size: 24rpx; }
+.score { color: #FD79A8; font-weight: 700; margin-right: 16rpx; }
+.fire { margin-left: 8rpx; }

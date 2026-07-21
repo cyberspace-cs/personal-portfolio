@@ -1,0 +1,4 @@
+<view class="logo" style="width:{{size}}rpx;height:{{size}}rpx;background:{{bgColor}};">
+  <image wx:if="{{logo && showImg}}" src="{{logo}}" class="logo-img" mode="aspectFill" binderror="onErr" />
+  <text wx:else class="logo-text">{{initialChar}}</text>
+</view>

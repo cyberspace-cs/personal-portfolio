@@ -1,0 +1,6 @@
+.search-bar { display: flex; gap: 12rpx; margin-bottom: 20rpx; }
+.input { flex: 1; background: #fff; border-radius: 16rpx; padding: 16rpx 20rpx; font-size: 28rpx; }
+.btn { background: #6C5CE7; color: #fff; }
+.card { display: flex; justify-content: space-between; align-items: center; }
+.name { font-weight: 700; font-size: 30rpx; }
+.empty { text-align: center; padding: 40rpx; }
