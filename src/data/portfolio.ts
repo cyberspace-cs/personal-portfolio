@@ -158,6 +158,10 @@ export const experiences: Experience[] = [
 
 const REPO = "https://github.com/cyberspace-cs/personal-portfolio";
 
+// TODO: 部署 Unified-Audit-AIOPS 门户后，将此占位地址替换为实际站点域名。
+// 该站点已配置 SITE_ACCESS_PASSWORD 门禁，仅授权（知晓密码）用户可访问 demo。
+const UA_PORTAL_DEMO = "https://unified-audit-aiops.example.com";
+
 export const projects: Project[] = [
   {
     name: { en: "LLM Fine-tuning Platform", zh: "大模型微调平台" },
@@ -224,6 +228,17 @@ export const projects: Project[] = [
     github: REPO,
     demo: "/demos/audit-aiops.html",
     icon: "activity",
+  },
+  {
+    name: { en: "Unified Audit-AIOPS Portal", zh: "审计智能一体化运维服务门户" },
+    description: {
+      en: "Role-based audit operations portal (admin / auditor / center / ops) with a simplified workbench, service catalog, multi-level approval workflow engine, and a RAG knowledge base. PostgreSQL + Redis persistence, gated by a site access password.",
+      zh: "面向审计运维的一体化门户，按角色（管理员 / 审计人员 / 中心人员 / 运维）分级呈现简化工作台、服务目录、多级审批流程引擎与 RAG 知识库；PostgreSQL + Redis 持久化，并设站点访问密码门禁。",
+    },
+    tech: ["FastAPI", "PostgreSQL", "Redis", "RBAC", "Agent 编排", "原生前端"],
+    // 私有仓库：不在公开主页暴露 github 地址；demo 为部署后的站点（受 SITE_ACCESS_PASSWORD 保护）
+    demo: UA_PORTAL_DEMO,
+    icon: "shield",
   },
   {
     name: { en: "AI Quiz Coach", zh: "专属刷题教练" },
