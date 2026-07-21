@@ -1,6 +1,6 @@
 """竞赛信息聚合平台 · Pydantic 数据模型（请求/响应 Schema）"""
-from typing import Optional, List
-from pydantic import BaseModel, Field
+from typing import Optional, List, Literal
+from pydantic import BaseModel, Field, field_validator
 
 
 # ---------------- 分类 ----------------
@@ -15,36 +15,43 @@ class CategoryOut(BaseModel):
 
 
 class CategoryIn(BaseModel):
-    name: str
-    slug: str
-    icon: str = ""
-    description: str = ""
+    name: str = Field(max_length=100)
+    slug: str = Field(max_length=100)
+    icon: str = Field(default="", max_length=10)
+    description: str = Field(default="", max_length=500)
     sort_order: int = 0
 
 
 # ---------------- 竞赛 ----------------
 class CompetitionBase(BaseModel):
-    title: str
-    summary: str = ""
-    description: str = ""
+    title: str = Field(max_length=200)
+    summary: str = Field(default="", max_length=500)
+    description: str = Field(default="", max_length=8000)
     category_id: Optional[int] = None
-    organizer: str = ""
-    location: str = ""
-    mode: str = "offline"            # online / offline / hybrid
-    prize: str = ""
+    organizer: str = Field(default="", max_length=200)
+    location: str = Field(default="", max_length=100)
+    mode: Literal["online", "offline", "hybrid"] = "offline"
+    prize: str = Field(default="", max_length=200)
     prize_amount: int = 0
-    status: str = "upcoming"         # upcoming / ongoing / ended
+    status: Literal["upcoming", "ongoing", "ended"] = "upcoming"
     start_date: Optional[str] = None
     end_date: Optional[str] = None
     reg_deadline: Optional[str] = None
-    tags: List[str] = []
-    cover: str = ""
-    source_url: str = ""
+    tags: List[str] = Field(default_factory=list, max_length=10)
+    cover: str = Field(default="", max_length=500)
+    source_url: str = Field(default="", max_length=500)
     featured: bool = False
+
+    @field_validator("tags")
+    @classmethod
+    def _trim_tags(cls, v: List[str]) -> List[str]:
+        # 清理前后空白、单标签上限 30 字符、总数上限 10
+        cleaned = [t.strip()[:30] for t in v if t and t.strip()]
+        return cleaned[:10]
 
 
 class CompetitionIn(CompetitionBase):
-    slug: str
+    slug: str = Field(max_length=200)
 
 
 class CompetitionOut(CompetitionBase):
@@ -68,13 +75,13 @@ class CompetitionList(BaseModel):
 # ---------------- 用户 / 认证 ----------------
 class UserRegister(BaseModel):
     username: str = Field(min_length=3, max_length=32)
-    email: str = ""
+    email: str = Field(default="", max_length=200)
     password: str = Field(min_length=6, max_length=64)
 
 
 class UserLogin(BaseModel):
-    username: str
-    password: str
+    username: str = Field(max_length=32)
+    password: str = Field(max_length=64)
 
 
 class UserOut(BaseModel):

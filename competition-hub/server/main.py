@@ -6,9 +6,11 @@ import json
 import os
 import secrets
 import sqlite3
+import time
+from collections import defaultdict
 from datetime import datetime, timedelta
 
-from fastapi import FastAPI, HTTPException, Depends, Header, Query
+from fastapi import FastAPI, HTTPException, Depends, Header, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -108,13 +110,70 @@ def require_user(authorization: str = Header(None)) -> dict:
 # ---------------- 应用 ----------------
 app = FastAPI(title="竞赛信息聚合平台 API", version="1.0.0")
 
+# R1: CORS 收敛为可信源（默认本地开发源，生产通过 ALLOWED_ORIGINS 注入）
+_ALLOWED_ORIGINS = [
+    o.strip() for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",") if o.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
+    expose_headers=["X-Request-Id"],
 )
+
+
+# R2: 安全响应头中间件（CSP / 防嗅探 / 防点击劫持 / 隐私Referrer）
+@app.middleware("http")
+async def _security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault(
+        "Content-Security-Policy",
+        "default-src 'self'; "
+        "img-src 'self' data: https:; "
+        "media-src 'self' data:; "
+        "font-src 'self' data:; "
+        "style-src 'self' 'unsafe-inline'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self'",
+    )
+    response.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+    return response
+
+
+# R3: 认证接口按 IP 限流（固定窗口：10 次/60 秒），防止爆破
+_AUTH_RATE_LIMIT = 10
+_AUTH_RATE_WINDOW = 60
+_auth_hits: dict[str, list[float]] = defaultdict(list)
+
+
+def _client_ip(request: Request) -> str:
+    fwd = request.headers.get("X-Forwarded-For")
+    if fwd:
+        return fwd.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _check_auth_rate_limit(request: Request):
+    ip = _client_ip(request)
+    now = time.time()
+    window = _auth_hits[ip]
+    window[:] = [t for t in window if now - t < _AUTH_RATE_WINDOW]
+    if len(window) >= _AUTH_RATE_LIMIT:
+        retry = int(_AUTH_RATE_WINDOW - (now - window[0])) + 1
+        raise HTTPException(
+            status_code=429,
+            detail="认证请求过于频繁，请稍后再试",
+            headers={"Retry-After": str(max(retry, 1))},
+        )
+    window.append(now)
 
 
 @app.on_event("startup")
@@ -329,7 +388,8 @@ def stats():
 
 # ---------------- 用户认证 ----------------
 @app.post("/api/auth/register", response_model=AuthOut)
-def register(payload: UserRegister):
+def register(payload: UserRegister, request: Request):
+    _check_auth_rate_limit(request)
     conn = get_db()
     exists = conn.execute("SELECT 1 FROM users WHERE username=?", (payload.username,)).fetchone()
     if exists:
@@ -347,7 +407,8 @@ def register(payload: UserRegister):
 
 
 @app.post("/api/auth/login", response_model=AuthOut)
-def login(payload: UserLogin):
+def login(payload: UserLogin, request: Request):
+    _check_auth_rate_limit(request)
     conn = get_db()
     user = conn.execute("SELECT * FROM users WHERE username=?", (payload.username,)).fetchone()
     conn.close()
