@@ -6,6 +6,8 @@
 import random
 import string
 
+import main
+
 
 def _rand_user():
     s = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
@@ -253,3 +255,43 @@ def test_validation_rejects_bad_register(client):
     # 超长用户名
     assert client.post("/api/auth/register",
                        json={"username": "x" * 40, "password": "secret1"}).status_code == 422
+
+
+# ---------------- 统一错误响应（R5） ----------------
+def test_r5_unhandled_exception_safe_body(monkeypatch, caplog):
+    """未捕获异常：客户端仅收到通用文案，内部细节只落服务端日志"""
+    import logging
+
+    secret = "SECRET_INTERNAL_DETAIL_XYZ_"
+    def boom():
+        raise RuntimeError(secret + "should-not-leak")
+
+    monkeypatch.setattr(main, "get_db", boom)
+    from fastapi.testclient import TestClient
+    c = TestClient(main.app, raise_server_exceptions=False)
+    with caplog.at_level(logging.ERROR, logger="competition_hub"):
+        r = c.get("/api/categories")
+    assert r.status_code == 500
+    body = r.json()
+    assert body["detail"] == "服务器内部错误，请稍后重试"
+    assert secret not in r.text
+    assert "Traceback" not in r.text
+    # 服务端日志应包含完整细节（供排查）
+    assert secret in caplog.text
+
+
+def test_r5_error_envelope_consistent(client):
+    """401/404/422 均为统一 {detail: ...} 信封，且不含异常堆栈"""
+    r404 = client.get("/api/competitions/999999")
+    assert r404.status_code == 404 and "detail" in r404.json()
+
+    r401 = client.post("/api/competitions",
+                       json={"title": "x", "slug": "y", "status": "upcoming", "mode": "online"})
+    assert r401.status_code == 401 and "detail" in r401.json()
+
+    r422 = client.post("/api/auth/register", json={"username": "ok", "password": "123"})
+    assert r422.status_code == 422 and "detail" in r422.json()
+
+    # 任何错误响应都不应回显 Traceback
+    for r in (r404, r401, r422):
+        assert "Traceback" not in r.text

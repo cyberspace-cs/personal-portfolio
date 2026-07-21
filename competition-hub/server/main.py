@@ -3,6 +3,7 @@ FastAPI + SQLite · 竞赛聚合 / 分类筛选 / 关键词搜索 / 用户认证
 """
 import hashlib
 import json
+import logging
 import os
 import secrets
 import sqlite3
@@ -12,8 +13,10 @@ from datetime import datetime, timedelta
 
 from fastapi import FastAPI, HTTPException, Depends, Header, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse, FileResponse
+from fastapi.responses import RedirectResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+
+logger = logging.getLogger("competition_hub")
 
 from database import get_db, init_db
 from models import (
@@ -174,6 +177,18 @@ def _check_auth_rate_limit(request: Request):
             headers={"Retry-After": str(max(retry, 1))},
         )
     window.append(now)
+
+
+# R5: 全局未捕获异常处理 —— 客户端只收到安全文案，内部堆栈落服务端日志
+async def _unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("未捕获异常 [%s %s]: %s", request.method, request.url.path, exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "服务器内部错误，请稍后重试"},
+    )
+
+
+app.add_exception_handler(Exception, _unhandled_exception_handler)
 
 
 @app.on_event("startup")
