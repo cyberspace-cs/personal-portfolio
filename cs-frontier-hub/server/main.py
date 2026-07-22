@@ -77,7 +77,7 @@ def _item_to_out(row, session_id: Optional[str] = None) -> dict:
         "language": row["language"], "status": row["status"],
         "featured": bool(row["featured"]), "views": row["views"],
         "tags": tags, "created_at": row["created_at"], "updated_at": row["updated_at"],
-        "is_favorited": fav,
+        "image_url": row["image_url"], "is_favorited": fav,
     }
 
 
@@ -248,11 +248,11 @@ def create_item(payload: models.ItemInput, _=Depends(require_admin)):
     try:
         cur = conn.execute(
             "INSERT INTO items (title, slug, summary, content, category_id, source_type, source_url, "
-            "github_stars, author_org, language, status, featured) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            "github_stars, author_org, language, status, featured, image_url) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (payload.title, slug, payload.summary, payload.content, payload.category_id,
              payload.source_type, payload.source_url, payload.github_stars, payload.author_org,
-             payload.language, payload.status, int(bool(payload.featured))))
+             payload.language, payload.status, int(bool(payload.featured)), payload.image_url or ""))
         iid = cur.lastrowid
         for t in payload.tags:
             tid = ensure_tag_conn(conn, t)
@@ -276,11 +276,11 @@ def update_item(item_id: int, payload: models.ItemInput, _=Depends(require_admin
     slug = payload.slug or row["slug"]
     conn.execute(
         "UPDATE items SET title=?, slug=?, summary=?, content=?, category_id=?, source_type=?, "
-        "source_url=?, github_stars=?, author_org=?, language=?, status=?, featured=?, updated_at=CURRENT_TIMESTAMP "
+        "source_url=?, github_stars=?, author_org=?, language=?, status=?, featured=?, image_url=?, updated_at=CURRENT_TIMESTAMP "
         "WHERE id=?",
         (payload.title, slug, payload.summary, payload.content, payload.category_id, payload.source_type,
          payload.source_url, payload.github_stars, payload.author_org, payload.language, payload.status,
-         int(bool(payload.featured)), item_id))
+         int(bool(payload.featured)), payload.image_url or "", item_id))
     conn.execute("DELETE FROM item_tags WHERE item_id=?", (item_id,))
     for t in payload.tags:
         tid = ensure_tag_conn(conn, t)
@@ -353,6 +353,23 @@ def remove_favorite(item_id: int, session_id: str):
     conn.commit()
     conn.close()
     return {"ok": True, "favorited": False}
+
+
+@app.post("/api/crawler/run")
+def run_crawler_endpoint(body: dict = {}, _=Depends(require_admin)):
+    """触发爬虫抓取前沿信息（需要 X-Admin-Key）。
+    支持 sources: github / gitee / hf / arxiv / csdn / news / semantic
+    """
+    sources = body.get("sources") or ["github", "gitee", "hf", "arxiv", "csdn", "news"]
+    try:
+        limit = int(body.get("limit", 20))
+    except (TypeError, ValueError):
+        limit = 20
+    try:
+        from crawler import run_crawler as _run
+        return _run(sources, limit)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"爬虫执行失败: {e}")
 
 
 # --------------------------------------------------------------------------- #
