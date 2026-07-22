@@ -463,8 +463,20 @@ function render(data, scroll) {
   if (scroll) window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-loadArchive();
-load(false);
+// 直接以 file:// 打开时，同源代理 /api/aihot 不存在，无法拉数据；给出明确提示而非静默失败
+if (location.protocol === 'file:') {
+  document.getElementById("content").innerHTML =
+    `<div class="state">
+       <div class="big">📡 需通过网站访问</div>
+       <div>本页通过同源代理 <code>/api/aihot</code> 拉取 AI 日报。直接双击打开本地文件（file://）时该接口不存在，因此无法加载数据。</div>
+       <div style="margin-top:10px">部署到网站后访问 <b>/ai-briefing.html</b> 即可正常显示；本地预览请使用开发服务器（见仓库 README / dev 脚本）。</div>
+     </div>`;
+  const st = document.getElementById("state");
+  if (st) st.remove();
+} else {
+  loadArchive();
+  load(false);
+}
 </script>
 </body>
 </html>
