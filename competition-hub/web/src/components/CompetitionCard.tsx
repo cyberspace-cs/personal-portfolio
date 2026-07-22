@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Heart, MapPin, Trophy, CalendarDays, Eye, Radio } from 'lucide-react'
 import type { Competition } from '../lib/types'
-import { STATUS_META, MODE_META, fmtDate } from '../lib/format'
+import { STATUS_META, MODE_META, fmtDate, sourceTagClass } from '../lib/format'
 
 export function StatusBadge({ status }: { status: string }) {
   const meta = STATUS_META[status] ?? STATUS_META.ended
@@ -73,7 +73,7 @@ export function CompetitionCard({
         </div>
 
         <Link to={`/competition/${c.id}`} className="mt-2 block">
-          <h3 className="line-clamp-2 min-h-[2.5rem] text-[15px] font-semibold leading-snug text-white transition group-hover:text-neon-blue">
+          <h3 className="line-clamp-2 min-h-[2.5rem] gradient-text text-[15px] font-bold leading-snug transition group-hover:brightness-125">
             {c.title}
           </h3>
         </Link>
@@ -109,25 +109,22 @@ export function CompetitionCard({
         </div>
 
         <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/5 pt-3">
-          {c.source && c.source_url ? (
-            <a
-              href={c.source_url}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-              }}
-              className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] text-slate-400 transition hover:text-neon-blue"
-            >
-              <Radio size={10} className="shrink-0" /> 聚合自 {c.source}
+          {c.source ? (
+            <div className="inline-flex min-w-0 items-center gap-1.5 text-[11px] text-slate-500">
+              <Radio size={10} className="shrink-0" />
+              <span className="shrink-0">聚合自</span>
+              <span
+                className={`shrink-0 rounded-md border px-1.5 py-0.5 font-semibold ${sourceTagClass(c.source)}`}
+              >
+                {c.source}
+              </span>
               {isLive && (
-                <span className="ml-1 inline-flex shrink-0 items-center gap-0.5 text-neon-green">
+                <span className="inline-flex shrink-0 items-center gap-0.5 text-neon-green">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neon-green" />
                   实时
                 </span>
               )}
-            </a>
+            </div>
           ) : (
             <span />
           )}

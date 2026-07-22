@@ -17,6 +17,20 @@ export function modeLabel(m: string) {
   return MODE_META[m]?.label ?? m
 }
 
+// 聚合来源 → 彩色标签配色（按关键词匹配，保证每个来源有稳定专属色）
+export const SOURCE_META: { re: RegExp; cls: string }[] = [
+  { re: /和鲸|heikesong|黑客松/i, cls: 'text-neon-cyan border-neon-cyan/40 bg-neon-cyan/10' },
+  { re: /biendata/i, cls: 'text-neon-violet border-neon-violet/40 bg-neon-violet/10' },
+  { re: /赛氪|saikr/i, cls: 'text-neon-amber border-neon-amber/40 bg-neon-amber/10' },
+  { re: /kaggle/i, cls: 'text-neon-blue border-neon-blue/40 bg-neon-blue/10' },
+  { re: /阿里|天池|aliyun|tianchi/i, cls: 'text-orange-300 border-orange-300/40 bg-orange-300/10' },
+  { re: /datafountain|数据[iI]?(?:湖|谷|竞赛)/i, cls: 'text-teal-300 border-teal-300/40 bg-teal-300/10' },
+]
+export function sourceTagClass(name = '') {
+  const m = SOURCE_META.find((x) => x.re.test(name))
+  return m?.cls ?? 'text-neon-azure border-neon-azure/40 bg-neon-azure/10'
+}
+
 export function fmtDate(s: string | null | undefined) {
   if (!s) return '待定'
   return s
