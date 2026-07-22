@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS items (
     views        INTEGER NOT NULL DEFAULT 0,
     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    image_url    TEXT NOT NULL DEFAULT '',
     FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 
@@ -88,7 +89,12 @@ def get_db() -> sqlite3.Connection:
 def init_db() -> None:
     conn = get_db()
     conn.executescript(SCHEMA)
-    conn.commit()
+    # 兼容旧库：新增 image_url 列（封面图，爬虫抓取的真实缩略图）
+    try:
+        conn.execute("ALTER TABLE items ADD COLUMN image_url TEXT NOT NULL DEFAULT ''")
+        conn.commit()
+    except Exception:
+        pass
     conn.close()
 
 
@@ -134,8 +140,8 @@ def insert_item(data: dict, tags: list):
     cur = conn.execute(
         """INSERT INTO items
            (title, slug, summary, content, category_id, source_type, source_url,
-            github_stars, author_org, language, status, featured)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+            github_stars, author_org, language, status, featured, image_url)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (
             data["title"], data["slug"], data.get("summary", ""),
             data.get("content", ""), data.get("category_id"),
@@ -143,6 +149,7 @@ def insert_item(data: dict, tags: list):
             data.get("github_stars"), data.get("author_org", ""),
             data.get("language", ""), data.get("status", "active"),
             int(bool(data.get("featured", False))),
+            data.get("image_url", ""),
         ),
     )
     iid = cur.lastrowid

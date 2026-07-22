@@ -41,6 +41,7 @@ class ItemOut(BaseModel):
     tags: List[str] = []
     created_at: str = ""
     updated_at: str = ""
+    image_url: str = ""
     is_favorited: bool = False
 
 
@@ -65,6 +66,7 @@ class ItemInput(BaseModel):
     language: str = ""
     status: str = "active"
     featured: bool = False
+    image_url: str = ""
     tags: List[str] = []
 
 

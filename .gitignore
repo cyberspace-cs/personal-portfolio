@@ -53,6 +53,9 @@ ENV/
 # Project specific
 .workbuddy/
 project.private.config.json
+*.db
+*.sqlite
+*.sqlite3
 
 # 简历生成器调试残留（可手动删除）
 面试物料/resume-generator/output-peking/undefined-*
