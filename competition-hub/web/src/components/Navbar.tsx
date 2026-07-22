@@ -31,7 +31,7 @@ export function Navbar() {
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-neon-cyan to-neon-blue text-ink-950 shadow-glow">
             <Radar size={20} />
           </span>
-          <span className="text-lg font-bold tracking-tight text-white neon-text">竞赛雷达</span>
+          <span className="text-lg font-bold tracking-tight gradient-text">竞赛雷达</span>
         </Link>
 
         <nav className="ml-2 hidden items-center gap-1 text-sm text-slate-300 md:flex">

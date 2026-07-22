@@ -52,12 +52,14 @@ export function CompetitionCard({
   const isLive = /实时|heikesong|Biendata|赛氪/.test(c.source || '')
   return (
     <div
-      className="group glass relative flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:border-neon-cyan/40 hover:shadow-glow card-enter"
+      className="group glass relative flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:border-neon-cyan/50 hover:shadow-glow-cyan card-enter"
       style={{ ['--i' as any]: index ?? 0 }}
     >
+      <div className="tech-line h-0.5 w-full opacity-40 transition group-hover:opacity-100" />
       <Link to={`/competition/${c.id}`} className="block">
         <div className="relative h-32 w-full overflow-hidden" style={{ background: gradient }}>
           <div className="absolute inset-0 cyber-grid opacity-40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink-950/40 to-transparent" />
           <div className="absolute left-3 top-3 flex items-center gap-2">
             <span className="rounded-md bg-black/40 px-2 py-1 text-xs font-medium text-white backdrop-blur">
               {c.category_name || '综合'}
@@ -100,7 +102,7 @@ export function CompetitionCard({
             {c.title}
           </h3>
         </Link>
-        <p className="mt-1.5 line-clamp-2 text-xs text-slate-400">{c.summary || '—'}</p>
+        <p className="mt-1.5 line-clamp-2 text-xs text-slate-300">{c.summary || '—'}</p>
 
         {c.tags?.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
