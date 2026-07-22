@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Heart, MapPin, Trophy, CalendarDays, Eye, Radio } from 'lucide-react'
+import { Heart, MapPin, Trophy, CalendarDays, Eye, Radio, ExternalLink } from 'lucide-react'
 import type { Competition } from '../lib/types'
 import { STATUS_META, MODE_META, fmtDate, coverGradient } from '../lib/format'
 
@@ -64,10 +64,19 @@ export function CompetitionCard({
           <div className="absolute right-3 top-3">
             <StatusBadge status={c.status} />
           </div>
-          {c.source && (
-            <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded bg-black/45 px-2 py-0.5 text-[10px] font-medium text-neon-cyan backdrop-blur">
+          {c.source && c.source_url && (
+            <a
+              href={c.source_url}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+              }}
+              className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded bg-black/45 px-2 py-0.5 text-[10px] font-medium text-neon-cyan backdrop-blur transition hover:bg-black/65"
+            >
               <Radio size={10} /> 聚合自 {c.source}
-            </span>
+            </a>
           )}
           {c.featured && (
             <span className="absolute bottom-3 right-3 rounded bg-neon-violet/80 px-2 py-0.5 text-[11px] font-semibold text-white">
@@ -114,8 +123,24 @@ export function CompetitionCard({
           <span className="text-[11px] text-slate-500">{MODE_META[c.mode]?.label ?? c.mode}</span>
         </div>
 
-        <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-3">
-          <span className="truncate text-[11px] text-slate-500">主办方：{c.organizer || '—'}</span>
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/5 pt-3">
+          <div className="flex min-w-0 items-center gap-2">
+            {c.source_url && (
+              <a
+                href={c.source_url}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+                className="inline-flex shrink-0 items-center gap-1 rounded text-[11px] font-medium text-neon-cyan transition hover:underline"
+              >
+                <ExternalLink size={12} /> 官网
+              </a>
+            )}
+            <span className="truncate text-[11px] text-slate-500">主办方：{c.organizer || '—'}</span>
+          </div>
           {onToggleFavorite && (
             <FavoriteHeart
               active={c.is_favorited}

@@ -10,8 +10,15 @@
 当前内置来源
 ------------
   - HeikeSongAdapter : 直连 https://heikesong.cn/ 解析服务端渲染的精选轮播（真实联网抓取演示）；
-  - BundleAdapter     : 读取 collector_sources.json（模拟对接多个赛事站点后的归一化结果），
-                        用于在生产接入更多源之前，先让平台拥有丰富的多分类赛事数据。
+  - BundleAdapter     : 读取 collector_sources.json，内含 62 条**已核实真实链接**的赛事
+                        （Kaggle / DataFountain / 百度 AI Studio / 腾讯云 / 天池 / 研究生数模 /
+                        工业设计 / 强网杯 / 天府杯 / 京东 等 10 类来源），每条均带可跳转的
+                        `source_url`。该文件可随时手动扩充；新增来源只需追加条目即可。
+
+注：Kaggle / DataFountain 等站点列表为前端渲染，未提供可匿名访问的 JSON API，
+因此以「已核实真实链接」的归一化数据集接入；HeikeSong 则演示了服务端渲染站点的
+实时抓取能力。要接入更多「真·自动搜寻」站点，可参照 HeikeSongAdapter 新增适配器
+（针对服务端渲染或带公开 JSON API 的站点）。
 
 扩展方式：新建一个继承 SourceAdapter 的类（实现 fetch/parse），加入 ADAPTERS 即可。
 """
