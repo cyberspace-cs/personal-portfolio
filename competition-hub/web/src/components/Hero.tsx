@@ -15,13 +15,13 @@ export function Hero({
   return (
     <section className="scanlines relative overflow-hidden border-b border-white/10">
       <div className="absolute inset-0 cyber-grid opacity-30" />
-      <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-neon-cyan/25 blur-3xl hero-glow" />
+      <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-neon-blue/25 blur-3xl hero-glow" />
       <div
-        className="absolute -right-16 top-8 h-80 w-80 rounded-full bg-neon-violet/25 blur-3xl hero-glow"
+        className="absolute -right-16 top-8 h-80 w-80 rounded-full bg-neon-azure/22 blur-3xl hero-glow"
         style={{ animationDelay: '1.5s' }}
       />
       <div
-        className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-neon-teal/15 blur-3xl hero-glow"
+        className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-neon-ice/12 blur-3xl hero-glow"
         style={{ animationDelay: '3s' }}
       />
       <div className="relative mx-auto max-w-6xl px-4 py-16 text-center">

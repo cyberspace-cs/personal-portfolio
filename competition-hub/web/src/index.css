@@ -14,15 +14,15 @@ body,
 
 body {
   margin: 0;
-  background-color: #0b1020;
-  color: #e6edf6;
+  background-color: #0a1024;
+  color: #e8eefb;
   font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
     'PingFang SC', 'Microsoft YaHei', sans-serif;
   background-image:
-    radial-gradient(1000px 620px at 8% -12%, rgba(34, 211, 238, 0.16), transparent 55%),
-    radial-gradient(900px 600px at 100% -6%, rgba(168, 85, 247, 0.18), transparent 52%),
-    radial-gradient(820px 520px at 50% 118%, rgba(45, 212, 191, 0.10), transparent 55%),
-    linear-gradient(180deg, #0b1020 0%, #0d1426 100%);
+    radial-gradient(1000px 620px at 8% -12%, rgba(59, 130, 246, 0.20), transparent 55%),
+    radial-gradient(900px 600px at 100% -6%, rgba(96, 165, 250, 0.18), transparent 52%),
+    radial-gradient(820px 520px at 50% 118%, rgba(224, 242, 254, 0.10), transparent 55%),
+    linear-gradient(180deg, #0a1024 0%, #0c1530 100%);
   background-attachment: fixed;
 }
 
@@ -130,10 +130,10 @@ body {
   color: #cbd5e1;
 }
 
-/* ===== 酷炫科技未来风工具类 ===== */
-/* 渐变文字（品牌 / 标题强调） */
+/* ===== 蓝白酷炫科技未来风工具类 ===== */
+/* 渐变文字（品牌 / 标题强调）白 → 冰蓝 → 蔚蓝 */
 .gradient-text {
-  background: linear-gradient(100deg, #67e8f9 0%, #22d3ee 32%, #a855f7 68%, #f0abfc 100%);
+  background: linear-gradient(100deg, #ffffff 0%, #bae6fd 32%, #60a5fa 68%, #3b82f6 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -144,7 +144,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.18em;
   font-size: 11px;
-  color: #67e8f9;
+  color: #7dd3fc;
 }
 /* 扫描线叠层（极轻，营造 CRT / 指挥中心质感） */
 .scanlines::after {
@@ -159,13 +159,13 @@ body {
   );
   opacity: 0.6;
 }
-/* 卡片顶部科技光带 */
+/* 卡片顶部科技光带（蓝白） */
 .tech-line {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(34, 211, 238, 0.7),
-    rgba(168, 85, 247, 0.7),
+    rgba(59, 130, 246, 0.75),
+    rgba(186, 230, 253, 0.75),
     transparent
   );
 }

@@ -52,7 +52,7 @@ export function CompetitionCard({
   const isLive = /实时|heikesong|Biendata|赛氪/.test(c.source || '')
   return (
     <div
-      className="group glass relative flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:border-neon-cyan/50 hover:shadow-glow-cyan card-enter"
+      className="group glass relative flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:border-neon-blue/50 hover:shadow-glow-blue card-enter"
       style={{ ['--i' as any]: index ?? 0 }}
     >
       <div className="tech-line h-0.5 w-full opacity-40 transition group-hover:opacity-100" />
@@ -89,7 +89,7 @@ export function CompetitionCard({
             </a>
           )}
           {c.featured && (
-            <span className="absolute bottom-3 right-3 rounded bg-neon-violet/80 px-2 py-0.5 text-[11px] font-semibold text-white">
+            <span className="absolute bottom-3 right-3 rounded bg-neon-blue/80 px-2 py-0.5 text-[11px] font-semibold text-white">
               精选
             </span>
           )}
