@@ -141,8 +141,20 @@ _PLAN_SCHEMA = {
 
 
 async def _structured_llm(system: str, user: str, tool_name: str, schema: dict, max_tokens: int = 700) -> dict:
-    """用虚拟工具范式向激活厂商要结构化 JSON；返回空 dict 表示失败（调用方应降级）。"""
-    return await call_llm_tool(system, user, tool_name, schema, max_tokens)
+    """用虚拟工具范式向激活厂商要结构化 JSON；返回空 dict 表示失败（调用方应降级）。
+
+    健壮性：厂商接口偶发超时/网络抖动时自动重试一次，仍失败则降级为空 dict，
+    由调用方回退到确定性 fallback，绝不让端点 500。
+    """
+    last: dict = {}
+    for attempt in range(2):
+        try:
+            last = await call_llm_tool(system, user, tool_name, schema, max_tokens)
+            if last:
+                return last
+        except Exception as e:  # 网络/超时/厂商错误 -> 重试一次后降级
+            print(f"[llm:{tool_name}] 第{attempt + 1}次调用失败：{repr(e)}")
+    return last
 
 # 启动时初始化数据库（lifespan 事件，替代已弃用的 on_event）
 from contextlib import asynccontextmanager

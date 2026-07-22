@@ -220,7 +220,7 @@ async def call_llm(system: str, user: str, max_tokens: int = 800,
     }
     if json_mode and cfg.get("supports_json", True):
         payload["response_format"] = {"type": "json_object"}
-    async with httpx.AsyncClient(timeout=30) as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(connect=20, read=90, write=20, pool=20)) as client:
         resp = await client.post(
             url,
             headers={"Content-Type": "application/json",
@@ -269,7 +269,7 @@ async def call_llm_tool(system: str, user: str, tool_name: str, tool_schema: dic
         }],
         "tool_choice": {"type": "function", "function": {"name": tool_name}},
     }
-    async with httpx.AsyncClient(timeout=30) as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(connect=20, read=90, write=20, pool=20)) as client:
         resp = await client.post(
             url,
             headers={"Content-Type": "application/json",
