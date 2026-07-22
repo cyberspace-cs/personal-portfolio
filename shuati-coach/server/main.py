@@ -11,11 +11,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from database import get_db, init_db, DB_DIR
+from database import (
+    get_db, init_db, DB_DIR,
+    record_bank_version, get_active_study_plan, save_study_plan,
+)
 from models import (
     ChatIn, ExamRecordIn, ExamRecordOut, ExplainIn, GenIn, MasteryOut, QuestionOut,
-    QuizRecordIn, QuizRecordOut, ReportIn, StreakOut, UserLogin,
+    QuizCheckIn, QuizRecordIn, QuizRecordOut, ReportIn, StreakOut, UserLogin,
     UserOut, UserRegister, WrongBookIn, WrongBookOut,
+    PlanDay, StudyPlanRequest, StudyPlanResponse, StudyPlanSaveIn, StudyPlanOut, QuestionBankVersionOut,
 )
 
 # 定制化备考 Agent（多智能体编排 / 工具调用 / 分层记忆）
@@ -105,6 +109,28 @@ _REPORT_SCHEMA = {
         "encouragement": {"type": "string"},
     },
     "required": ["overall", "prediction", "focusTopics", "plan", "encouragement"],
+}
+
+_PLAN_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "week_start": {"type": "string", "description": "周一开始日期 YYYY-MM-DD"},
+        "days": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "day": {"type": "integer"},
+                    "theme": {"type": "string"},
+                    "topics": {"type": "array", "items": {"type": "string"}},
+                    "count": {"type": "integer"},
+                    "tip": {"type": "string"},
+                },
+                "required": ["day", "theme", "topics", "count", "tip"],
+            },
+        },
+    },
+    "required": ["week_start", "days"],
 }
 
 
@@ -396,17 +422,44 @@ SEED_QUESTIONS = [
 ]
 
 
+def _load_seed_questions():
+    """优先从 data/questions.json 加载题库；缺失/异常时回退到代码内 SEED_QUESTIONS。"""
+    path = os.path.join(DB_DIR, "data", "questions.json")
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            qs = data.get("questions", [])
+            if qs:
+                return qs
+        except Exception as e:
+            print("[seed] 读取 questions.json 失败，回退硬编码题库:", e)
+    return SEED_QUESTIONS
+
+
+def _norm(v):
+    """opts/answer 兼容 'JSON 字符串' 与 '列表' 两种格式，统一转成 JSON 字符串入库。"""
+    if isinstance(v, str):
+        return v
+    return json.dumps(v, ensure_ascii=False)
+
+
 def seed_questions():
-    """如果题库为空则插入种子数据"""
+    """如果题库为空则插入种子数据（来自 questions.json 或代码内 SEED_QUESTIONS）。"""
     conn = get_db()
     count = conn.execute("SELECT COUNT(*) FROM questions").fetchone()[0]
     if count == 0:
-        for q in SEED_QUESTIONS:
+        qs = _load_seed_questions()
+        for q in qs:
             conn.execute(
                 "INSERT INTO questions (cat, src, type, stem, opts, answer, explain, topic, difficulty) VALUES (?,?,?,?,?,?,?,?,?)",
-                (q["cat"], q["src"], q["type"], q["stem"], q["opts"], q["answer"], q["explain"], q["topic"], q["difficulty"])
+                (q["cat"], q["src"], q["type"], q["stem"],
+                 _norm(q["opts"]), _norm(q["answer"]), q["explain"], q["topic"], q["difficulty"])
             )
         conn.commit()
+        print(f"[seed] 已插入题库 {len(qs)} 题")
+    else:
+        print(f"[seed] 题库已有 {count} 题，跳过初始化")
     conn.close()
 
 
@@ -414,7 +467,21 @@ def seed_questions():
 # 密码工具
 # ================================================================
 def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+    """加盐 SHA-256：存储格式 `salt$hash`，避免相同密码产生相同哈希。"""
+    import hmac
+    salt = os.urandom(16).hex()
+    h = hashlib.sha256((salt + password).encode()).hexdigest()
+    return f"{salt}${h}"
+
+
+def verify_password(password: str, stored: str) -> bool:
+    """校验密码：兼容升级前的无盐哈希（旧库）与新版加盐哈希。"""
+    import hmac
+    if not stored or "$" not in stored:
+        # 兼容升级前的无盐哈希
+        return hmac.compare_digest(hashlib.sha256(password.encode()).hexdigest(), stored or "")
+    salt, h = stored.split("$", 1)
+    return hmac.compare_digest(hashlib.sha256((salt + password).encode()).hexdigest(), h)
 
 
 # ================================================================
@@ -430,6 +497,78 @@ def list_questions(cat: str | None = None):
         rows = conn.execute("SELECT * FROM questions ORDER BY id").fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+@app.get("/api/questions/meta")
+def questions_meta():
+    """公开展示题库概况（无需登录），用于首页/demo 展示与体验模式统计。
+    额外返回题库版本信息（version/sources/checksum），由 questions.json 提供。"""
+    from collections import Counter
+    conn = get_db()
+    rows = conn.execute("SELECT cat, type, src, difficulty, topic FROM questions").fetchall()
+    conn.close()
+    cats = Counter(r["cat"] for r in rows)
+    types = Counter(r["type"] for r in rows)
+    srcs = Counter(r["src"] for r in rows)
+    diff = Counter(r["difficulty"] for r in rows)
+    topics = Counter(r["topic"] for r in rows)
+
+    # 版本元信息（来自 data/questions.json）
+    meta_extra = {"version": None, "generated_at": None, "sources": dict(srcs), "checksum": ""}
+    try:
+        qj_path = os.path.join(DB_DIR, "data", "questions.json")
+        if os.path.exists(qj_path):
+            with open(qj_path, "r", encoding="utf-8") as f:
+                qj = json.load(f)
+            meta_extra["version"] = qj.get("version")
+            meta_extra["generated_at"] = qj.get("generated_at")
+            # 优先用 JSON 内置 sources；缺失则用 DB 统计兜底
+            if qj.get("sources"):
+                meta_extra["sources"] = qj["sources"]
+            meta_extra["checksum"] = qj.get("checksum", "")
+    except Exception:
+        pass
+
+    return {
+        "total": len(rows),
+        "cats": dict(cats),
+        "types": dict(types),
+        "sources": meta_extra["sources"],
+        "difficulty": dict(diff),
+        "topics": dict(topics),
+        "version": meta_extra["version"],
+        "generated_at": meta_extra["generated_at"],
+        "checksum": meta_extra["checksum"],
+    }
+
+
+@app.post("/api/quiz/check")
+def check_quiz(data: QuizCheckIn):
+    """匿名判分（体验模式）：给定作答返回每题对错、正确答案与解析，不落库。
+    前端可在未登录时调用，体验完整刷题+讲解流程。"""
+    conn = get_db()
+    results = []
+    correct_count = 0
+    for item in data.items:
+        row = conn.execute("SELECT * FROM questions WHERE id=?", (item.question_id,)).fetchone()
+        if not row:
+            continue
+        q = dict(row)
+        correct_ans = json.loads(q["answer"]) if isinstance(q["answer"], str) else q["answer"]
+        ok = sorted(item.selected) == sorted(correct_ans)
+        if ok:
+            correct_count += 1
+        results.append({
+            "id": q["id"],
+            "correct": ok,
+            "correct_answer": correct_ans,
+            "explain": q["explain"],
+            "topic": q["topic"],
+            "stem": q["stem"],
+            "type": q["type"],
+        })
+    conn.close()
+    return {"total": len(results), "correct": correct_count, "results": results}
 
 
 @app.get("/api/questions/{question_id}", response_model=QuestionOut)
@@ -461,18 +600,17 @@ def register(data: UserRegister):
     user_id = cur.lastrowid
     row = conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
     conn.close()
-    return dict(row)
+    return {"id": row["id"], "user_id": row["id"], "username": row["username"], "created_at": row["created_at"] or ""}
 
 
 @app.post("/api/login", response_model=UserOut)
 def login(data: UserLogin):
     conn = get_db()
-    h = hash_password(data.password)
-    row = conn.execute("SELECT * FROM users WHERE username=? AND password_hash=?", (data.username, h)).fetchone()
+    row = conn.execute("SELECT * FROM users WHERE username=?", (data.username,)).fetchone()
     conn.close()
-    if not row:
+    if not row or not verify_password(data.password, row["password_hash"]):
         raise HTTPException(401, "用户名或密码错误")
-    return dict(row)
+    return {"id": row["id"], "user_id": row["id"], "username": row["username"], "created_at": row["created_at"] or ""}
 
 
 # ================================================================
@@ -480,6 +618,10 @@ def login(data: UserLogin):
 # ================================================================
 @app.post("/api/quiz/record", response_model=QuizRecordOut)
 def create_quiz_record(data: QuizRecordIn):
+    # 体验模式（匿名）：不落库，仅回显
+    if data.user_id is None:
+        return {"ok": True, "demo": True, "id": 0, "user_id": 0,
+                "cat": data.cat, "total": data.total, "correct": data.correct, "created_at": ""}
     conn = get_db()
     cur = conn.execute(
         "INSERT INTO quiz_records (user_id, cat, total, correct) VALUES (?,?,?,?)",
@@ -506,7 +648,9 @@ def get_quiz_history(user_id: int):
 # ================================================================
 @app.post("/api/wrong-book")
 def add_wrong_question(data: WrongBookIn):
-    """添加错题记录，重复错误则计数+1"""
+    """添加错题记录，重复错误则计数+1（匿名体验模式不落库）"""
+    if data.user_id is None:
+        return {"ok": True, "demo": True}
     conn = get_db()
     existing = conn.execute(
         "SELECT id, error_count FROM wrong_book WHERE user_id=? AND question_id=?",
@@ -589,6 +733,10 @@ def checkin(user_id: int):
 # ================================================================
 @app.post("/api/exam/record")
 def create_exam_record(data: ExamRecordIn):
+    if data.user_id is None:
+        return {"ok": True, "demo": True, "id": 0, "user_id": 0,
+                "exam_type": data.exam_type, "total": data.total, "correct": data.correct,
+                "duration": data.duration, "time_used": data.time_used, "created_at": ""}
     conn = get_db()
     cur = conn.execute(
         "INSERT INTO exam_records (user_id, exam_type, total, correct, duration, time_used) VALUES (?,?,?,?,?,?)",
@@ -648,6 +796,112 @@ def get_mastery(user_id: int):
 
 
 # ================================================================
+# AI 学习计划（诊断 → 可执行日程）
+# ================================================================
+def _build_study_context(user_id, cat, days):
+    """聚合用户数据，构造学习计划上下文。匿名(user_id=None)仅用题库总体分布。"""
+    conn = get_db()
+    try:
+        if user_id:
+            mastery_rows = conn.execute("""
+                SELECT q.topic, COUNT(DISTINCT wb.question_id) as wrong_count
+                FROM wrong_book wb JOIN questions q ON wb.question_id=q.id
+                WHERE wb.user_id=? GROUP BY q.topic
+            """, (user_id,)).fetchall()
+            weak = []
+            for r in mastery_rows:
+                topic = r["topic"]
+                total = conn.execute("SELECT COUNT(*) cnt FROM questions WHERE topic=?", (topic,)).fetchone()["cnt"]
+                m = 100 - (r["wrong_count"] * 15)
+                weak.append((topic, max(0, m)))
+            weak.sort(key=lambda x: x[1])  # 掌握度最低排前
+            weak_topics = [t for t, _ in weak[:8]]
+            rec = conn.execute("SELECT COUNT(*) c, COALESCE(SUM(total),0) t FROM quiz_records WHERE user_id=?", (user_id,)).fetchone()
+            quiz_count = rec["c"]
+            quiz_total = rec["t"]
+            streak = 0  # 连续天数由 /api/streak 计算，此处仅作上下文占位
+        else:
+            weak_topics = []
+            quiz_count = 0
+            quiz_total = 0
+            streak = 0
+        all_topics = [r["topic"] for r in conn.execute("SELECT DISTINCT topic FROM questions").fetchall()]
+        cats = [r["cat"] for r in conn.execute("SELECT DISTINCT cat FROM questions").fetchall()]
+    finally:
+        conn.close()
+    return {
+        "user_id": user_id, "cat": cat, "days": days,
+        "weak_topics": weak_topics, "all_topics": all_topics, "cats": cats,
+        "quiz_count": quiz_count, "quiz_total": quiz_total, "streak": streak,
+    }
+
+
+@app.post("/api/study-plan", response_model=StudyPlanResponse)
+async def api_study_plan(data: StudyPlanRequest):
+    """生成 AI 学习计划：登录用户基于个人数据，匿名返回示例预览。LLM 失败降级。"""
+    ctx = _build_study_context(data.user_id, data.cat, data.days)
+    cat_line = f"目标分类：{data.cat}" if data.cat else "目标分类：全部（考研/考公/大厂）"
+    weak_line = "、".join(ctx["weak_topics"]) if ctx["weak_topics"] else "（暂无错题数据，按题库知识点示例规划）"
+    user_line = "已登录用户（基于个人错题/练习数据）" if data.user_id else "匿名访客（仅示例预览，不读取个人数据）"
+    system = (
+        "你是备考规划教练。根据用户薄弱知识点与目标，生成一份结构化的每日学习计划。"
+        "计划需可执行：每天一个主题、若干知识点、建议题量、一句复习贴士。只输出结构化 JSON，不要解释。"
+    )
+    user = (
+        f"{user_line}。{cat_line}。计划天数：{data.days} 天。\n"
+        f"薄弱知识点（掌握度从低到高）：{weak_line}\n"
+        f"全知识点库：{'、'.join(ctx['all_topics'])}\n"
+        f"历史练习次数：{ctx['quiz_count']}，累计题量：{ctx['quiz_total']}，连续打卡：{ctx['streak']} 天。\n"
+        f"请输出 week_start（本周一 YYYY-MM-DD）与 days 数组（每天含 day/theme/topics/count/tip）。"
+    )
+    plan = await _structured_llm(system, user, "study_plan", _PLAN_SCHEMA, max_tokens=900)
+    if not plan or not plan.get("days"):
+        plan = fallback_study_plan(ctx["weak_topics"], ctx["all_topics"], data.cat or "", data.days)
+        return StudyPlanResponse(fallback=True, plan=plan)
+    norm_days = []
+    for d in plan.get("days", [])[: data.days]:
+        norm_days.append({
+            "day": int(d.get("day", len(norm_days) + 1)),
+            "theme": str(d.get("theme", "")),
+            "topics": [str(x) for x in (d.get("topics") or [])],
+            "count": int(d.get("count", 15) or 15),
+            "tip": str(d.get("tip", "")),
+        })
+    plan["days"] = norm_days
+    return StudyPlanResponse(fallback=False, plan=plan)
+
+
+@app.get("/api/study-plan/{user_id}", response_model=StudyPlanOut)
+def get_study_plan(user_id: int):
+    """读取用户当前活跃学习计划。"""
+    row = get_active_study_plan(user_id)
+    if not row:
+        raise HTTPException(404, "暂无保存的学习计划")
+    return row
+
+
+@app.post("/api/study-plan/save", response_model=StudyPlanOut)
+def save_study_plan_api(data: StudyPlanSaveIn):
+    """保存（UPSERT）当前活跃学习计划：旧计划置为非活跃，插入新计划。"""
+    conn = get_db()
+    user = conn.execute("SELECT id FROM users WHERE id=?", (data.user_id,)).fetchone()
+    if not user:
+        conn.close()
+        raise HTTPException(400, "用户不存在，无法保存计划")
+    conn.close()
+    try:
+        rid = save_study_plan(data.user_id, data.cat, data.plan_json, data.week_start)
+    except Exception as e:
+        raise HTTPException(400, "保存失败：" + str(e))
+    conn = get_db()
+    row = conn.execute("SELECT * FROM study_plans WHERE id=?", (rid,)).fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(500, "保存失败")
+    return dict(row)
+
+
+# ================================================================
 # AI 能力接口（讲题 / 变式题 / 押题报告）
 #   无 API_KEY 时返回结构化降级内容，前端始终可用
 # ================================================================
@@ -669,6 +923,28 @@ def fallback_explain(q: dict) -> dict:
         ],
         "tips": "建议把本题加入错题本，按遗忘曲线复习，并联想同类考点。",
     }
+
+
+def fallback_study_plan(weak_topics: list, all_topics: list, cat: str, days: int = 7) -> dict:
+    """确定性降级：按薄弱知识点升序铺满 days 天，无 LLM 也可用。"""
+    from datetime import timedelta
+    today = date.today()
+    monday = today - timedelta(days=today.weekday())
+    week_start = monday.isoformat()
+    pool = list(weak_topics) if weak_topics else list(all_topics)
+    if not pool:
+        pool = ["综合巩固"]
+    plan_days = []
+    for i in range(days):
+        t = pool[i % len(pool)]
+        plan_days.append({
+            "day": i + 1,
+            "theme": f"第{i + 1}天 · {t}",
+            "topics": [t],
+            "count": 15,
+            "tip": "先复习概念再做题，错题当晚复盘。",
+        })
+    return {"week_start": week_start, "days": plan_days}
 
 
 def fallback_gen(q: dict) -> dict:
