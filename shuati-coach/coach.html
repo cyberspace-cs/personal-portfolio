@@ -164,12 +164,30 @@
   .feat p{color:var(--ink-2);font-size:14.5px}
 
   /* Pain points */
-  .pain-wrap{background:var(--surface);border-radius:24px;box-shadow:var(--shadow-sm);padding:44px;border:1px solid var(--line)}
-  .pain-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
-  .pain{display:flex;gap:14px;align-items:flex-start}
-  .pain .num{width:34px;height:34px;border-radius:10px;background:var(--rose-soft);color:var(--rose);display:grid;place-items:center;font-weight:800;flex-shrink:0}
-  .pain .txt strong{display:block;font-size:15px;margin-bottom:3px}
-  .pain .txt span{font-size:13.5px;color:var(--ink-3)}
+  .pain-wrap{background:linear-gradient(180deg,rgba(232,89,12,.07),rgba(232,89,12,.01));border-radius:24px;box-shadow:var(--shadow-sm);padding:44px;border:1px solid var(--line);position:relative;overflow:hidden}
+  .pain-wrap::before{content:"";position:absolute;inset:0;background:radial-gradient(440px 210px at 50% -12%,rgba(232,89,12,.10),transparent);pointer-events:none}
+  .pain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .pain{position:relative;display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 20px;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;overflow:hidden}
+  .pain::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--rose);opacity:0;transition:opacity .22s ease}
+  .pain:hover{transform:translateY(-5px);border-color:var(--rose-soft);box-shadow:0 16px 34px -18px rgba(232,89,12,.5)}
+  .pain:hover::after{opacity:1}
+  .pain .pi{width:42px;height:42px;border-radius:12px;background:var(--rose-soft);color:var(--rose);display:grid;place-items:center;flex-shrink:0}
+  .pain .pi svg{width:22px;height:22px;stroke:currentColor;fill:none}
+  .pain .txt{flex:1}
+  .pain .txt strong{display:block;font-size:15px;font-weight:800;margin-bottom:4px}
+  .pain .txt span{font-size:13px;line-height:1.65;color:var(--ink-3)}
+  .pain .num{position:absolute;top:13px;right:18px;font-size:13px;font-weight:800;color:var(--rose);opacity:.3;letter-spacing:.5px}
+  .pain-grid .pain{opacity:0;animation:painIn .55s ease forwards}
+  .pain-grid .pain:nth-child(1){animation-delay:.05s}
+  .pain-grid .pain:nth-child(2){animation-delay:.11s}
+  .pain-grid .pain:nth-child(3){animation-delay:.17s}
+  .pain-grid .pain:nth-child(4){animation-delay:.23s}
+  .pain-grid .pain:nth-child(5){animation-delay:.29s}
+  .pain-grid .pain:nth-child(6){animation-delay:.35s}
+  @keyframes painIn{from{opacity:0}to{opacity:1}}
+  @media(prefers-reduced-motion:reduce){.pain-grid .pain{opacity:1;animation:none}}
+  @media(max-width:900px){.pain-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.pain-grid{grid-template-columns:1fr}}
 
   /* ---------- Quiz view ---------- */
   .page-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;flex-wrap:wrap;gap:16px}
@@ -825,14 +843,39 @@
         <div class="sec-head" style="margin-bottom:32px">
           <div class="kicker">Pain Points</div>
           <h2>你是不是也被这些问题困扰</h2>
+          <p style="margin-top:10px">6 大典型备考困境，看看你中了几个</p>
         </div>
         <div class="pain-grid">
-          <div class="pain"><div class="num">1</div><div class="txt"><strong>题库分散多平台</strong><span>反复切换 APP，资源无法统一管理</span></div></div>
-          <div class="pain"><div class="num">2</div><div class="txt"><strong>错题无法同步</strong><span>各平台错题各自为政，难以汇总复盘</span></div></div>
-          <div class="pain"><div class="num">3</div><div class="txt"><strong>缺个性化推荐</strong><span>盲目刷题，抓不住真正的薄弱点</span></div></div>
-          <div class="pain"><div class="num">4</div><div class="txt"><strong>进度无法量化</strong><span>不知道复习到哪了，心里没底</span></div></div>
-          <div class="pain"><div class="num">5</div><div class="txt"><strong>计划难以统筹</strong><span>多类考试并行，复习安排一团乱</span></div></div>
-          <div class="pain"><div class="num">6</div><div class="txt"><strong>数据无法互通</strong><span>学习数据割裂，无法形成系统策略</span></div></div>
+          <div class="pain">
+            <div class="pi"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><path d="M10 6.5h4M6.5 10v4"/></svg></div>
+            <div class="txt"><strong>题库分散多平台</strong><span>反复切换 APP，资源无法统一管理</span></div>
+            <div class="num">01</div>
+          </div>
+          <div class="pain">
+            <div class="pi"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></div>
+            <div class="txt"><strong>错题无法同步</strong><span>各平台错题各自为政，难以汇总复盘</span></div>
+            <div class="num">02</div>
+          </div>
+          <div class="pain">
+            <div class="pi"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg></div>
+            <div class="txt"><strong>缺个性化推荐</strong><span>盲目刷题，抓不住真正的薄弱点</span></div>
+            <div class="num">03</div>
+          </div>
+          <div class="pain">
+            <div class="pi"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6" rx="1"/><rect x="12" y="8" width="3" height="10" rx="1"/><rect x="17" y="14" width="3" height="4" rx="1" opacity=".35"/></svg></div>
+            <div class="txt"><strong>进度无法量化</strong><span>不知道复习到哪了，心里没底</span></div>
+            <div class="num">04</div>
+          </div>
+          <div class="pain">
+            <div class="pi"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/><path d="M8 14l3 3 5-6" opacity=".5"/></svg></div>
+            <div class="txt"><strong>计划难以统筹</strong><span>多类考试并行，复习安排一团乱</span></div>
+            <div class="num">05</div>
+          </div>
+          <div class="pain">
+            <div class="pi"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.6"/><circle cx="18" cy="18" r="2.6"/><path d="M8.4 8.4l7.2 7.2" stroke-dasharray="2 2.5"/></svg></div>
+            <div class="txt"><strong>数据无法互通</strong><span>学习数据割裂，无法形成系统策略</span></div>
+            <div class="num">06</div>
+          </div>
         </div>
       </div>
     </div>
