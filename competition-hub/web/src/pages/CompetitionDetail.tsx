@@ -104,7 +104,7 @@ export function CompetitionDetail() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div>
-          <div className="relative mb-5 h-44 w-full overflow-hidden rounded-2xl" style={{ background: c.cover || 'linear-gradient(135deg,#0ea5e9,#7c3aed)' }}>
+          <div className="relative mb-5 h-44 w-full overflow-hidden rounded-2xl" style={{ background: c.cover || 'linear-gradient(135deg,#1d4ed8,#38bdf8)' }}>
             <div className="absolute inset-0 cyber-grid opacity-30" />
             <div className="absolute left-4 top-4 flex items-center gap-2">
               <span className="rounded-md bg-black/40 px-2 py-1 text-xs font-medium text-white backdrop-blur">

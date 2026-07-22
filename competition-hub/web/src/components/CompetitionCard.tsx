@@ -1,8 +1,7 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, MapPin, Trophy, CalendarDays, Eye, Radio, ExternalLink } from 'lucide-react'
+import { Heart, MapPin, Trophy, CalendarDays, Eye, Radio } from 'lucide-react'
 import type { Competition } from '../lib/types'
-import { STATUS_META, MODE_META, fmtDate, coverGradient, domainOf, faviconFor, initialOf } from '../lib/format'
+import { STATUS_META, MODE_META, fmtDate } from '../lib/format'
 
 export function StatusBadge({ status }: { status: string }) {
   const meta = STATUS_META[status] ?? STATUS_META.ended
@@ -49,88 +48,32 @@ export function CompetitionCard({
   onToggleFavorite?: (c: Competition) => void
   favLoading?: boolean
 }) {
-  const gradient = c.cover || coverGradient(c.title)
   const isLive = /实时|heikesong|Biendata|赛氪/.test(c.source || '')
-  const faviconSrc = faviconFor(c.source_url)
-  const initial = initialOf(c.source, c.source_url)
-  const [favFailed, setFavFailed] = useState(false)
   return (
     <div
       className="group glass relative flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:border-neon-blue/50 hover:shadow-glow-blue card-enter"
       style={{ ['--i' as any]: index ?? 0 }}
     >
       <div className="tech-line h-0.5 w-full opacity-40 transition group-hover:opacity-100" />
-      <Link to={`/competition/${c.id}`} className="block">
-        <div className="relative h-32 w-full overflow-hidden" style={{ background: gradient }}>
-          {c.image && (
-            <img
-              src={c.image}
-              alt={c.title}
-              loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover"
-              onError={(e) => {
-                ;(e.currentTarget as HTMLImageElement).style.display = 'none'
-              }}
-            />
-          )}
-          <div className="absolute inset-0 cyber-grid opacity-40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink-950/55 via-ink-950/15 to-transparent" />
-          {/* 官网图标：优先官方域名 favicon.ico，失败显示站点首字（保证始终有可见标识） */}
-          {!c.image && (
-            <div className="absolute inset-0 grid place-items-center">
-              {faviconSrc && !favFailed ? (
-                <img
-                  src={faviconSrc}
-                  alt={c.source}
-                  className="h-12 w-12 rounded-xl border border-white/25 bg-white/95 p-1 object-contain shadow-glow"
-                  onError={() => setFavFailed(true)}
-                />
-              ) : (
-                <span className="grid h-12 w-12 place-items-center rounded-xl border border-white/25 bg-white/10 text-lg font-bold text-white shadow">
-                  {initial}
-                </span>
-              )}
-            </div>
-          )}
-          <div className="absolute left-3 top-3 flex items-center gap-2">
-            <span className="rounded-md bg-black/40 px-2 py-1 text-xs font-medium text-white backdrop-blur">
+      {/* 左侧蓝色光带（未来科技感） */}
+      <span className="pointer-events-none absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-neon-blue/70 via-neon-azure/50 to-transparent opacity-60 transition group-hover:opacity-100" />
+      <div className="flex flex-1 flex-col p-4 pl-5">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] font-medium text-slate-300">
               {c.category_name || '综合'}
             </span>
-          </div>
-          <div className="absolute right-3 top-3">
             <StatusBadge status={c.status} />
           </div>
-          {c.source && c.source_url && (
-            <a
-              href={c.source_url}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-              }}
-              className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded bg-black/45 px-2 py-0.5 text-[10px] font-medium text-neon-cyan backdrop-blur transition hover:bg-black/65"
-            >
-              <Radio size={10} /> 聚合自 {c.source}
-              {isLive && (
-                <span className="ml-1 inline-flex items-center gap-0.5 text-neon-green">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neon-green" />
-                  实时
-                </span>
-              )}
-            </a>
-          )}
           {c.featured && (
-            <span className="absolute bottom-3 right-3 rounded bg-neon-blue/80 px-2 py-0.5 text-[11px] font-semibold text-white">
+            <span className="rounded bg-neon-blue/80 px-2 py-0.5 text-[11px] font-semibold text-white">
               精选
             </span>
           )}
         </div>
-      </Link>
 
-      <div className="flex flex-1 flex-col p-4">
-        <Link to={`/competition/${c.id}`} className="block">
-          <h3 className="line-clamp-2 min-h-[2.5rem] text-[15px] font-semibold leading-snug text-white transition group-hover:text-neon-cyan">
+        <Link to={`/competition/${c.id}`} className="mt-2 block">
+          <h3 className="line-clamp-2 min-h-[2.5rem] text-[15px] font-semibold leading-snug text-white transition group-hover:text-neon-blue">
             {c.title}
           </h3>
         </Link>
@@ -166,33 +109,41 @@ export function CompetitionCard({
         </div>
 
         <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/5 pt-3">
-          <div className="flex min-w-0 items-center gap-2">
-            {c.source_url && (
-              <a
-                href={c.source_url}
-                target="_blank"
-                rel="noreferrer"
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                }}
-                className="inline-flex shrink-0 items-center gap-1 rounded text-[11px] font-medium text-neon-cyan transition hover:underline"
-              >
-                <ExternalLink size={12} /> 官网
-              </a>
-            )}
-            <span className="truncate text-[11px] text-slate-500">主办方：{c.organizer || '—'}</span>
-          </div>
-          {onToggleFavorite && (
-            <FavoriteHeart
-              active={c.is_favorited}
+          {c.source && c.source_url ? (
+            <a
+              href={c.source_url}
+              target="_blank"
+              rel="noreferrer"
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                !favLoading && onToggleFavorite(c)
               }}
-            />
+              className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] text-slate-400 transition hover:text-neon-blue"
+            >
+              <Radio size={10} className="shrink-0" /> 聚合自 {c.source}
+              {isLive && (
+                <span className="ml-1 inline-flex shrink-0 items-center gap-0.5 text-neon-green">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neon-green" />
+                  实时
+                </span>
+              )}
+            </a>
+          ) : (
+            <span />
           )}
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="hidden text-[11px] text-slate-500 sm:inline">主办方：{c.organizer || '—'}</span>
+            {onToggleFavorite && (
+              <FavoriteHeart
+                active={c.is_favorited}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  !favLoading && onToggleFavorite(c)
+                }}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
