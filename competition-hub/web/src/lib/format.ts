@@ -31,7 +31,7 @@ export function coverGradient(seed: string) {
   return `linear-gradient(135deg, hsl(${a} 70% 22%), hsl(${b} 75% 14%))`
 }
 
-// 从 url 提取域名（去 www.），用于官网 Logo / favicon
+// 从 url 提取域名（去 www.），用于官网 favicon
 export function domainOf(url?: string): string {
   if (!url) return ''
   try {
@@ -41,16 +41,17 @@ export function domainOf(url?: string): string {
   }
 }
 
-// 官网真实 Logo（Clearbit，矩形大图，最接近"官网图片"观感）
-export function logoFor(url?: string): string {
-  const d = domainOf(url)
-  if (!d) return ''
-  return `https://logo.clearbit.com/${d}?size=128`
-}
-
-// 兜底 favicon（Clearbit 失败时使用）
+// 官网自有 favicon（直接用官方域名的 /favicon.ico，国内可访问，不依赖被墙的第三方图床）
 export function faviconFor(url?: string): string {
   const d = domainOf(url)
   if (!d) return ''
-  return `https://www.google.com/s2/favicons?domain=${d}&sz=128`
+  return `https://${d}/favicon.ico`
+}
+
+// 站点首字（favicon 加载失败时的文字兜底，保证始终有可见标识）
+export function initialOf(source?: string, url?: string): string {
+  const s = (source || domainOf(url) || '?').trim()
+  const m = s.match(/[一-龥A-Za-z0-9]/)
+  const ch = m ? m[0] : s[0] || '?'
+  return ch.toUpperCase()
 }
