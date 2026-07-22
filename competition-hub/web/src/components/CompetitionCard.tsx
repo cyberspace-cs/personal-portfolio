@@ -48,6 +48,7 @@ export function CompetitionCard({
   favLoading?: boolean
 }) {
   const gradient = c.cover || coverGradient(c.title)
+  const isLive = /实时|heikesong|Biendata|赛氪/.test(c.source || '')
   return (
     <div
       className="group glass relative flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:border-neon-cyan/40 hover:shadow-glow card-enter"
@@ -76,6 +77,12 @@ export function CompetitionCard({
               className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded bg-black/45 px-2 py-0.5 text-[10px] font-medium text-neon-cyan backdrop-blur transition hover:bg-black/65"
             >
               <Radio size={10} /> 聚合自 {c.source}
+              {isLive && (
+                <span className="ml-1 inline-flex items-center gap-0.5 text-neon-green">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neon-green" />
+                  实时
+                </span>
+              )}
             </a>
           )}
           {c.featured && (

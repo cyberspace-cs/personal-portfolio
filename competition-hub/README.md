@@ -17,7 +17,7 @@
 - **用户认证**：注册、登录、退出（基于 Bearer Token，PBKDF2 密码哈希，零额外依赖）。
 - **收藏功能**：登录用户可收藏竞赛，在「我的收藏」中统一管理。
 - **竞赛 CRUD**：登录用户可发布 / 编辑 / 删除赛事信息（管理后台形态）。
-- **🔌 自动聚合（Auto-Collect）**：内置可插拔数据源适配器（`collector.py`），自动搜寻并入库赛事 —— 实时接入「天天黑客松 heikesong.cn」轮播，并内置一份**多源真实赛事数据集**（`collector_sources.json`，62 条，覆盖 Kaggle / DataFountain / 百度 AI Studio / 腾讯云 / 天池 / 研究生数模 / 工业设计 / 强网杯 / 天府杯 / 京东 等 10 类来源）。**每条赛事均带真实「查看官网」链接**（`source_url`），列表卡片与详情页均可一键跳转到原赛事页面。管理员点击导航栏「一键聚合」即可增量更新，幂等去重（按 `slug`）、自动归类。每张卡片标注「聚合自 {来源}」。
+- **🔌 自动聚合（Auto-Collect）**：内置可插拔数据源适配器（`collector.py`），自动搜寻并入库赛事。包含 **3 个服务端渲染(SSR)实时适配器**：`HeikeSongAdapter`（天天黑客松 heikesong.cn 轮播）、`BiendataAdapter`（Biendata 竞赛平台 `/competition/<id>/`）、`SaikrAdapter`（赛氪首页赛事卡片）；以及 `BundleAdapter`（**62 条多源真实赛事数据集** `collector_sources.json`，覆盖 Kaggle / DataFountain / 百度 AI Studio / 腾讯云 / 天池 / 研究生数模 / 工业设计 / 强网杯 / 天府杯 / 京东 等 10 类来源）。通用 `ListingScrapeAdapter` 可一行配置扩展新 SSR 来源。**每条赛事均带真实「查看官网」链接**（`source_url`），列表卡片与详情页均可一键跳转；实时来源卡片额外标注「实时」标记。管理员点击「一键聚合」即可增量更新，幂等去重（按 `slug`）、自动归类。每张卡片标注「聚合自 {来源}」。
 - **响应式 UI**：赛博极客风格（深空底色 + 霓虹高亮 + 玻璃拟态 + 网格背景），完美适配桌面与移动端。列表卡片支持交错入场动画、骨架屏加载与标签胶囊。
 
 ---
@@ -169,6 +169,8 @@ docker compose up -d --build
 ## 📌 说明
 
 - 示例数据仅用于演示，来源为公开竞赛信息整理。Kaggle / DataFountain / 百度 AI Studio / 腾讯云 / 天池 等来源的 `source_url` 为对应赛事官网的真实地址（已抽样验证可访问），其余为官方赛事站点；链接可能随官方更新而变动。
+
+> **实时适配器 vs 已核实链接数据集**：`heikesong.cn` / `biendata.xyz` / `saikr.com` 为**服务端渲染(SSR)**站点，列表页初始 HTML 即含赛事标题与详情链接，故由实时适配器在「一键聚合」时由服务端 `urllib` 自动抓取解析（通用基类 `ListingScrapeAdapter`，新增来源只需配置 `listing_url` + `url_regex`）；而 Kaggle / DataFountain / 腾讯云 / 百度 AI Studio / 天池 等为**前端渲染(CSR)**站点，未提供可匿名访问的列表 API，`urllib` 只能拿到 JS 外壳，故以「已核实真实链接」的归一化数据集（`BundleAdapter`）接入。
 - 本项目为个人作品集项目，存放于 [personal-portfolio](https://github.com/cyberspace-cs/personal-portfolio) 仓库的 `competition-hub/` 目录。
 - 认证为演示级（Token 30 天有效期），生产环境建议接入更严格的权限体系（如管理员角色、HTTPS、限流）。
 - **默认管理员**：首次启动（`seed.ensure_admin`）自动创建 `admin / Admin@2026`，可用环境变量 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 覆盖；生产环境务必修改。仅管理员可调用 `POST /collect` 一键聚合。

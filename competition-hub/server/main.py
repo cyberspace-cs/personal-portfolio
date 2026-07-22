@@ -137,26 +137,47 @@ app.add_middleware(
 
 
 # R2: 安全响应头中间件（CSP / 防嗅探 / 防点击劫持 / 隐私Referrer）
+#   - /api/* 接口：严格防点击劫持（X-Frame-Options + frame-ancestors 'none'）
+#   - 前端 SPA（/、/assets/*、/competition/* 等）：允许被内置预览面板 iframe 嵌入，
+#     否则 present_files 预览会因 frame-ancestors 'none' 直接空白（即「浏览器不显示」）。
 @app.middleware("http")
 async def _security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
-    response.headers.setdefault("X-Frame-Options", "DENY")
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-    response.headers.setdefault(
-        "Content-Security-Policy",
-        "default-src 'self'; "
-        "img-src 'self' data: https:; "
-        "media-src 'self' data:; "
-        "font-src 'self' data:; "
-        "style-src 'self' 'unsafe-inline'; "
-        "script-src 'self' 'unsafe-inline'; "
-        "connect-src 'self'; "
-        "frame-ancestors 'none'; "
-        "base-uri 'self'; "
-        "form-action 'self'",
-    )
     response.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+
+    is_api = request.url.path.startswith("/api")
+    if is_api:
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; "
+            "img-src 'self' data: https:; "
+            "media-src 'self' data:; "
+            "font-src 'self' data:; "
+            "style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'",
+        )
+    else:
+        # 前端：保留其余 CSP，但放开 frame-ancestors（不设置 X-Frame-Options），
+        # 让内置预览面板可以正常嵌入实时应用。
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; "
+            "img-src 'self' data: https:; "
+            "media-src 'self' data:; "
+            "font-src 'self' data:; "
+            "style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "connect-src 'self'; "
+            "base-uri 'self'; "
+            "form-action 'self'",
+        )
     return response
 
 
