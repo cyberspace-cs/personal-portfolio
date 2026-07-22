@@ -39,6 +39,7 @@ export function FavoriteHeart({
 
 export function CompetitionCard({
   c,
+  index,
   onToggleFavorite,
   favLoading,
 }: {
