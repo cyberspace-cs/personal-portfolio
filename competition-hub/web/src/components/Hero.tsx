@@ -19,14 +19,14 @@ export function Hero({
       <div className="absolute -right-10 top-10 h-72 w-72 rounded-full bg-neon-violet/20 blur-3xl" />
       <div className="relative mx-auto max-w-6xl px-4 py-14 text-center">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-neon-cyan/30 bg-neon-cyan/10 px-3 py-1 text-xs font-medium text-neon-cyan">
-          <Sparkles size={13} /> 聚合全球技术竞赛 · 一站掌握
+          <Sparkles size={13} /> AI 自动聚合 · 实时更新赛事库
         </span>
         <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
           竞赛<span className="neon-text text-neon-cyan">雷达</span>
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm text-slate-400">
-          黑客松 · Kaggle 数据竞赛 · 算法大赛 · CTF · AI 大模型 · 创新创业 ——
-          在这里发现属于你的下一个舞台。
+          自动搜寻全球黑客松、Kaggle 数据竞赛、算法大赛、CTF、AI 大模型与创新创业赛事，
+          一站聚合呈现 —— 让你不再错过属于你的下一个舞台。
         </p>
 
         <div className="mx-auto mt-7 flex max-w-xl items-center gap-2 rounded-2xl border border-white/10 bg-ink-900/70 p-2 backdrop-blur">

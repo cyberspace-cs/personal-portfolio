@@ -59,6 +59,7 @@ class CompetitionOut(CompetitionBase):
     slug: str
     views: int = 0
     category_name: str = ""
+    source: str = ""          # 聚合来源（如「天天黑客松」「Kaggle」），用于「聚合自 xx」标记
     created_at: str = ""
     updated_at: str = ""
     is_favorited: bool = False

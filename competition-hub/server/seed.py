@@ -1,9 +1,19 @@
 """竞赛信息聚合平台 · 示例数据种子
-首次启动（或手动执行 `python seed.py`）时写入一批真实感强的示例竞赛与分类。
+首次启动（或手动执行 `python seed.py`）时写入一批真实感强的示例竞赛与分类，
+并确保在无任何管理员时创建默认管理员账号。
 """
+import hashlib
 import json
+import os
+import secrets
 import sqlite3
 from database import get_db, init_db
+
+
+def _hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 100_000)
+    return salt.hex() + "$" + dk.hex()
 
 
 CATEGORIES = [
@@ -232,6 +242,30 @@ def seed_if_empty():
     conn.close()
     if n == 0:
         seed()
+
+
+def ensure_admin():
+    """确保至少存在一个管理员账号（仅当无任何 admin 时创建默认账号）。
+
+    可通过环境变量 ADMIN_USERNAME / ADMIN_PASSWORD 覆盖默认凭据。
+    """
+    username = os.getenv("ADMIN_USERNAME", "admin")
+    password = os.getenv("ADMIN_PASSWORD", "Admin@2026")
+    conn = get_db()
+    row = conn.execute("SELECT 1 FROM users WHERE role='admin'").fetchone()
+    if row:
+        conn.close()
+        return
+    conn.execute(
+        "INSERT INTO users (username, email, password_hash, role) VALUES (?,?,?,?)",
+        (username, f"{username}@competition-hub.local", _hash_password(password), "admin"),
+    )
+    conn.commit()
+    conn.close()
+    print(
+        f"[seed] 已创建默认管理员账号 {username} / {password}\n"
+        f"       可用环境变量 ADMIN_USERNAME / ADMIN_PASSWORD 覆盖；生产环境请务必修改。"
+    )
 
 
 if __name__ == "__main__":

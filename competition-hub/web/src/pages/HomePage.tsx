@@ -124,8 +124,10 @@ export function HomePage() {
         </div>
 
         {loading ? (
-          <div className="grid place-items-center py-24 text-neon-cyan">
-            <Loader2 className="animate-spin" />
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="glass h-72 rounded-2xl skeleton" />
+            ))}
           </div>
         ) : data.items.length === 0 ? (
           <div className="grid place-items-center py-24 text-center text-slate-500">
@@ -134,8 +136,8 @@ export function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {data.items.map((c) => (
-              <CompetitionCard key={c.id} c={c} onToggleFavorite={toggleFavorite} favLoading={favLoading} />
+            {data.items.map((c, i) => (
+              <CompetitionCard key={c.id} c={c} index={i} onToggleFavorite={toggleFavorite} favLoading={favLoading} />
             ))}
           </div>
         )}

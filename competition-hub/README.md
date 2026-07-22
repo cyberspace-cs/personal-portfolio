@@ -17,7 +17,8 @@
 - **用户认证**：注册、登录、退出（基于 Bearer Token，PBKDF2 密码哈希，零额外依赖）。
 - **收藏功能**：登录用户可收藏竞赛，在「我的收藏」中统一管理。
 - **竞赛 CRUD**：登录用户可发布 / 编辑 / 删除赛事信息（管理后台形态）。
-- **响应式 UI**：赛博极客风格（深空底色 + 霓虹高亮 + 玻璃拟态 + 网格背景），完美适配桌面与移动端。
+- **🔌 自动聚合（Auto-Collect）**：内置可插拔数据源适配器（`collector.py`），自动搜寻并入库赛事 —— 目前接入「天天黑客松 heikesong.cn」与一份多源聚合数据集（Kaggle / 天池 / 华为云 / 腾讯 / 字节 / 强网杯 / 天府杯 等 16+ 来源）。管理员点击导航栏「一键聚合」即可增量更新，幂等去重（按 `slug`），并自动归类。每张卡片标注「聚合自 {来源}」。
+- **响应式 UI**：赛博极客风格（深空底色 + 霓虹高亮 + 玻璃拟态 + 网格背景），完美适配桌面与移动端。列表卡片支持交错入场动画、骨架屏加载与标签胶囊。
 
 ---
 
@@ -39,9 +40,11 @@
 competition-hub/
 ├── server/                 # 后端（FastAPI + SQLite）
 │   ├── main.py             # 应用入口与全部 API 路由
-│   ├── database.py         # 数据库连接与表结构初始化
+│   ├── database.py         # 数据库连接、表结构初始化、幂等导入
+│   ├── collector.py        # 自动聚合引擎（数据源适配器 + 幂等入库）
+│   ├── collector_sources.json  # 多源聚合数据集（可手动扩充）
 │   ├── models.py           # Pydantic 请求/响应模型
-│   ├── seed.py             # 示例数据种子（8 分类 / 24 竞赛）
+│   ├── seed.py             # 示例数据种子 + 默认管理员（env 可覆盖）
 │   ├── requirements.txt
 │   ├── Dockerfile
 │   ├── start.sh            # 一键启动脚本（含建库与种子）
@@ -122,6 +125,8 @@ uvicorn main:app --port 8000
 | PUT | `/competitions/{id}` | 更新竞赛 | ✅ |
 | DELETE | `/competitions/{id}` | 删除竞赛 | ✅ |
 | GET | `/stats` | 看板统计 | ❌ |
+| GET | `/collect/sources` | 已配置的数据源清单（名称 / 主页） | ❌ |
+| POST | `/collect` | 触发自动聚合（增量更新赛事库） | ✅ 管理员 |
 | POST | `/auth/register` | 注册（返回 token） | ❌ |
 | POST | `/auth/login` | 登录（返回 token） | ❌ |
 | GET | `/auth/me` | 当前用户 | ✅ |
@@ -166,6 +171,7 @@ docker compose up -d --build
 - 示例数据仅用于演示，来源为公开竞赛信息整理，链接为占位示例。
 - 本项目为个人作品集项目，存放于 [personal-portfolio](https://github.com/cyberspace-cs/personal-portfolio) 仓库的 `competition-hub/` 目录。
 - 认证为演示级（Token 30 天有效期），生产环境建议接入更严格的权限体系（如管理员角色、HTTPS、限流）。
+- **默认管理员**：首次启动（`seed.ensure_admin`）自动创建 `admin / Admin@2026`，可用环境变量 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 覆盖；生产环境务必修改。仅管理员可调用 `POST /collect` 一键聚合。
 
 ## 📄 License
 

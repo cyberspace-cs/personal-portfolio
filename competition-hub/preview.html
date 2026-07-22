@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>竞赛雷达 · 前端效果预览</title>
+<style>
+  :root {
+    --cyan:#22d3ee; --violet:#a78bfa; --pink:#f472b6; --amber:#fbbf24;
+    --bg:#05070d; --ink:#0a0e17; --line:rgba(255,255,255,.1);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    background:var(--bg); color:#e2e8f0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    min-height:100vh;
+  }
+  .cyber-grid {
+    position:absolute; inset:0; opacity:.35;
+    background-image:linear-gradient(rgba(34,211,238,.12) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(34,211,238,.12) 1px,transparent 1px);
+    background-size:26px 26px;
+  }
+  .nav {
+    position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:16px;
+    padding:0 20px; height:64px; border-bottom:var(--line);
+    background:rgba(5,7,13,.7); backdrop-filter:blur(14px);
+  }
+  .logo { display:flex; align-items:center; gap:10px; font-weight:800; font-size:18px; }
+  .logo .mark {
+    width:36px; height:36px; display:grid; place-items:center; border-radius:12px;
+    background:linear-gradient(135deg,var(--cyan),#3b82f6); color:#05070d; box-shadow:0 0 18px rgba(34,211,238,.5);
+  }
+  .nav .links { display:flex; gap:4px; margin-left:8px; }
+  .nav .links a { color:#cbd5e1; text-decoration:none; padding:8px 12px; border-radius:10px; font-size:14px; }
+  .nav .links a:hover { background:rgba(255,255,255,.06); color:#fff; }
+  .nav .right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+  .btn-ghost {
+    display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:12px;
+    border:var(--line); background:rgba(255,255,255,.05); color:#e2e8f0; font-size:13px; cursor:pointer;
+  }
+  .btn-ghost:hover { border-color:var(--cyan); color:var(--cyan); }
+  .btn-primary {
+    padding:8px 16px; border-radius:12px; border:none; cursor:pointer; font-size:13px; font-weight:600;
+    background:linear-gradient(135deg,var(--cyan),#3b82f6); color:#05070d;
+  }
+  .hero { position:relative; overflow:hidden; border-bottom:var(--line); text-align:center; padding:56px 16px; }
+  .hero .cyber-grid { opacity:.3; }
+  .hero .glow1 { position:absolute; left:-80px; top:0; width:256px; height:256px; border-radius:999px; background:rgba(34,211,238,.2); filter:blur(60px); }
+  .hero .glow2 { position:absolute; right:-40px; top:40px; width:288px; height:288px; border-radius:999px; background:rgba(167,139,250,.2); filter:blur(60px); }
+  .hero .inner { position:relative; max-width:720px; margin:0 auto; }
+  .pill {
+    display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px;
+    border:1px solid rgba(34,211,238,.3); background:rgba(34,211,238,.1); color:var(--cyan); font-size:12px; font-weight:500;
+  }
+  .hero h1 { margin-top:16px; font-size:44px; font-weight:800; letter-spacing:-.02em; color:#fff; }
+  .hero h1 b { color:var(--cyan); text-shadow:0 0 24px rgba(34,211,238,.6); }
+  .hero p { margin:12px auto 0; max-width:560px; font-size:14px; color:#94a3b8; line-height:1.7; }
+  .search { display:flex; gap:8px; max-width:560px; margin:28px auto 0; padding:8px; border-radius:18px; border:var(--line); background:rgba(10,14,23,.7); backdrop-filter:blur(8px); }
+  .search input { flex:1; background:transparent; border:none; outline:none; padding:8px 12px; color:#fff; font-size:14px; }
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; max-width:560px; margin:32px auto 0; }
+  .stat { padding:12px; border-radius:16px; border:var(--line); background:rgba(255,255,255,.04); backdrop-filter:blur(8px); }
+  .stat .v { font-size:24px; font-weight:800; color:#fff; }
+  .stat .k { font-size:11px; color:#94a3b8; margin-top:2px; }
+  .filters { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:1000px; margin:28px auto 0; padding:0 16px; }
+  .chip { padding:7px 14px; border-radius:999px; border:var(--line); background:rgba(255,255,255,.04); color:#cbd5e1; font-size:13px; cursor:pointer; }
+  .chip:hover { border-color:var(--cyan); color:var(--cyan); }
+  .chip.active { background:rgba(34,211,238,.15); border-color:var(--cyan); color:var(--cyan); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; max-width:1100px; margin:28px auto 60px; padding:0 16px; }
+  .card {
+    position:relative; display:flex; flex-direction:column; overflow:hidden; border-radius:18px;
+    border:var(--line); background:rgba(255,255,255,.04); backdrop-filter:blur(8px);
+    transition:transform .3s, border-color .3s, box-shadow .3s;
+  }
+  .card:hover { transform:translateY(-4px); border-color:rgba(34,211,238,.4); box-shadow:0 16px 40px rgba(34,211,238,.18); }
+  .card-enter { opacity:0; animation:cardEnter .5s ease forwards; animation-delay:calc(var(--i) * 55ms); }
+  @keyframes cardEnter { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+  .cover { position:relative; height:128px; overflow:hidden; }
+  .cover .cyber-grid { opacity:.4; }
+  .badge-cat { position:absolute; left:12px; top:12px; padding:4px 8px; border-radius:8px; background:rgba(0,0,0,.4); backdrop-filter:blur(4px); font-size:12px; color:#fff; }
+  .badge-status { position:absolute; right:12px; top:12px; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:600; }
+  .badge-source { position:absolute; left:12px; bottom:12px; display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:8px; background:rgba(0,0,0,.45); backdrop-filter:blur(4px); font-size:10px; font-weight:500; color:var(--cyan); }
+  .badge-source .dot { width:6px; height:6px; border-radius:999px; background:var(--cyan); box-shadow:0 0 8px var(--cyan); }
+  .badge-featured { position:absolute; right:12px; bottom:12px; padding:2px 8px; border-radius:8px; background:rgba(167,139,250,.85); font-size:11px; font-weight:600; color:#fff; }
+  .body { display:flex; flex:1; flex-direction:column; padding:16px; }
+  .title { font-size:15px; font-weight:600; line-height:1.35; color:#fff; min-height:40px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .summary { margin-top:6px; font-size:12px; color:#94a3b8; line-height:1.6; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .tags { display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; }
+  .tag-chip { padding:2px 8px; border-radius:999px; font-size:11px; color:var(--cyan); background:rgba(34,211,238,.1); border:1px solid rgba(34,211,238,.2); }
+  .meta { display:flex; flex-wrap:wrap; gap:12px; margin-top:12px; font-size:11px; color:#94a3b8; }
+  .foot { display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+  .prize { display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:10px; font-size:12px; font-weight:600; color:var(--amber); background:rgba(251,191,36,.1); }
+  .mode { font-size:11px; color:#64748b; }
+  .org { margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,.05); font-size:11px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .toast { position:fixed; left:50%; bottom:32px; transform:translateX(-50%) translateY(20px); opacity:0; transition:.3s; padding:12px 20px; border-radius:12px; background:rgba(16,185,129,.95); color:#04130d; font-size:13px; font-weight:600; z-index:99; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .admin-bar { display:none; align-items:center; gap:8px; }
+  .admin-bar.show { display:flex; }
+</style>
+</head>
+<body>
+  <header class="nav">
+    <div class="logo"><span class="mark">◎</span> 竞赛雷达</div>
+    <nav class="links">
+      <a href="#">全部竞赛</a>
+      <a href="#">我的收藏</a>
+      <a href="#">发布赛事</a>
+    </nav>
+    <div class="right">
+      <span class="admin-bar" id="adminBar">
+        <button class="btn-ghost" id="collectBtn">⟳ 一键聚合</button>
+      </span>
+      <button class="btn-ghost" id="adminToggle">管理员预览</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="cyber-grid"></div>
+    <div class="glow1"></div>
+    <div class="glow2"></div>
+    <div class="inner">
+      <span class="pill">✨ AI 自动聚合 · 实时更新赛事库</span>
+      <h1>竞赛<b>雷达</b></h1>
+      <p>自动搜寻全球黑客松、Kaggle 数据竞赛、算法大赛、CTF、AI 大模型与创新创业赛事，一站聚合呈现 —— 让你不再错过属于你的下一个舞台。</p>
+      <div class="search">
+        <span style="color:#64748b;padding-left:6px">🔍</span>
+        <input id="q" placeholder="搜索竞赛名称、主办方、关键词…" />
+        <button class="btn-primary">搜索</button>
+      </div>
+      <div class="stats" id="stats"></div>
+    </div>
+  </section>
+
+  <div class="filters" id="filters">
+    <button class="chip active" data-cat="">全部</button>
+    <button class="chip" data-cat="data">📊 赛事推荐</button><button class="chip" data-cat="hackathon">🚀 热门黑客松</button><button class="chip" data-cat="ai">🤖 AI 大模型</button><button class="chip" data-cat="dev">💻 软件开发</button><button class="chip" data-cat="ctf">🛡️ 网络安全</button><button class="chip" data-cat="algorithm">🧮 算法竞赛</button><button class="chip" data-cat="design">🎨 设计竞赛</button>
+  </div>
+
+  <main class="grid" id="grid">
+    <article class="card card-enter" style="--i:0">
+      <div class="cover" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">设计竞赛</span>
+        <span class="badge-status" style="color:#a78bfa;background:rgba(167,139,250,.15)">即将开始</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 教育部</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">全国大学生工业设计大赛（智能产品）</h3>
+        <p class="summary">智能硬件与产品服务系统设计。</p>
+        <div class="tags"><span class="tag-chip">工业设计</span><span class="tag-chip">智能硬件</span><span class="tag-chip">原型</span></div>
+        <div class="meta">
+          <span>📍 多城市</span>
+          <span>📅 2026-10-01</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 证书 + 奖金</span>
+          <span class="mode">线下</span>
+        </div>
+        <div class="org">主办方：教育部高等学校设计学教指委</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:1">
+      <div class="cover" style="background:linear-gradient(135deg,#6366f1,#a855f7)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">热门黑客松</span>
+        <span class="badge-status" style="color:#22d3ee;background:rgba(34,211,238,.15)">进行中</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 AWS</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">AWS 全球机器学习黑客松</h3>
+        <p class="summary">在 Amazon SageMaker 上构建端到端 ML 应用。</p>
+        <div class="tags"><span class="tag-chip">SageMaker</span><span class="tag-chip">ML</span><span class="tag-chip">云</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>📅 2026-07-08</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 $ 20,000</span>
+          <span class="mode">线上</span>
+        </div>
+        <div class="org">主办方：Amazon Web Services</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:2">
+      <div class="cover" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">热门黑客松</span>
+        <span class="badge-status" style="color:#94a3b8;background:rgba(148,163,184,.15)">已结束</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 Microsoft</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">微软 · AI for Earth 创新黑客松</h3>
+        <p class="summary">用 Azure AI 应对气候变化与生物多样性挑战。</p>
+        <div class="tags"><span class="tag-chip">AI4S</span><span class="tag-chip">气候</span><span class="tag-chip">Azure</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>📅 2026-05-15</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 $ 15,000</span>
+          <span class="mode">线上</span>
+        </div>
+        <div class="org">主办方：Microsoft</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:3">
+      <div class="cover" style="background:linear-gradient(135deg,#6366f1,#a855f7)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">软件开发</span>
+        <span class="badge-status" style="color:#a78bfa;background:rgba(167,139,250,.15)">即将开始</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 Google</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">Google Solution Challenge</h3>
+        <p class="summary">用 Google 技术解决联合国可持续发展目标。</p>
+        <div class="tags"><span class="tag-chip">SDG</span><span class="tag-chip">学生</span><span class="tag-chip">云</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>📅 2026-08-01</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 $ 10,000</span>
+          <span class="mode">线上</span>
+        </div>
+        <div class="org">主办方：Google Developers</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:4">
+      <div class="cover" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">算法竞赛</span>
+        <span class="badge-status" style="color:#a78bfa;background:rgba(167,139,250,.15)">即将开始</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 中国学位与研究教育学会</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">中国研究生数学建模竞赛</h3>
+        <p class="summary">三天三夜的团队数学建模实战。</p>
+        <div class="tags"><span class="tag-chip">数学建模</span><span class="tag-chip">研究生</span><span class="tag-chip">团队</span></div>
+        <div class="meta">
+          <span>📍 多城市</span>
+          <span>📅 2026-09-18</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 证书 + 奖金</span>
+          <span class="mode">线下</span>
+        </div>
+        <div class="org">主办方：中国研究生数学建模竞赛组委会</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:5">
+      <div class="cover" style="background:linear-gradient(135deg,#6366f1,#a855f7)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">AI 大模型</span>
+        <span class="badge-status" style="color:#22d3ee;background:rgba(34,211,238,.15)">进行中</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 百度</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">百度 · 文心智能体开发者大赛</h3>
+        <p class="summary">基于文心大模型构建行业智能体。</p>
+        <div class="tags"><span class="tag-chip">文心</span><span class="tag-chip">智能体</span><span class="tag-chip">插件</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>📅 2026-06-30</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 ¥ 150,000</span>
+          <span class="mode">线上</span>
+        </div>
+        <div class="org">主办方：百度文心一言</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:6">
+      <div class="cover" style="background:linear-gradient(135deg,#10b981,#14b8a6)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">赛事推荐</span>
+        <span class="badge-status" style="color:#94a3b8;background:rgba(148,163,184,.15)">已结束</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 京东</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">京东 · 618 智能供应链算法大赛</h3>
+        <p class="summary">销量预测与智能补货联合优化。</p>
+        <div class="tags"><span class="tag-chip">供应链</span><span class="tag-chip">预测</span><span class="tag-chip">零售</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>📅 2026-04-10</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 ¥ 200,000</span>
+          <span class="mode">线上</span>
+        </div>
+        <div class="org">主办方：京东零售技术</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:7">
+      <div class="cover" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">网络安全</span>
+        <span class="badge-status" style="color:#a78bfa;background:rgba(167,139,250,.15)">即将开始</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 天府杯</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">Tianfu Cup 国际网络安全大赛</h3>
+        <p class="summary">面向主流软硬件的实战漏洞挖掘与利用。</p>
+        <div class="tags"><span class="tag-chip">漏洞</span><span class="tag-chip">实战</span><span class="tag-chip">破解</span></div>
+        <div class="meta">
+          <span>📍 成都</span>
+          <span>📅 2026-10-20</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 $ 1,000,000</span>
+          <span class="mode">线下</span>
+        </div>
+        <div class="org">主办方：天府杯组委会</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:8">
+      <div class="cover" style="background:linear-gradient(135deg,#6366f1,#a855f7)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">网络安全</span>
+        <span class="badge-status" style="color:#a78bfa;background:rgba(167,139,250,.15)">即将开始</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 强网杯</span>
+        <span class="badge-featured">精选</span>
+      </div>
+      <div class="body">
+        <h3 class="title">强网拟态 · 防御国际精英赛</h3>
+        <p class="summary">拟态防御场景下的高阶 CTF 对抗。</p>
+        <div class="tags"><span class="tag-chip">拟态</span><span class="tag-chip">CTF</span><span class="tag-chip">国际</span></div>
+        <div class="meta">
+          <span>📍 郑州</span>
+          <span>📅 2026-09-15</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 ¥ 300,000</span>
+          <span class="mode">线上线下</span>
+        </div>
+        <div class="org">主办方：国家网络空间安全基地</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:9">
+      <div class="cover" style="background:linear-gradient(135deg,#10b981,#14b8a6)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">AI 大模型</span>
+        <span class="badge-status" style="color:#22d3ee;background:rgba(34,211,238,.15)">进行中</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 字节跳动</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">字节跳动 · 扣子 Coze 智能体创作大赛</h3>
+        <p class="summary">在扣子平台搭建高口碑 AI 智能体并开源工作流。</p>
+        <div class="tags"><span class="tag-chip">Coze</span><span class="tag-chip">智能体</span><span class="tag-chip">工作流</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>📅 2026-07-10</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 ¥ 120,000</span>
+          <span class="mode">线上</span>
+        </div>
+        <div class="org">主办方：字节跳动扣子</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:10">
+      <div class="cover" style="background:linear-gradient(135deg,#6366f1,#a855f7)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">软件开发</span>
+        <span class="badge-status" style="color:#a78bfa;background:rgba(167,139,250,.15)">即将开始</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 腾讯</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">腾讯 · 微信小程序开发挑战赛</h3>
+        <p class="summary">用小程序解决校园/社区真实场景问题。</p>
+        <div class="tags"><span class="tag-chip">小程序</span><span class="tag-chip">云开发</span><span class="tag-chip">校园</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>📅 2026-09-01</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 ¥ 100,000</span>
+          <span class="mode">线上</span>
+        </div>
+        <div class="org">主办方：腾讯微信团队</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:11">
+      <div class="cover" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">赛事推荐</span>
+        <span class="badge-status" style="color:#a78bfa;background:rgba(167,139,250,.15)">即将开始</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 DataFountain</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">DataFountain · 数字中国算法赛</h3>
+        <p class="summary">政务大数据建模与普惠金融风控双赛道。</p>
+        <div class="tags"><span class="tag-chip">政务</span><span class="tag-chip">风控</span><span class="tag-chip">建模</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>📅 2026-08-20</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 ¥ 150,000</span>
+          <span class="mode">线上</span>
+        </div>
+        <div class="org">主办方：数字中国创新大赛组委会</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:12">
+      <div class="cover" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">赛事推荐</span>
+        <span class="badge-status" style="color:#22d3ee;background:rgba(34,211,238,.15)">进行中</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 和鲸社区</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">和鲸 · 数据科学世界杯（常规赛）</h3>
+        <p class="summary">月度滚动的表格/时序/文本数据赛，积分计入年度世界杯。</p>
+        <div class="tags"><span class="tag-chip">数据科学</span><span class="tag-chip">表格</span><span class="tag-chip">积分</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>📅 2026-07-05</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 ¥ 80,000</span>
+          <span class="mode">线上</span>
+        </div>
+        <div class="org">主办方：和鲸社区</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:13">
+      <div class="cover" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">AI 大模型</span>
+        <span class="badge-status" style="color:#22d3ee;background:rgba(34,211,238,.15)">进行中</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 华为云</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">华为云 · 盘古大模型行业应用赛</h3>
+        <p class="summary">基于盘古大模型构建矿山、气象、政务等行业智能体。</p>
+        <div class="tags"><span class="tag-chip">盘古</span><span class="tag-chip">Agent</span><span class="tag-chip">行业</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>📅 2026-06-25</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 ¥ 200,000</span>
+          <span class="mode">线上</span>
+        </div>
+        <div class="org">主办方：华为云</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:14">
+      <div class="cover" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">AI 大模型</span>
+        <span class="badge-status" style="color:#a78bfa;background:rgba(167,139,250,.15)">即将开始</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 阿里云天池</span>
+        
+      </div>
+      <div class="body">
+        <h3 class="title">阿里云天池 · 城市大脑 AI 视觉大赛</h3>
+        <p class="summary">面向交通/安防场景的多目标检测与行为识别。</p>
+        <div class="tags"><span class="tag-chip">计算机视觉</span><span class="tag-chip">检测</span><span class="tag-chip">城市</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>📅 2026-08-12</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 ¥ 300,000</span>
+          <span class="mode">线上</span>
+        </div>
+        <div class="org">主办方：阿里云天池</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:15">
+      <div class="cover" style="background:linear-gradient(135deg,#10b981,#14b8a6)">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">AI 大模型</span>
+        <span class="badge-status" style="color:#22d3ee;background:rgba(34,211,238,.15)">进行中</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 Kaggle</span>
+        <span class="badge-featured">精选</span>
+      </div>
+      <div class="body">
+        <h3 class="title">Kaggle · LLM 科学文献理解挑战赛</h3>
+        <p class="summary">用大模型从海量论文中抽取实体与因果关系，评测抽取 F1 与推理一致性。</p>
+        <div class="tags"><span class="tag-chip">LLM</span><span class="tag-chip">NLP</span><span class="tag-chip">文献</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>📅 2026-07-01</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 $ 25,000</span>
+          <span class="mode">线上</span>
+        </div>
+        <div class="org">主办方：Kaggle</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:16">
+      <div class="cover" style="background:/images/banner2.png">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">热门黑客松</span>
+        <span class="badge-status" style="color:#22d3ee;background:rgba(34,211,238,.15)">进行中</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 天天黑客松(heikesong.cn)</span>
+        <span class="badge-featured">精选</span>
+      </div>
+      <div class="body">
+        <h3 class="title">DeFi Forge 去中心化金融黑客松</h3>
+        <p class="summary">构建下一代流动性协议与智能合约，赢取顶级风投资金直连通道与社区生态支持。</p>
+        <div class="tags"><span class="tag-chip">热门黑客松</span></div>
+        <div class="meta">
+          <span>📍 待定</span>
+          <span>📅 待定</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 荣誉证书</span>
+          <span class="mode">线下</span>
+        </div>
+        <div class="org">主办方：—</div>
+      </div>
+    </article>
+
+    <article class="card card-enter" style="--i:17">
+      <div class="cover" style="background:/images/banner1.png">
+        <div class="cyber-grid"></div>
+        <span class="badge-cat">赛事推荐</span>
+        <span class="badge-status" style="color:#22d3ee;background:rgba(34,211,238,.15)">进行中</span>
+        <span class="badge-source"><span class="dot"></span>聚合自 天天黑客松(heikesong.cn)</span>
+        <span class="badge-featured">精选</span>
+      </div>
+      <div class="body">
+        <h3 class="title">全球赛博黑客松 2026 大赛开启</h3>
+        <p class="summary">百万美元奖金池，召集全球顶尖AI与Web3开发者，共同探索硬核科技的终极可能！</p>
+        <div class="tags"><span class="tag-chip">赛事推荐</span></div>
+        <div class="meta">
+          <span>📍 待定</span>
+          <span>📅 待定</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <span class="prize">🏆 荣誉证书</span>
+          <span class="mode">线下</span>
+        </div>
+        <div class="org">主办方：—</div>
+      </div>
+    </article></main>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  const DATA = [{"title": "全国大学生工业设计大赛（智能产品）", "summary": "智能硬件与产品服务系统设计。", "description": "强调用户研究、原型可用性与社会价值，设创意与量产双赛道。", "category_id": 7, "organizer": "教育部高等学校设计学教指委", "location": "多城市", "mode": "offline", "prize": "证书 + 奖金", "prize_amount": 0, "status": "upcoming", "start_date": "2026-10-01", "end_date": "2026-12-20", "reg_deadline": "2026-11-20", "tags": ["工业设计", "智能硬件", "原型"], "cover": "", "source_url": "https://www.moe.gov.cn", "featured": false, "id": 18, "slug": "全国大学生工业设计大赛-智能产品-教育部", "views": 0, "category_name": "设计竞赛", "source": "教育部", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "AWS 全球机器学习黑客松", "summary": "在 Amazon SageMaker 上构建端到端 ML 应用。", "description": "提供 AWS 代金券与专家导师，方向含医疗、金融、制造。", "category_id": 2, "organizer": "Amazon Web Services", "location": "线上", "mode": "online", "prize": "$ 20,000", "prize_amount": 140000, "status": "ongoing", "start_date": "2026-07-08", "end_date": "2026-08-30", "reg_deadline": "2026-08-15", "tags": ["SageMaker", "ML", "云"], "cover": "", "source_url": "https://aws.amazon.com", "featured": false, "id": 17, "slug": "aws-全球机器学习黑客松-aws", "views": 0, "category_name": "热门黑客松", "source": "AWS", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "微软 · AI for Earth 创新黑客松", "summary": "用 Azure AI 应对气候变化与生物多样性挑战。", "description": "提供 Azure 额度与卫星数据，考察方案科学性与技术落地。", "category_id": 2, "organizer": "Microsoft", "location": "线上", "mode": "online", "prize": "$ 15,000", "prize_amount": 105000, "status": "ended", "start_date": "2026-05-15", "end_date": "2026-06-20", "reg_deadline": "2026-06-01", "tags": ["AI4S", "气候", "Azure"], "cover": "", "source_url": "https://www.microsoft.com", "featured": false, "id": 16, "slug": "微软-ai-for-earth-创新黑客松-microsoft", "views": 0, "category_name": "热门黑客松", "source": "Microsoft", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "Google Solution Challenge", "summary": "用 Google 技术解决联合国可持续发展目标。", "description": "面向在校生团队，提供 Google 技术辅导与云额度，区域决赛直通全球总决赛。", "category_id": 4, "organizer": "Google Developers", "location": "线上", "mode": "online", "prize": "$ 10,000", "prize_amount": 70000, "status": "upcoming", "start_date": "2026-08-01", "end_date": "2026-12-15", "reg_deadline": "2026-11-01", "tags": ["SDG", "学生", "云"], "cover": "", "source_url": "https://developers.google.com", "featured": false, "id": 15, "slug": "google-solution-challenge-google", "views": 0, "category_name": "软件开发", "source": "Google", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "中国研究生数学建模竞赛", "summary": "三天三夜的团队数学建模实战。", "description": "覆盖优化、评价、预测等题型，强调建模严谨性与论文表达。", "category_id": 6, "organizer": "中国研究生数学建模竞赛组委会", "location": "多城市", "mode": "offline", "prize": "证书 + 奖金", "prize_amount": 0, "status": "upcoming", "start_date": "2026-09-18", "end_date": "2026-09-22", "reg_deadline": "2026-09-10", "tags": ["数学建模", "研究生", "团队"], "cover": "", "source_url": "https://gmcm.seu.edu.cn", "featured": false, "id": 14, "slug": "中国研究生数学建模竞赛-中国学位与研究教育学会", "views": 0, "category_name": "算法竞赛", "source": "中国学位与研究教育学会", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "百度 · 文心智能体开发者大赛", "summary": "基于文心大模型构建行业智能体。", "description": "评测智能体效果、插件生态与商业潜力，提供算力与分发资源。", "category_id": 3, "organizer": "百度文心一言", "location": "线上", "mode": "online", "prize": "¥ 150,000", "prize_amount": 150000, "status": "ongoing", "start_date": "2026-06-30", "end_date": "2026-09-25", "reg_deadline": "2026-09-10", "tags": ["文心", "智能体", "插件"], "cover": "", "source_url": "https://wenxin.baidu.com", "featured": false, "id": 13, "slug": "百度-文心智能体开发者大赛-百度", "views": 0, "category_name": "AI 大模型", "source": "百度", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "京东 · 618 智能供应链算法大赛", "summary": "销量预测与智能补货联合优化。", "description": "提供真实订单与库存数据，考察预测精度与履约成本权衡。", "category_id": 1, "organizer": "京东零售技术", "location": "线上", "mode": "online", "prize": "¥ 200,000", "prize_amount": 200000, "status": "ended", "start_date": "2026-04-10", "end_date": "2026-06-15", "reg_deadline": "2026-05-30", "tags": ["供应链", "预测", "零售"], "cover": "", "source_url": "https://jdsc.jd.com", "featured": false, "id": 12, "slug": "京东-618-智能供应链算法大赛-京东", "views": 0, "category_name": "赛事推荐", "source": "京东", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "Tianfu Cup 国际网络安全大赛", "summary": "面向主流软硬件的实战漏洞挖掘与利用。", "description": "全球顶尖安全研究员同台，设产品破解单项奖与团队总冠军。", "category_id": 5, "organizer": "天府杯组委会", "location": "成都", "mode": "offline", "prize": "$ 1,000,000", "prize_amount": 7000000, "status": "upcoming", "start_date": "2026-10-20", "end_date": "2026-10-22", "reg_deadline": "2026-10-10", "tags": ["漏洞", "实战", "破解"], "cover": "", "source_url": "https://www.tianfucup.com", "featured": false, "id": 11, "slug": "tianfu-cup-国际网络安全大赛-天府杯", "views": 0, "category_name": "网络安全", "source": "天府杯", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "强网拟态 · 防御国际精英赛", "summary": "拟态防御场景下的高阶 CTF 对抗。", "description": "设 Web/Pwn/Reverse/Crypto/Misc 与拟态专项，线下决赛 + 国际战队邀请。", "category_id": 5, "organizer": "国家网络空间安全基地", "location": "郑州", "mode": "hybrid", "prize": "¥ 300,000", "prize_amount": 300000, "status": "upcoming", "start_date": "2026-09-15", "end_date": "2026-09-18", "reg_deadline": "2026-09-05", "tags": ["拟态", "CTF", "国际"], "cover": "", "source_url": "https://www.qiangwangbei.com", "featured": true, "id": 10, "slug": "强网拟态-防御国际精英赛-强网杯", "views": 0, "category_name": "网络安全", "source": "强网杯", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "字节跳动 · 扣子 Coze 智能体创作大赛", "summary": "在扣子平台搭建高口碑 AI 智能体并开源工作流。", "description": "评测智能体的对话质量、工具使用与用户留存，提供流量与现金奖励。", "category_id": 3, "organizer": "字节跳动扣子", "location": "线上", "mode": "online", "prize": "¥ 120,000", "prize_amount": 120000, "status": "ongoing", "start_date": "2026-07-10", "end_date": "2026-09-20", "reg_deadline": "2026-09-05", "tags": ["Coze", "智能体", "工作流"], "cover": "", "source_url": "https://www.coze.cn", "featured": false, "id": 9, "slug": "字节跳动-扣子-coze-智能体创作大赛-字节跳动", "views": 0, "category_name": "AI 大模型", "source": "字节跳动", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "腾讯 · 微信小程序开发挑战赛", "summary": "用小程序解决校园/社区真实场景问题。", "description": "考察小程序工程能力、体验设计与增长，提供云开发资源与流量扶持。", "category_id": 4, "organizer": "腾讯微信团队", "location": "线上", "mode": "online", "prize": "¥ 100,000", "prize_amount": 100000, "status": "upcoming", "start_date": "2026-09-01", "end_date": "2026-12-01", "reg_deadline": "2026-11-01", "tags": ["小程序", "云开发", "校园"], "cover": "", "source_url": "https://developers.weixin.qq.com", "featured": false, "id": 8, "slug": "腾讯-微信小程序开发挑战赛-腾讯", "views": 0, "category_name": "软件开发", "source": "腾讯", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "DataFountain · 数字中国算法赛", "summary": "政务大数据建模与普惠金融风控双赛道。", "description": "提供政务开放数据与金融脱敏样本，考察特征工程与可解释性建模。", "category_id": 1, "organizer": "数字中国创新大赛组委会", "location": "线上", "mode": "online", "prize": "¥ 150,000", "prize_amount": 150000, "status": "upcoming", "start_date": "2026-08-20", "end_date": "2026-11-15", "reg_deadline": "2026-10-15", "tags": ["政务", "风控", "建模"], "cover": "", "source_url": "https://www.datafountain.cn", "featured": false, "id": 7, "slug": "datafountain-数字中国算法赛-datafountain", "views": 0, "category_name": "赛事推荐", "source": "DataFountain", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "和鲸 · 数据科学世界杯（常规赛）", "summary": "月度滚动的表格/时序/文本数据赛，积分计入年度世界杯。", "description": "覆盖金融风控、用户增长、销量预测等真实业务题，提供 Kernel 协作环境。", "category_id": 1, "organizer": "和鲸社区", "location": "线上", "mode": "online", "prize": "¥ 80,000", "prize_amount": 80000, "status": "ongoing", "start_date": "2026-07-05", "end_date": "2026-09-10", "reg_deadline": "2026-08-20", "tags": ["数据科学", "表格", "积分"], "cover": "", "source_url": "https://www.heywhale.com", "featured": false, "id": 6, "slug": "和鲸-数据科学世界杯-常规赛-和鲸社区", "views": 0, "category_name": "赛事推荐", "source": "和鲸社区", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "华为云 · 盘古大模型行业应用赛", "summary": "基于盘古大模型构建矿山、气象、政务等行业智能体。", "description": "提供行业知识库与 API 额度，考察 Agent 规划、工具调用与落地效果。设最佳行业创新奖。", "category_id": 3, "organizer": "华为云", "location": "线上", "mode": "online", "prize": "¥ 200,000", "prize_amount": 200000, "status": "ongoing", "start_date": "2026-06-25", "end_date": "2026-09-30", "reg_deadline": "2026-09-01", "tags": ["盘古", "Agent", "行业"], "cover": "", "source_url": "https://www.huaweicloud.com", "featured": false, "id": 5, "slug": "华为云-盘古大模型行业应用赛-华为云", "views": 0, "category_name": "AI 大模型", "source": "华为云", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "阿里云天池 · 城市大脑 AI 视觉大赛", "summary": "面向交通/安防场景的多目标检测与行为识别。", "description": "提供脱敏视频帧与标注，考察检测精度、推理时延与跨摄像头跟踪。优胜方案可落地城市大脑。", "category_id": 3, "organizer": "阿里云天池", "location": "线上", "mode": "online", "prize": "¥ 300,000", "prize_amount": 300000, "status": "upcoming", "start_date": "2026-08-12", "end_date": "2026-11-20", "reg_deadline": "2026-10-31", "tags": ["计算机视觉", "检测", "城市"], "cover": "", "source_url": "https://tianchi.aliyun.com", "featured": false, "id": 4, "slug": "阿里云天池-城市大脑-ai-视觉大赛-阿里云天池", "views": 0, "category_name": "AI 大模型", "source": "阿里云天池", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "Kaggle · LLM 科学文献理解挑战赛", "summary": "用大模型从海量论文中抽取实体与因果关系，评测抽取 F1 与推理一致性。", "description": "提供百万级 arXiv 语料与标注集，考察长上下文理解、检索增强与多步推理。设学生组与专业组。", "category_id": 3, "organizer": "Kaggle", "location": "线上", "mode": "online", "prize": "$ 25,000", "prize_amount": 175000, "status": "ongoing", "start_date": "2026-07-01", "end_date": "2026-10-15", "reg_deadline": "2026-09-30", "tags": ["LLM", "NLP", "文献"], "cover": "", "source_url": "https://www.kaggle.com/competitions", "featured": true, "id": 3, "slug": "kaggle-llm-科学文献理解挑战赛-kaggle", "views": 0, "category_name": "AI 大模型", "source": "Kaggle", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "DeFi Forge 去中心化金融黑客松", "summary": "构建下一代流动性协议与智能合约，赢取顶级风投资金直连通道与社区生态支持。", "description": "构建下一代流动性协议与智能合约，赢取顶级风投资金直连通道与社区生态支持。", "category_id": 2, "organizer": "", "location": "", "mode": "offline", "prize": "", "prize_amount": 0, "status": "ongoing", "start_date": null, "end_date": null, "reg_deadline": null, "tags": ["热门黑客松"], "cover": "/images/banner2.png", "source_url": "https://heikesong.cn/", "featured": true, "id": 2, "slug": "defi-forge-去中心化金融黑客松-天天黑客松-heikesong-cn", "views": 0, "category_name": "热门黑客松", "source": "天天黑客松(heikesong.cn)", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}, {"title": "全球赛博黑客松 2026 大赛开启", "summary": "百万美元奖金池，召集全球顶尖AI与Web3开发者，共同探索硬核科技的终极可能！", "description": "百万美元奖金池，召集全球顶尖AI与Web3开发者，共同探索硬核科技的终极可能！", "category_id": 1, "organizer": "", "location": "", "mode": "offline", "prize": "", "prize_amount": 0, "status": "ongoing", "start_date": null, "end_date": null, "reg_deadline": null, "tags": ["赛事推荐"], "cover": "/images/banner1.png", "source_url": "https://heikesong.cn/", "featured": true, "id": 1, "slug": "全球赛博黑客松-2026-大赛开启-天天黑客松-heikesong-cn", "views": 0, "category_name": "赛事推荐", "source": "天天黑客松(heikesong.cn)", "created_at": "2026-07-22 02:58:16", "updated_at": "2026-07-22 03:17:40", "is_favorited": false}];
+  const CATNAME = {"data": "赛事推荐", "hackathon": "热门黑客松", "ai": "AI 大模型", "dev": "软件开发", "ctf": "网络安全", "algorithm": "算法竞赛", "design": "设计竞赛"};
+  const grid = document.getElementById('grid');
+  const q = document.getElementById('q');
+  const filters = document.getElementById('filters');
+  let activeCat = '';
+  let kw = '';
+
+  function render() {
+    const list = DATA.filter(c => {
+      const okCat = !activeCat || (CATNAME[c.category_slug] === CATNAME[activeCat]) || c.category_slug === activeCat;
+      const okKw = !kw || (c.title + c.organizer + (c.tags||[]).join('') + (c.source||'')).toLowerCase().includes(kw);
+      return okCat && okKw;
+    });
+    grid.innerHTML = list.map((c,i) => cardHTML(c,i)).join('') || '<p style="color:#64748b;grid-column:1/-1;text-align:center;padding:40px">没有匹配的竞赛。</p>';
+  }
+
+  function cardHTML(c,i) {
+    const S = {ongoing:['进行中','#22d3ee','rgba(34,211,238,.15)'],upcoming:['即将开始','#a78bfa','rgba(167,139,250,.15)'],ended:['已结束','#94a3b8','rgba(148,163,184,.15)']};
+    const st = S[c.status] || S.ended;
+    const grad = c.cover || (()=>{const p=['linear-gradient(135deg,#0ea5e9,#6366f1)','linear-gradient(135deg,#8b5cf6,#ec4899)','linear-gradient(135deg,#06b6d4,#3b82f6)','linear-gradient(135deg,#f59e0b,#ef4444)','linear-gradient(135deg,#10b981,#14b8a6)','linear-gradient(135deg,#6366f1,#a855f7)'];let h=0;for(const ch of c.title)h+=ch.charCodeAt(0);return p[h%p.length];})();
+    const tags = (c.tags||[]).slice(0,3).map(t=>`<span class="tag-chip">${t}</span>`).join('');
+    const src = c.source ? `<span class="badge-source"><span class="dot"></span>聚合自 ${c.source}</span>` : '';
+    const feat = c.featured ? `<span class="badge-featured">精选</span>` : '';
+    const M = {online:'线上',offline:'线下',hybrid:'线上线下'};
+    return `<article class="card card-enter" style="--i:${i}">
+      <div class="cover" style="background:${grad}"><div class="cyber-grid"></div>
+        <span class="badge-cat">${c.category_name||'综合'}</span>
+        <span class="badge-status" style="color:${st[1]};background:${st[2]}">${st[0]}</span>
+        ${src}${feat}
+      </div>
+      <div class="body">
+        <h3 class="title">${c.title}</h3>
+        <p class="summary">${c.summary||'—'}</p>
+        ${tags?`<div class="tags">${tags}</div>`:''}
+        <div class="meta"><span>📍 ${c.location||'待定'}</span><span>📅 ${c.start_date||'待定'}</span><span>👁 ${c.views||0}</span></div>
+        <div class="foot"><span class="prize">🏆 ${c.prize||'荣誉证书'}</span><span class="mode">${M[c.mode]||c.mode}</span></div>
+        <div class="org">主办方：${c.organizer||'—'}</div>
+      </div>
+    </article>`;
+  }
+
+  function stats() {
+    const t = DATA.length;
+    const on = DATA.filter(c=>c.status==='ongoing').length;
+    const up = DATA.filter(c=>c.status==='upcoming').length;
+    const cats = new Set(DATA.map(c=>c.category_slug)).size;
+    document.getElementById('stats').innerHTML = [
+      ['竞赛总数',t],['进行中',on],['即将开始',up],['分类',cats]
+    ].map(([k,v])=>`<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`).join('');
+  }
+
+  q.addEventListener('input', e => { kw = e.target.value.trim().toLowerCase(); render(); });
+  filters.addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if(!b) return;
+    [...filters.children].forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); activeCat = b.dataset.cat; render();
+  });
+
+  const toast = document.getElementById('toast');
+  function showToast(msg) { toast.textContent = msg; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 2800); }
+
+  document.getElementById('adminToggle').addEventListener('click', () => {
+    document.getElementById('adminBar').classList.toggle('show');
+    showToast('已切换管理员预览（演示）');
+  });
+  document.getElementById('collectBtn').addEventListener('click', () => {
+    showToast('聚合完成：新增 0 · 更新 18 · 共 18 条（演示数据）');
+  });
+
+  stats();
+  render();
+</script>
+</body>
+</html>

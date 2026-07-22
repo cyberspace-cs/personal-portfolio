@@ -23,7 +23,7 @@ from models import (
     CategoryIn, CategoryOut, CompetitionIn, CompetitionOut, CompetitionList,
     UserRegister, UserLogin, UserOut, AuthOut, FavoriteAction,
 )
-from seed import seed_if_empty
+from seed import seed_if_empty, ensure_admin
 
 
 # ---------------- 安全工具（零额外依赖） ----------------
@@ -107,6 +107,15 @@ def require_user(authorization: str = Header(None)) -> dict:
     user = get_current_user(authorization)
     if not user:
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
+    return user
+
+
+def require_admin(authorization: str = Header(None)) -> dict:
+    user = get_current_user(authorization)
+    if not user:
+        raise HTTPException(status_code=401, detail="未登录或登录已过期")
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="仅管理员可执行该操作")
     return user
 
 
@@ -195,6 +204,7 @@ app.add_exception_handler(Exception, _unhandled_exception_handler)
 def _startup():
     init_db()
     seed_if_empty()
+    ensure_admin()
 
 
 # ---------------- 健康检查 ----------------
@@ -399,6 +409,28 @@ def stats():
         "categories": cats, "users": users,
         "top_viewed": [{"id": r["id"], "title": r["title"], "views": r["views"]} for r in top],
     }
+
+
+# ---------------- 自动赛事聚合（采集器） ----------------
+@app.get("/api/collect/sources")
+def collect_sources():
+    """列出已配置的采集来源。"""
+    from collector import ADAPTERS
+
+    return [{"name": a.name, "homepage": a.homepage} for a in ADAPTERS]
+
+
+@app.post("/api/collect")
+def collect(_: dict = Depends(require_admin)):
+    """触发一次全源聚合（需登录）。返回各来源抓取量与写入统计。"""
+    from collector import run_collection
+
+    try:
+        result = run_collection()
+    except Exception:
+        logger.exception("聚合执行失败")
+        raise HTTPException(status_code=500, detail="聚合执行失败，请稍后重试")
+    return {"ok": True, **result}
 
 
 # ---------------- 用户认证 ----------------

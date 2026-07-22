@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Heart, MapPin, Trophy, CalendarDays, ExternalLink } from 'lucide-react'
+import { Heart, MapPin, Trophy, CalendarDays, Eye, Radio } from 'lucide-react'
 import type { Competition } from '../lib/types'
 import { STATUS_META, MODE_META, fmtDate, coverGradient } from '../lib/format'
 
@@ -43,12 +43,16 @@ export function CompetitionCard({
   favLoading,
 }: {
   c: Competition
+  index?: number
   onToggleFavorite?: (c: Competition) => void
   favLoading?: boolean
 }) {
   const gradient = c.cover || coverGradient(c.title)
   return (
-    <div className="group glass relative flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:border-neon-cyan/40 hover:shadow-glow">
+    <div
+      className="group glass relative flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:border-neon-cyan/40 hover:shadow-glow card-enter"
+      style={{ ['--i' as any]: index ?? 0 }}
+    >
       <Link to={`/competition/${c.id}`} className="block">
         <div className="relative h-32 w-full overflow-hidden" style={{ background: gradient }}>
           <div className="absolute inset-0 cyber-grid opacity-40" />
@@ -60,8 +64,13 @@ export function CompetitionCard({
           <div className="absolute right-3 top-3">
             <StatusBadge status={c.status} />
           </div>
+          {c.source && (
+            <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded bg-black/45 px-2 py-0.5 text-[10px] font-medium text-neon-cyan backdrop-blur">
+              <Radio size={10} /> 聚合自 {c.source}
+            </span>
+          )}
           {c.featured && (
-            <span className="absolute bottom-3 left-3 rounded bg-neon-violet/80 px-2 py-0.5 text-[11px] font-semibold text-white">
+            <span className="absolute bottom-3 right-3 rounded bg-neon-violet/80 px-2 py-0.5 text-[11px] font-semibold text-white">
               精选
             </span>
           )}
@@ -76,12 +85,25 @@ export function CompetitionCard({
         </Link>
         <p className="mt-1.5 line-clamp-2 text-xs text-slate-400">{c.summary || '—'}</p>
 
+        {c.tags?.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {c.tags.slice(0, 3).map((t) => (
+              <span key={t} className="tag-chip">
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
+
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
           <span className="inline-flex items-center gap-1">
             <MapPin size={12} /> {c.location || '待定'}
           </span>
           <span className="inline-flex items-center gap-1">
             <CalendarDays size={12} /> {fmtDate(c.start_date)}
+          </span>
+          <span className="inline-flex items-center gap-1 text-slate-500">
+            <Eye size={12} /> {c.views || 0}
           </span>
         </div>
 

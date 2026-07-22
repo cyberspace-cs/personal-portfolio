@@ -3,6 +3,83 @@ FastAPI + SQLite（原生 sqlite3，零额外 ORM 依赖，与仓库内 shuati-c
 """
 import sqlite3
 import os
+import json
+import re
+import logging
+
+logger = logging.getLogger("competition_hub")
+
+# 分类默认图标（聚合写入时自动补齐缺失分类用）
+_CATEGORY_ICONS = {
+    "hackathon": "🚀", "data": "📊", "algorithm": "🧮", "ctf": "🛡️",
+    "ai": "🤖", "innovation": "💡", "dev": "💻", "design": "🎨",
+}
+
+
+def _slugify(s: str) -> str:
+    """生成 URL 友好的 slug：保留中文与字母数字，其余替换为连字符。"""
+    s = re.sub(r"[^\w\u4e00-\u9fff]+", "-", (s or "").strip().lower())
+    return (s or "item").strip("-")[:180]
+
+
+def _ensure_category(conn, slug: str, name: str = None) -> int:
+    """确保分类存在，缺失时按默认图标自动创建，返回 id。"""
+    row = conn.execute("SELECT id FROM categories WHERE slug=?", (slug,)).fetchone()
+    if row:
+        return row["id"]
+    icon = _CATEGORY_ICONS.get(slug, "🏷️")
+    conn.execute(
+        "INSERT INTO categories (name, slug, icon, description, sort_order) VALUES (?,?,?,?,?)",
+        (name or slug, slug, icon, "", 99),
+    )
+    return conn.execute("SELECT id FROM categories WHERE slug=?", (slug,)).fetchone()["id"]
+
+
+def import_competitions(rows: list) -> dict:
+    """幂等写入聚合结果：按 slug 去重，已存在则更新字段，返回统计。"""
+    conn = get_db()
+    stats = {"created": 0, "updated": 0, "skipped": 0, "failed": 0}
+    for r in rows:
+        try:
+            slug = r.get("slug") or _slugify(r.get("title", ""))
+            if not slug:
+                stats["failed"] += 1
+                continue
+            cat_id = _ensure_category(conn, r.get("category_slug") or "hackathon", r.get("category_name"))
+            tags_json = json.dumps(r.get("tags") or [], ensure_ascii=False)
+            vals = (
+                r.get("title", ""), slug, r.get("summary", ""), r.get("description", ""),
+                cat_id, r.get("organizer", ""), r.get("location", ""), r.get("mode", "offline"),
+                r.get("prize", ""), int(r.get("prize_amount") or 0), r.get("status", "upcoming"),
+                r.get("start_date"), r.get("end_date"), r.get("reg_deadline"), tags_json,
+                r.get("cover", ""), r.get("source_url", ""), r.get("source", ""),
+                1 if r.get("featured") else 0,
+            )
+            existing = conn.execute("SELECT id FROM competitions WHERE slug=?", (slug,)).fetchone()
+            if existing:
+                conn.execute(
+                    """UPDATE competitions SET title=?,slug=?,summary=?,description=?,category_id=?,
+                       organizer=?,location=?,mode=?,prize=?,prize_amount=?,status=?,start_date=?,
+                       end_date=?,reg_deadline=?,tags=?,cover=?,source_url=?,source=?,featured=?,updated_at=CURRENT_TIMESTAMP
+                       WHERE slug=?""",
+                    vals + (slug,),
+                )
+                stats["updated"] += 1
+            else:
+                conn.execute(
+                    """INSERT INTO competitions
+                       (title,slug,summary,description,category_id,organizer,location,mode,prize,prize_amount,
+                        status,start_date,end_date,reg_deadline,tags,cover,source_url,source,featured)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    vals,
+                )
+                stats["created"] += 1
+        except Exception:
+            logger.exception("聚合写入失败: %s", r.get("title"))
+            stats["failed"] += 1
+    conn.commit()
+    conn.close()
+    return stats
 
 # 数据库文件目录：默认放在 server/data 下，可通过环境变量 DB_DIR 覆盖
 DB_DIR = os.getenv("DB_DIR", os.path.join(os.path.dirname(os.path.abspath(__file__)), "data"))
@@ -107,4 +184,9 @@ def init_db():
         """
     )
     conn.commit()
+    # 迁移：聚合来源字段（幂等，兼容旧库）
+    _cols = [r["name"] for r in conn.execute("PRAGMA table_info(competitions)").fetchall()]
+    if "source" not in _cols:
+        conn.execute("ALTER TABLE competitions ADD COLUMN source TEXT DEFAULT ''")
+        conn.commit()
     conn.close()
