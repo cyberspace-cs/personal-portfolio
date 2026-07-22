@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Heart, MapPin, Trophy, CalendarDays, Eye, Radio, ExternalLink } from 'lucide-react'
 import type { Competition } from '../lib/types'
-import { STATUS_META, MODE_META, fmtDate, coverGradient } from '../lib/format'
+import { STATUS_META, MODE_META, fmtDate, coverGradient, logoFor, faviconFor } from '../lib/format'
 
 export function StatusBadge({ status }: { status: string }) {
   const meta = STATUS_META[status] ?? STATUS_META.ended
@@ -50,6 +51,7 @@ export function CompetitionCard({
 }) {
   const gradient = c.cover || coverGradient(c.title)
   const isLive = /实时|heikesong|Biendata|赛氪/.test(c.source || '')
+  const [logoSrc, setLogoSrc] = useState(logoFor(c.source_url))
   return (
     <div
       className="group glass relative flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:border-neon-blue/50 hover:shadow-glow-blue card-enter"
@@ -58,9 +60,34 @@ export function CompetitionCard({
       <div className="tech-line h-0.5 w-full opacity-40 transition group-hover:opacity-100" />
       <Link to={`/competition/${c.id}`} className="block">
         <div className="relative h-32 w-full overflow-hidden" style={{ background: gradient }}>
+          {c.image && (
+            <img
+              src={c.image}
+              alt={c.title}
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover"
+              onError={(e) => {
+                ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+              }}
+            />
+          )}
           <div className="absolute inset-0 cyber-grid opacity-40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink-950/40 to-transparent" />
-          <div className="absolute left-3 top-3 flex items-center gap-2">
+          <div className="absolute inset-0 bg-gradient-to-t from-ink-950/50 via-ink-950/10 to-transparent" />
+          {/* 官网 Logo（立即显示官方站点标识，Clearbit 失败回退 favicon） */}
+          {logoSrc && (
+            <span className="absolute left-3 top-3 grid h-7 w-7 place-items-center overflow-hidden rounded-md border border-white/20 bg-white/90 shadow backdrop-blur">
+              <img
+                src={logoSrc}
+                alt=""
+                className="h-5 w-5 object-contain"
+                onError={() => {
+                  if (logoSrc !== faviconFor(c.source_url)) setLogoSrc(faviconFor(c.source_url))
+                  else setLogoSrc('')
+                }}
+              />
+            </span>
+          )}
+          <div className="absolute left-12 top-3 flex items-center gap-2">
             <span className="rounded-md bg-black/40 px-2 py-1 text-xs font-medium text-white backdrop-blur">
               {c.category_name || '综合'}
             </span>

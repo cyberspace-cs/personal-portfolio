@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Radar, Compass, Heart, PlusCircle, LogOut, User as UserIcon, RefreshCw, Loader2 } from 'lucide-react'
+import { Radar, Compass, Heart, PlusCircle, LogOut, User as UserIcon, RefreshCw, Loader2, Image as ImageIcon } from 'lucide-react'
 import { useAuth } from '../lib/auth'
 import { useUI } from '../lib/ui'
 import { api } from '../lib/api'
@@ -10,6 +10,7 @@ export function Navbar() {
   const { openLogin, toast } = useUI()
   const navigate = useNavigate()
   const [collecting, setCollecting] = useState(false)
+  const [enriching, setEnriching] = useState(false)
 
   async function handleCollect() {
     if (collecting) return
@@ -21,6 +22,19 @@ export function Navbar() {
       toast(e?.message || '聚合失败', 'err')
     } finally {
       setCollecting(false)
+    }
+  }
+
+  async function handleEnrich() {
+    if (enriching) return
+    setEnriching(true)
+    try {
+      const r = await api.enrichImages()
+      toast(`官网图片补全：成功 ${r.updated} · 失败 ${r.failed} · 共 ${r.total} 条`, 'ok')
+    } catch (e: any) {
+      toast(e?.message || '补全失败', 'err')
+    } finally {
+      setEnriching(false)
     }
   }
 
@@ -48,15 +62,26 @@ export function Navbar() {
 
         <div className="ml-auto flex items-center gap-2">
           {user?.role === 'admin' && (
-            <button
-              className="btn-ghost inline-flex items-center gap-1.5"
-              onClick={handleCollect}
-              disabled={collecting}
-              title="从已配置的数据源自动聚合最新赛事"
-            >
-              {collecting ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-              {collecting ? '聚合中…' : '一键聚合'}
-            </button>
+            <>
+              <button
+                className="btn-ghost inline-flex items-center gap-1.5"
+                onClick={handleCollect}
+                disabled={collecting}
+                title="从已配置的数据源自动聚合最新赛事"
+              >
+                {collecting ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                {collecting ? '聚合中…' : '一键聚合'}
+              </button>
+              <button
+                className="btn-ghost inline-flex items-center gap-1.5"
+                onClick={handleEnrich}
+                disabled={enriching}
+                title="抓取各赛事官网的 og:image 横幅图作为卡片封面"
+              >
+                {enriching ? <Loader2 size={14} className="animate-spin" /> : <ImageIcon size={14} />}
+                {enriching ? '补全中…' : '补全图片'}
+              </button>
+            </>
           )}
           {user ? (
             <div className="flex items-center gap-2">

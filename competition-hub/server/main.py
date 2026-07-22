@@ -454,6 +454,19 @@ def collect(_: dict = Depends(require_admin)):
     return {"ok": True, **result}
 
 
+@app.post("/api/admin/enrich-images")
+def enrich_images_endpoint(_: dict = Depends(require_admin)):
+    """为缺失官网图片的赛事补全 og:image 横幅图（需可联网，管理员）。"""
+    from collector import enrich_images
+
+    try:
+        result = enrich_images()
+    except Exception:
+        logger.exception("补全官网图片失败")
+        raise HTTPException(status_code=500, detail="补全失败，请稍后重试")
+    return {"ok": True, **result}
+
+
 # ---------------- 用户认证 ----------------
 @app.post("/api/auth/register", response_model=AuthOut)
 def register(payload: UserRegister, request: Request):

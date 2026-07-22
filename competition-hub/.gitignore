@@ -18,6 +18,9 @@ server/data/
 node_modules/
 web/dist/
 
+# 解除对前端源码目录的误忽略（仓库根 .gitignore 的 lib/ 会匹配 web/src/lib）
+!web/src/lib/
+
 # ===== 环境变量（含密钥，禁止提交） =====
 .env
 .env.local

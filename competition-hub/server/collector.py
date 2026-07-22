@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from database import import_competitions
+from database import import_competitions, get_db
 
 logger = logging.getLogger("competition_hub.collector")
 
@@ -89,6 +89,7 @@ class RawCompetition:
     description: str = ""
     tags: list = field(default_factory=list)
     cover: str = ""
+    image: str = ""            # 官网 og:image 横幅大图（补全阶段抓取）
     featured: bool = False
 
     def to_row(self) -> dict:
@@ -112,6 +113,7 @@ class RawCompetition:
             "tags": (self.tags or [])[:10],
             "cover": self.cover,
             "source_url": self.source_url,
+            "image": self.image,
             "featured": self.featured,
             "source": self.source,
         }
@@ -345,6 +347,68 @@ def run_collection(adapters: list = None) -> dict:
     logger.info("聚合完成：新增 %d / 更新 %d / 失败 %d / 合计 %d",
                 stats["created"], stats["updated"], stats["failed"], len(unique))
     return agg
+
+
+def _meta_content(html: str, key: str) -> str:
+    """顺序无关地提取 <meta property|name=key content=...> 的 content。"""
+    pat = re.compile(
+        r'<meta\b[^>]*?(?:(?:property|name)\s*=\s*["\'](' + re.escape(key) + r')["\'][^>]*?content\s*=\s*["\']([^"\']+)["\']'
+        r'|content\s*=\s*["\']([^"\']+)["\'][^>]*?(?:property|name)\s*=\s*["\'](' + re.escape(key) + r')["\'])',
+        re.I,
+    )
+    m = pat.search(html)
+    if m:
+        return (m.group(2) or m.group(3) or "").strip()
+    return ""
+
+
+def fetch_og_image(url: str) -> str:
+    """抓取页面 og:image（官网分享大图），失败返回空字符串。需在可联网环境运行。"""
+    try:
+        from urllib.parse import urljoin
+
+        req = Request(url, headers={"User-Agent": UA})
+        with urlopen(req, timeout=TIMEOUT) as resp:
+            html = resp.read().decode("utf-8", "ignore")
+        for key in ("og:image", "og:image:secure_url", "twitter:image", "twitter:image:src"):
+            val = _meta_content(html, key)
+            if val:
+                img = urljoin(url, val)
+                if img.startswith("http"):
+                    return img
+        # 退而求其次：第一个较大的 <img>
+        for m in re.finditer(r"<img\b[^>]*>", html, re.I):
+            src = re.search(r'src\s*=\s*["\']([^"\']+)["\']', m.group(0), re.I)
+            if not src:
+                continue
+            img = urljoin(url, src.group(1).strip())
+            if img.startswith("http") and re.search(r"\.(jpg|jpeg|png|webp)", img, re.I):
+                return img
+    except Exception:
+        logger.exception("抓取 og:image 失败: %s", url)
+    return ""
+
+
+def enrich_images(limit: int = None) -> dict:
+    """为缺少 image 的赛事补全官网 og:image 横幅图（需在可联网环境运行）。"""
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT id, source_url FROM competitions WHERE (image IS NULL OR image='') AND source_url<>''"
+    ).fetchall()
+    if limit is not None:
+        rows = rows[:limit]
+    stats = {"total": len(rows), "updated": 0, "failed": 0}
+    for r in rows:
+        img = fetch_og_image(r["source_url"])
+        if img:
+            conn.execute("UPDATE competitions SET image=? WHERE id=?", (img, r["id"]))
+            stats["updated"] += 1
+        else:
+            stats["failed"] += 1
+    conn.commit()
+    conn.close()
+    logger.info("官网图片补全：%d 成功 / %d 失败", stats["updated"], stats["failed"])
+    return stats
 
 
 if __name__ == "__main__":

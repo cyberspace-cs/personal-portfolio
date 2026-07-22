@@ -53,6 +53,7 @@ def import_competitions(rows: list) -> dict:
                 r.get("prize", ""), int(r.get("prize_amount") or 0), r.get("status", "upcoming"),
                 r.get("start_date"), r.get("end_date"), r.get("reg_deadline"), tags_json,
                 r.get("cover", ""), r.get("source_url", ""), r.get("source", ""),
+                r.get("image", ""),
                 1 if r.get("featured") else 0,
             )
             existing = conn.execute("SELECT id FROM competitions WHERE slug=?", (slug,)).fetchone()
@@ -60,7 +61,7 @@ def import_competitions(rows: list) -> dict:
                 conn.execute(
                     """UPDATE competitions SET title=?,slug=?,summary=?,description=?,category_id=?,
                        organizer=?,location=?,mode=?,prize=?,prize_amount=?,status=?,start_date=?,
-                       end_date=?,reg_deadline=?,tags=?,cover=?,source_url=?,source=?,featured=?,updated_at=CURRENT_TIMESTAMP
+                       end_date=?,reg_deadline=?,tags=?,cover=?,source_url=?,source=?,image=?,featured=?,updated_at=CURRENT_TIMESTAMP
                        WHERE slug=?""",
                     vals + (slug,),
                 )
@@ -69,8 +70,8 @@ def import_competitions(rows: list) -> dict:
                 conn.execute(
                     """INSERT INTO competitions
                        (title,slug,summary,description,category_id,organizer,location,mode,prize,prize_amount,
-                        status,start_date,end_date,reg_deadline,tags,cover,source_url,source,featured)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        status,start_date,end_date,reg_deadline,tags,cover,source_url,source,image,featured)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     vals,
                 )
                 stats["created"] += 1
@@ -188,5 +189,10 @@ def init_db():
     _cols = [r["name"] for r in conn.execute("PRAGMA table_info(competitions)").fetchall()]
     if "source" not in _cols:
         conn.execute("ALTER TABLE competitions ADD COLUMN source TEXT DEFAULT ''")
+        conn.commit()
+    # 迁移：官网横幅图字段（幂等，兼容旧库）
+    _cols = [r["name"] for r in conn.execute("PRAGMA table_info(competitions)").fetchall()]
+    if "image" not in _cols:
+        conn.execute("ALTER TABLE competitions ADD COLUMN image TEXT DEFAULT ''")
         conn.commit()
     conn.close()

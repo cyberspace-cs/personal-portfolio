@@ -40,6 +40,7 @@ class CompetitionBase(BaseModel):
     tags: List[str] = Field(default_factory=list, max_length=10)
     cover: str = Field(default="", max_length=500)
     source_url: str = Field(default="", max_length=500)
+    image: str = Field(default="", max_length=800)   # 官网 og:image 横幅大图
     featured: bool = False
 
     @field_validator("tags")
