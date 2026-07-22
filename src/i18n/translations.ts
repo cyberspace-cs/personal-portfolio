@@ -9,6 +9,7 @@ export interface Translations {
   navEducation: string;
   navContact: string;
   navLearning: string;
+  navBriefing: string;
 
   // Hero
   heroGreeting: string;
@@ -66,6 +67,7 @@ export const translations: Record<Language, Translations> = {
     navEducation: 'Education',
     navContact: 'Contact',
     navLearning: 'Learning',
+    navBriefing: 'AI Briefing',
 
     // Hero
     heroGreeting: "Hello, I'm",
@@ -126,6 +128,7 @@ export const translations: Record<Language, Translations> = {
     navEducation: '教育',
     navContact: '联系',
     navLearning: '学习资料',
+    navBriefing: 'AI 简报',
 
     // Hero
     heroGreeting: '你好，我是',
