@@ -23,7 +23,7 @@ export default function Navbar() {
     .join('')
     .toUpperCase();
 
-  const navLinks = [
+  const navLinks: { href: string; label: string; external?: boolean }[] = [
     { href: '#about', label: t.navAbout },
     { href: '#skills', label: t.navSkills },
     { href: '#experience', label: t.navExperience },
@@ -31,6 +31,7 @@ export default function Navbar() {
     { href: '#learning', label: t.navLearning },
     { href: '#education', label: t.navEducation },
     { href: '#contact', label: t.navContact },
+    { href: '/ai-briefing.html', label: t.navBriefing, external: true },
   ];
 
   useEffect(() => {
@@ -81,11 +82,14 @@ export default function Navbar() {
                 <a
                   key={link.href}
                   href={link.href}
+                  {...(link.external
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : {})}
                   className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${
                     isActive
                       ? 'bg-sky-500/15 text-sky-400'
                       : 'text-slate-400 hover:text-sky-400 hover:bg-slate-800/50'
-                  }`}
+                  } ${link.external ? 'border border-sky-500/30 hover:border-sky-400' : ''}`}
                 >
                   {link.label}
                 </a>
@@ -134,11 +138,14 @@ export default function Navbar() {
                 <a
                   key={link.href}
                   href={link.href}
+                  {...(link.external
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : {})}
                   className={`px-3 py-2 rounded-lg transition-colors ${
                     isActive
                       ? 'bg-sky-500/15 text-sky-400'
                       : 'text-slate-400 hover:text-sky-400'
-                  }`}
+                  } ${link.external ? 'border border-sky-500/30' : ''}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.label}
