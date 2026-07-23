@@ -1031,7 +1031,7 @@
           <p>多源题库聚合 · 多题型交互 · 即时解析</p>
         </div>
         <div class="chip-row" id="catChips">
-          <button class="chip active" data-cat="all">随机 150 题</button>
+          <button class="chip active" data-cat="all">随机 15 题</button>
           <button class="chip" data-cat="考研">考研</button>
           <button class="chip" data-cat="考公">考公</button>
           <button class="chip" data-cat="大厂">大厂笔面</button>
@@ -1438,6 +1438,20 @@
               <div class="tl-desc">整体改造为暗色玻璃拟态风格，与 6 个 Agent Demo 视觉统一；页头图标统一为内联 SVG 线性图标，并补齐这份「完整版本历史」历程。</div>
               <div class="ver-tags"><span class="ver-tag n">新功能</span><span class="ver-tag o">优化</span><span class="ver-tag u">UI优化</span></div>
               <div class="ver-quote">「统一的设计语言，是专业感的最低成本。」</div>
+            </div>
+            <div class="tl-item">
+              <div class="ver-head"><span class="ver-badge">v3.0</span><span class="tl-date" style="margin:0">2026.07.22</span></div>
+              <div class="tl-title">题库规模化 · 1665 题 + 聚合状态动态化</div>
+              <div class="tl-desc">引入 DeepSeek 批量生成流水线（expand_bank.py 分块+并发），题库从 21 题跃升至 1665 题（考研/考公/大厂全覆盖）；「多源题库聚合状态」由写死的「已同步 N 题」改为实时读取题库元信息，来源分布随库更新。</div>
+              <div class="ver-tags"><span class="ver-tag n">新功能</span><span class="ver-tag f">修复</span><span class="ver-tag o">优化</span></div>
+              <div class="ver-quote">「让数字自己说话，而不是写死在 HTML 里。」</div>
+            </div>
+            <div class="tl-item">
+              <div class="ver-head"><span class="ver-badge">v4.0</span><span class="tl-date" style="margin:0">2026.07.23</span></div>
+              <div class="tl-title">万题工程 · 23188 题 + 全量题库抽屉</div>
+              <div class="tl-desc">题库扩容至 23188 题（AI生成 23102 + 10 个真实平台种子）；修复聚合状态 sources 被静态快照覆盖导致与总数对不上的问题，现严格对齐。刷题视图改为随机抽取 15 题样本，新增「全量题库」右侧抽屉：分类/来源/难度/知识点/搜索过滤 + 随机刷题 + 分页浏览 2.3 万题。</div>
+              <div class="ver-tags"><span class="ver-tag n">新功能</span><span class="ver-tag f">修复</span><span class="ver-tag o">优化</span><span class="ver-tag u">UI优化</span></div>
+              <div class="ver-quote">「示例刷题轻量、全量题库兜底，两万题也能丝滑。」</div>
             </div>
           </div>
         </div>
@@ -2094,7 +2108,7 @@ let cur = 0;
 const answers = {};
 
 /* 随机/示例抽题：刷题视图只载入少量题，避免一次性拉全库 2 万+ 题 */
-let quizSampleSize = 150;
+let quizSampleSize = 15;
 async function loadQuizSample(opts) {
   opts = opts || {};
   const params = new URLSearchParams();
