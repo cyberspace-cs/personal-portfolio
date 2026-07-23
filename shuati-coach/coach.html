@@ -1298,14 +1298,9 @@
 
       <div class="rec-card">
         <h4><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></span> 多源题库聚合状态</h4>
-        <div class="desc">已接入以下平台，数据实时同步归集</div>
-        <div class="agg-strip">
-          <div class="agg"><div class="ai" style="background:#3b5bdb">研</div><div class="an">考研帮</div><div class="as"><span class="stat-dot"></span>已同步 8 题</div></div>
-          <div class="agg"><div class="ai" style="background:#0ca678">公</div><div class="an">粉笔行测</div><div class="as"><span class="stat-dot"></span>已同步 7 题</div></div>
-          <div class="agg"><div class="ai" style="background:#7048e8">码</div><div class="an">LeetCode</div><div class="as"><span class="stat-dot"></span>已同步 6 题</div></div>
-          <div class="agg"><div class="ai" style="background:#f08c00">牛</div><div class="an">牛客网</div><div class="as"><span class="stat-dot"></span>已同步 6 题</div></div>
-          <div class="agg"><div class="ai" style="background:#e8590c">题</div><div class="an">中公题库</div><div class="as"><span class="stat-dot"></span>已同步 7 题</div></div>
-        </div>
+        <div class="desc" id="aggHead">题库聚合状态加载中…</div>
+        <div class="agg-strip" id="aggStrip"></div>
+        <div class="desc" style="margin-top:12px;font-size:12px;color:var(--ink-3)">数据来自 <code>/api/questions/meta</code>，随题库更新实时刷新（含本轮 AI 规模化生成的题目）。</div>
       </div>
     </div>
   </section>
@@ -2434,6 +2429,7 @@ function destroyCharts() {
 async function initCharts() {
   if (typeof Chart === 'undefined') return;
   loadBankMeta();
+  loadAggStatus();
   if (!isLoggedIn()) {
     // 体验模式：用公开题库 meta 渲染示例图表，展示产品能力（登录后显示个人数据）
     renderDemoCharts();
@@ -2678,6 +2674,35 @@ function loadBankMeta() {
       '<div class="bm"><div class="k">内容校验和</div><div class="v" style="font-size:12px">' + (meta.checksum || '-') + '</div></div>';
   }).catch(function() {
     box.innerHTML = '<div class="bm"><div class="k">题库元信息</div><div class="v">加载中…</div></div>';
+  });
+}
+
+function loadAggStatus() {
+  // 「多源题库聚合状态」：从 /api/questions/meta 读取真实来源分布与题量，替换旧写死的「已同步 N 题」卡片
+  const head = document.getElementById('aggHead');
+  const strip = document.getElementById('aggStrip');
+  if (!strip) return;
+  apiFetch('/api/questions/meta').then(function(meta) {
+    const total = meta.total || 0;
+    const srcs = meta.sources || {};
+    const entries = Object.entries(srcs).sort(function(a, b) { return b[1] - a[1]; });
+    const ver = meta.version != null ? ('v' + meta.version) : '';
+    const ts = meta.generated_at ? (' · 最近同步 ' + meta.generated_at) : '';
+    if (head) head.innerHTML = '已接入 ' + entries.length + ' 个来源 · 共 ' + total + ' 题' + (ver ? ' · ' + ver : '') + ts;
+    if (!entries.length) {
+      strip.innerHTML = '<div class="agg"><div class="ai" style="background:#3b5bdb">题</div><div class="an">总题库</div><div class="as"><span class="stat-dot"></span>已同步 ' + total + ' 题</div></div>';
+      return;
+    }
+    const palette = ['#3b5bdb', '#0ca678', '#7048e8', '#f08c00', '#e8590c', '#1098ad', '#d6336c', '#5f3dc4', '#2b8a3e', '#1864ab', '#0c8599'];
+    strip.innerHTML = entries.map(function(e, i) {
+      const name = e[0] || '题', cnt = e[1];
+      const ch = name.slice(0, 1);
+      const color = palette[i % palette.length];
+      return '<div class="agg" title="' + name + '"><div class="ai" style="background:' + color + '">' + ch + '</div><div class="an">' + name + '</div><div class="as"><span class="stat-dot"></span>已同步 ' + cnt + ' 题</div></div>';
+    }).join('');
+  }).catch(function() {
+    if (head) head.textContent = '题库状态加载失败';
+    strip.innerHTML = '<div class="agg"><div class="ai" style="background:#495057">!</div><div class="an">题库状态</div><div class="as">加载失败</div></div>';
   });
 }
 
@@ -3204,7 +3229,7 @@ function bindExtraControls() {
     const b = this, old = b.textContent; b.disabled = true; b.textContent = '更新中…';
     try { const r = await apiBankUpdate(); if (r) toast('题库元信息已更新（v' + (r.version != null ? r.version : '-') + '）'); }
     catch (e) { toast('更新失败：' + e.message, 'error'); }
-    finally { loadBankMeta(); b.disabled = false; b.textContent = old; }
+    finally { loadBankMeta(); loadAggStatus(); b.disabled = false; b.textContent = old; }
   });
 }
 bindExtraControls();
