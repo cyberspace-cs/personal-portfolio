@@ -1,0 +1,172 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-2: #eef2f8;
+  --border: #e2e8f0;
+  --muted: #5b6b85;
+  --fg: #0f1b33;
+  --fg-rgb: 15 27 51;
+  --accent: #2563eb;
+  --accent-rgb: 37 99 235;
+  --accent-2: #7c3aed;
+  --accent-2-rgb: 124 58 237;
+  --grid: rgba(37, 99, 235, 0.06);
+}
+
+.dark {
+  --bg: #060a14;
+  --surface: #0c1322;
+  --surface-2: #111c30;
+  --border: rgba(125, 211, 252, 0.14);
+  --muted: #93a4c0;
+  --fg: #e6edf8;
+  --fg-rgb: 230 237 248;
+  --accent: #38bdf8;
+  --accent-rgb: 56 189 248;
+  --accent-2: #b16cff;
+  --accent-2-rgb: 177 108 255;
+  --grid: rgba(56, 189, 248, 0.07);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* 科技感网格背景 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
+  z-index: 0;
+  mask-image: radial-gradient(circle at 50% 0%, black, transparent 75%);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border bg-surface p-4 transition-all duration-200;
+  }
+  .card-hover:hover {
+    @apply -translate-y-1 border-accent/40;
+    box-shadow: 0 12px 40px -18px var(--accent);
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-150 disabled:opacity-50;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    @apply text-white;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.08);
+  }
+  .btn-ghost {
+    @apply border bg-surface-2 text-fg;
+  }
+  .btn-ghost:hover {
+    @apply border-accent/50 text-accent;
+  }
+  .input {
+    @apply w-full rounded-xl border bg-surface-2 px-3 py-2 text-sm text-fg outline-none transition-colors;
+  }
+  .input:focus {
+    @apply border-accent;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border bg-surface px-3 py-1.5 text-sm font-medium transition-all duration-150;
+  }
+  .chip-active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    @apply border-transparent text-white;
+  }
+  .neon {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .glass {
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
+    backdrop-filter: blur(10px);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.35s ease both;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Markdown 渲染 */
+.prose-cs h2 {
+  @apply mt-6 mb-2 text-lg font-bold text-fg;
+}
+.prose-cs p {
+  @apply my-2 leading-relaxed text-fg/90;
+}
+.prose-cs ul {
+  @apply my-2 list-disc space-y-1 pl-5 text-fg/90;
+}
+.prose-cs a {
+  @apply text-accent underline-offset-2 hover:underline;
+}
+.prose-cs code {
+  @apply rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[0.85em];
+}
+.prose-cs strong {
+  @apply font-semibold text-fg;
+}

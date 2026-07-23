@@ -1,0 +1,11 @@
+# 忽略依赖与本地数据库（运行时由 seed_data.py 自动生成）
+node_modules/
+__pycache__/
+*.pyc
+frontier.db
+frontier.db-wal
+frontier.db-shm
+
+# 保留前端构建产物，便于 FastAPI 直接托管（覆盖根 .gitignore 的 dist 规则）
+!web/dist/
+!web/dist/**
