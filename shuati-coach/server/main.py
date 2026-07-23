@@ -517,6 +517,85 @@ def list_questions(cat: str | None = None):
     return [dict(r) for r in rows]
 
 
+@app.get("/api/questions/sample")
+def sample_questions(
+    cat: str | None = None,
+    src: str | None = None,
+    topic: str | None = None,
+    difficulty: str | None = None,
+    limit: int = 150,
+):
+    """随机抽取题（示例刷题 / 随机刷题），避免一次性把全库 2 万+ 题拉到前端。"""
+    limit = max(1, min(int(limit or 150), 500))
+    conn = get_db()
+    sql = "SELECT * FROM questions WHERE 1=1"
+    args: list = []
+    if cat and cat != "all":
+        sql += " AND cat=?"
+        args.append(cat)
+    if src:
+        sql += " AND src=?"
+        args.append(src)
+    if topic:
+        sql += " AND topic=?"
+        args.append(topic)
+    if difficulty and difficulty != "all":
+        sql += " AND difficulty=?"
+        args.append(difficulty)
+    sql += " ORDER BY RANDOM() LIMIT ?"
+    args.append(limit)
+    rows = conn.execute(sql, args).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/questions/page")
+def page_questions(
+    offset: int = 0,
+    limit: int = 30,
+    cat: str | None = None,
+    src: str | None = None,
+    topic: str | None = None,
+    difficulty: str | None = None,
+    q: str | None = None,
+):
+    """分页浏览全量题库（全量题库抽屉用），支持按分类/来源/知识点/难度/关键词过滤。"""
+    offset = max(0, int(offset or 0))
+    limit = max(1, min(int(limit or 30), 100))
+    conn = get_db()
+    where = ""
+    args: list = []
+    if cat and cat != "all":
+        where += " AND cat=?"
+        args.append(cat)
+    if src:
+        where += " AND src=?"
+        args.append(src)
+    if topic:
+        where += " AND topic=?"
+        args.append(topic)
+    if difficulty and difficulty != "all":
+        where += " AND difficulty=?"
+        args.append(difficulty)
+    if q:
+        where += " AND stem LIKE ?"
+        args.append("%" + q + "%")
+    total = conn.execute("SELECT COUNT(*) FROM questions WHERE 1=1" + where, args).fetchone()[0]
+    rows = conn.execute(
+        "SELECT id, cat, src, type, topic, difficulty, stem FROM questions WHERE 1=1"
+        + where
+        + " ORDER BY id LIMIT ? OFFSET ?",
+        args + [limit, offset],
+    ).fetchall()
+    conn.close()
+    return {
+        "total": total,
+        "offset": offset,
+        "limit": limit,
+        "items": [dict(r) for r in rows],
+    }
+
+
 @app.get("/api/questions/meta")
 def questions_meta():
     """公开展示题库概况（无需登录），用于首页/demo 展示与体验模式统计。
@@ -540,9 +619,9 @@ def questions_meta():
                 qj = json.load(f)
             meta_extra["version"] = qj.get("version")
             meta_extra["generated_at"] = qj.get("generated_at")
-            # 优先用 JSON 内置 sources；缺失则用 DB 统计兜底
-            if qj.get("sources"):
-                meta_extra["sources"] = qj["sources"]
+            # 注意：sources 始终用实时库 GROUP BY 统计（见上方 srcs），
+            # 保证「多源题库聚合状态」卡片与实际题量一致；
+            # 不再用 questions.json 的静态快照覆盖，否则会与 total 对不上。
             meta_extra["checksum"] = qj.get("checksum", "")
     except Exception:
         pass

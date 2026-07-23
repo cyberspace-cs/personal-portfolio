@@ -25,7 +25,7 @@ OUT_PATH = os.path.join(DB_DIR, "data", "questions.json")
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--version", type=int, default=3, help="题库版本号（默认 3）")
+    ap.add_argument("--version", type=int, default=4, help="题库版本号（默认 4）")
     args = ap.parse_args()
 
     if not os.path.exists(DB_PATH):

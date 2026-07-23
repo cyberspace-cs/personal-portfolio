@@ -23,6 +23,7 @@ import sys
 import json
 import argparse
 import hashlib
+import asyncio
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -101,42 +102,51 @@ _SYSTEM = (
 )
 
 
+CHUNK = 10  # 单次 API 调用最多请求的题数（受 max_tokens 限制，约 12 题为上限）
+
+
 async def _gen_batch(cat, subject, topic, difficulty, n):
-    """向 DeepSeek 要 n 道该 (cat/subject/topic/difficulty) 的单选题，返回校验过的题列表。"""
-    user = (
-        f"请生成 {n} 道单选题。\n"
-        f"分类：{cat}；学科：{subject}；知识点：{topic}；难度：{DIFF_LABEL[difficulty]}（{difficulty}）。\n"
-        f"每题：stem=题干；opts=长度4的字符串数组（A/B/C/D，仅1个正确）；"
-        f"answer=正确项下标数组（0起，如 [2]）；explain=一句话考点解析。\n"
-        f"知识点必须紧扣「{topic}」，不要跑题；难度要与「{DIFF_LABEL[difficulty]}」匹配。"
-    )
-    last = []
-    for attempt in range(3):
-        try:
-            out = await call_llm_tool(_SYSTEM, user, "gen_mcq_batch", SCHEMA, max_tokens=2600)
-            if out and out.get("questions"):
-                last = out["questions"]
-                break
-        except Exception as e:
-            print(f"  [retry {attempt+1}] {cat}/{topic}/{difficulty}: {repr(e)}")
-    if not last:
-        return []
-    clean = []
-    for q in last:
-        opts = q.get("opts") or []
-        ans = q.get("answer") or []
-        stem = (q.get("stem") or "").strip()
-        if not stem or len(opts) != 4 or not all(isinstance(o, str) and o.strip() for o in opts):
+    """向 DeepSeek 分批要 n 道该 (cat/subject/topic/difficulty) 的单选题，返回校验过的题列表。
+
+    说明：call_llm_tool 单次输出受 max_tokens 限制，约 12 题封顶；故把 n 拆成每批 CHUNK 题多次调用，
+    累计返回，确保 per-cell 设大时也能真正产出更多题目（否则大 per-cell 会被截断、实际只出 ~12 题）。
+    """
+    clean_all = []
+    for start in range(0, n, CHUNK):
+        want = min(CHUNK, n - start)
+        user = (
+            f"请生成 {want} 道单选题。\n"
+            f"分类：{cat}；学科：{subject}；知识点：{topic}；难度：{DIFF_LABEL[difficulty]}（{difficulty}）。\n"
+            f"每题：stem=题干；opts=长度4的字符串数组（A/B/C/D，仅1个正确）；"
+            f"answer=正确项下标数组（0起，如 [2]）；explain=一句话考点解析。\n"
+            f"知识点必须紧扣「{topic}」，不要跑题；难度要与「{DIFF_LABEL[difficulty]}」匹配。"
+        )
+        last = []
+        for attempt in range(3):
+            try:
+                out = await call_llm_tool(_SYSTEM, user, "gen_mcq_batch", SCHEMA, max_tokens=2600)
+                if out and out.get("questions"):
+                    last = out["questions"]
+                    break
+            except Exception as e:
+                print(f"  [retry {attempt+1}] {cat}/{topic}/{difficulty}: {repr(e)}")
+        if not last:
             continue
-        if not ans or not all(isinstance(i, int) and 0 <= i < 4 for i in ans):
-            continue
-        clean.append({
-            "stem": stem,
-            "opts": [o.strip() for o in opts],
-            "answer": ans,
-            "explain": (q.get("explain") or "").strip() or "（考点见题干与解析）",
-        })
-    return clean
+        for q in last:
+            opts = q.get("opts") or []
+            ans = q.get("answer") or []
+            stem = (q.get("stem") or "").strip()
+            if not stem or len(opts) != 4 or not all(isinstance(o, str) and o.strip() for o in opts):
+                continue
+            if not ans or not all(isinstance(i, int) and 0 <= i < 4 for i in ans):
+                continue
+            clean_all.append({
+                "stem": stem,
+                "opts": [o.strip() for o in opts],
+                "answer": ans,
+                "explain": (q.get("explain") or "").strip() or "（考点见题干与解析）",
+            })
+    return clean_all
 
 
 def _insert(conn, rows):
@@ -148,7 +158,7 @@ def _insert(conn, rows):
     conn.commit()
 
 
-async def expand(per_cell=12, only_cat=None, dry_run=False):
+async def expand(per_cell=12, only_cat=None, dry_run=False, concurrency=8):
     if not HAS_KEY:
         print("[expand] 未检测到 LLM Key，跳过 AI 生成（可用 --import 导入数据集）。")
         return 0
@@ -156,32 +166,41 @@ async def expand(per_cell=12, only_cat=None, dry_run=False):
     existing = {r[0] for r in conn.execute("SELECT DISTINCT stem FROM questions").fetchall()}
     seen = set(existing)
     total_new = 0
+    sem = asyncio.Semaphore(concurrency)
+
+    async def worker(cat, subject, topic, diff):
+        nonlocal total_new
+        async with sem:
+            batch = await _gen_batch(cat, subject, topic, diff, per_cell)
+        if not batch:
+            return
+        rows = []
+        for q in batch:
+            h = hashlib.md5(q["stem"].encode("utf-8")).hexdigest()
+            if h in seen:
+                continue
+            seen.add(h)
+            rows.append((
+                cat, "AI生成(DeepSeek)", "单选题",
+                q["stem"], json.dumps(q["opts"], ensure_ascii=False),
+                json.dumps(q["answer"], ensure_ascii=False), q["explain"],
+                f"{subject}·{topic}", diff,
+            ))
+        if rows:
+            if not dry_run:
+                _insert(conn, rows)
+            total_new += len(rows)
+            print(f"[+] {cat}/{subject}·{topic}/{diff}: +{len(rows)} (累计新增 {total_new})")
+
+    tasks = []
     for cat, subjects in TOPIC_MATRIX.items():
         if only_cat and cat != only_cat:
             continue
         for subject, topics in subjects.items():
             for topic in topics:
                 for diff in DIFFICULTIES:
-                    batch = await _gen_batch(cat, subject, topic, diff, per_cell)
-                    if not batch:
-                        continue
-                    rows = []
-                    for q in batch:
-                        h = hashlib.md5(q["stem"].encode("utf-8")).hexdigest()
-                        if h in seen:
-                            continue
-                        seen.add(h)
-                        rows.append((
-                            cat, "AI生成(DeepSeek)", "单选题",
-                            q["stem"], json.dumps(q["opts"], ensure_ascii=False),
-                            json.dumps(q["answer"], ensure_ascii=False), q["explain"],
-                            f"{subject}·{topic}", diff,
-                        ))
-                    if rows:
-                        if not dry_run:
-                            _insert(conn, rows)
-                        total_new += len(rows)
-                        print(f"[+] {cat}/{subject}·{topic}/{diff}: +{len(rows)} (累计新增 {total_new})")
+                    tasks.append(asyncio.create_task(worker(cat, subject, topic, diff)))
+    await asyncio.gather(*tasks)
     conn.close()
     if not dry_run and total_new:
         _record_version()
@@ -292,6 +311,7 @@ def _parse_generic_item(it, cat_map):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--per-cell", type=int, default=12, help="每个(分类×知识点×难度)格生成题数")
+    ap.add_argument("--concurrency", type=int, default=8, help="并发生成的(分类×知识点×难度)格数")
     ap.add_argument("--cat", default=None, help="仅生成指定分类（考研/考公/大厂）")
     ap.add_argument("--import", dest="import_path", default=None, help="导入开源数据集 JSON/CSV 路径")
     ap.add_argument("--dry-run", action="store_true", help="只生成不入库")
@@ -300,7 +320,7 @@ def main():
         import_dataset(args.import_path)
     else:
         import asyncio
-        asyncio.run(expand(per_cell=args.per_cell, only_cat=args.cat, dry_run=args.dry_run))
+        asyncio.run(expand(per_cell=args.per_cell, only_cat=args.cat, dry_run=args.dry_run, concurrency=args.concurrency))
 
 
 if __name__ == "__main__":

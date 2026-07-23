@@ -387,6 +387,37 @@
   .agg .as{font-size:12px;color:var(--ink-3);margin-top:2px}
   .agg .stat-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal);margin-right:5px}
 
+  /* ---------- 全量题库抽屉 ---------- */
+  .drawer-mask{position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(2px);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;z-index:2000}
+  .drawer-mask.open{opacity:1;visibility:visible}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(560px,94vw);background:var(--bg);box-shadow:-12px 0 40px rgba(15,23,42,.25);transform:translateX(100%);transition:transform .28s cubic-bezier(.22,.61,.36,1);z-index:2001;display:flex;flex-direction:column}
+  .drawer.open{transform:translateX(0)}
+  .drawer-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff}
+  .drawer-head h3{font-size:17px;font-weight:800;margin:0}
+  .drawer-head .sub{font-size:12px;opacity:.9;margin-top:2px}
+  .drawer-close{background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:9px;font-size:18px;cursor:pointer;line-height:1}
+  .drawer-body{flex:1;overflow-y:auto;padding:16px 18px}
+  .bank-filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .bank-filters select,.bank-filters input{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font-size:13px}
+  .bank-filters .full{grid-column:1 / -1}
+  .bank-actions{display:flex;gap:10px;margin-bottom:14px}
+  .bank-actions .btn{flex:1;justify-content:center}
+  .bank-list{display:flex;flex-direction:column;gap:10px}
+  .bank-item{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface);display:flex;flex-direction:column;gap:8px}
+  .bank-item .bi-stem{font-size:14px;line-height:1.5;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .bank-item .bi-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .badge-pill{font-size:11px;padding:2px 9px;border-radius:999px;background:var(--brand-soft);color:var(--brand);font-weight:700;white-space:nowrap}
+  .badge-pill.diff-easy{background:#e6fcf5;color:#0ca678}
+  .badge-pill.diff-medium{background:#fff3bf;color:#e67700}
+  .badge-pill.diff-hard{background:#ffe3e3;color:#e03131}
+  .bank-item .bi-prac{margin-left:auto;font-size:12px;padding:4px 12px;border-radius:8px;border:1px solid var(--brand);background:transparent;color:var(--brand);cursor:pointer;font-weight:700}
+  .bank-item .bi-prac:hover{background:var(--brand);color:#fff}
+  .bank-pager{display:flex;align-items:center;justify-content:space-between;margin-top:14px;font-size:13px;color:var(--ink-3)}
+  .bank-pager button{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 14px;border-radius:9px;cursor:pointer}
+  .bank-pager button:disabled{opacity:.4;cursor:not-allowed}
+  .quiz-toolbar{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+  .quiz-toolbar .count-note{font-size:12px;color:var(--ink-3)}
+
   /* ---------- About Page ---------- */
   .timeline{position:relative;padding-left:40px;max-width:700px;margin:0 auto}
   .timeline::before{content:"";position:absolute;left:19px;top:0;bottom:0;width:2px;background:var(--brand);opacity:.3}
@@ -1000,10 +1031,15 @@
           <p>多源题库聚合 · 多题型交互 · 即时解析</p>
         </div>
         <div class="chip-row" id="catChips">
-          <button class="chip active" data-cat="all">全部(21)</button>
-          <button class="chip" data-cat="考研">考研(8)</button>
-          <button class="chip" data-cat="考公">考公(7)</button>
-          <button class="chip" data-cat="大厂">大厂笔面(6)</button>
+          <button class="chip active" data-cat="all">随机 150 题</button>
+          <button class="chip" data-cat="考研">考研</button>
+          <button class="chip" data-cat="考公">考公</button>
+          <button class="chip" data-cat="大厂">大厂笔面</button>
+        </div>
+        <div class="quiz-toolbar">
+          <span class="count-note" id="quizNote">示例刷题 · 随机抽取，避免一次性载入全库</span>
+          <button class="btn-sm btn-line" id="reshuffleBtn">🔀 换一批</button>
+          <button class="btn-sm btn-primary" id="openBankBtn">📚 全量题库</button>
         </div>
       </div>
 
@@ -1487,6 +1523,37 @@
   </section>
 </div>
 
+<!-- ============ 全量题库抽屉（示例刷题之外的 2 万+ 题窗口） ============ -->
+<div class="drawer-mask" id="bankMask"></div>
+<div class="drawer" id="bankDrawer" aria-hidden="true">
+  <div class="drawer-head">
+    <div>
+      <h3>📚 全量题库</h3>
+      <div class="sub" id="bankTotalNote">加载中…</div>
+    </div>
+    <button class="drawer-close" id="bankCloseBtn" title="关闭">×</button>
+  </div>
+  <div class="drawer-body">
+    <div class="bank-filters">
+      <select id="bankCat"><option value="all">全部分类</option><option value="考研">考研</option><option value="考公">考公</option><option value="大厂">大厂笔面</option></select>
+      <select id="bankDiff"><option value="all">全部难度</option><option value="easy">简单</option><option value="medium">中等</option><option value="hard">困难</option></select>
+      <select id="bankSrc" class="full"><option value="">全部来源</option></select>
+      <select id="bankTopic" class="full"><option value="">全部知识点</option></select>
+      <input id="bankSearch" class="full" placeholder="搜索题干关键词…" />
+    </div>
+    <div class="bank-actions">
+      <button class="btn btn-primary" id="bankRandomBtn">🎲 随机刷题（当前筛选）</button>
+      <button class="btn btn-line" id="bankResetBtn">重置</button>
+    </div>
+    <div class="bank-list" id="bankList"></div>
+    <div class="bank-pager">
+      <button id="bankPrev">← 上一页</button>
+      <span id="bankPageInfo">第 1 页</span>
+      <button id="bankNext">下一页 →</button>
+    </div>
+  </div>
+</div>
+
 <footer>
   <div class="container foot">
     <div class="logo" style="color:#fff">
@@ -1784,16 +1851,11 @@ function updateAuthUI() {
 async function refreshAllData() {
   updateHomeStats();
   await loadQuestions();
-  updateCatChips();
   const activeView = document.querySelector('.view.active');
   if (activeView) {
     const vid = activeView.id.replace('view-', '');
     if (vid === 'quiz') {
-      filtered = questionsCache.slice();
-      cur = 0;
-      Object.keys(answers).forEach(function(k) { delete answers[k]; });
-      renderQ();
-      buildNav();
+      await loadQuizSample();
     }
     if (vid === 'data') initCharts();
     if (vid === 'rec') initRecommendation();
@@ -1876,10 +1938,9 @@ function switchView(v) {
   if (v === 'rec') initRecommendation();
   if (v === 'home') updateHomeStats();
   if (v === 'plan') initStudyPlan();
-  if (v === 'quiz') updateCatChips();
 }
-tabs.forEach(function(t) { t.addEventListener('click', function() { switchView(t.dataset.view); }); });
-document.querySelectorAll('[data-jump]').forEach(function(b) { b.addEventListener('click', function() { switchView(b.dataset.jump); }); });
+tabs.forEach(function(t) { t.addEventListener('click', function() { var v = t.dataset.view; switchView(v); if (v === 'quiz') loadQuizSample(); }); });
+document.querySelectorAll('[data-jump]').forEach(function(b) { b.addEventListener('click', function() { var v = b.dataset.jump; switchView(v); if (v === 'quiz') loadQuizSample(); }); });
 document.getElementById('menuToggle').addEventListener('click', function() { document.getElementById('tabs').classList.toggle('open'); });
 
 /* ---------------- 刷新数据按钮 ---------------- */
@@ -2032,18 +2093,47 @@ let filtered = [];
 let cur = 0;
 const answers = {};
 
+/* 随机/示例抽题：刷题视图只载入少量题，避免一次性拉全库 2 万+ 题 */
+let quizSampleSize = 150;
+async function loadQuizSample(opts) {
+  opts = opts || {};
+  const params = new URLSearchParams();
+  if (opts.cat && opts.cat !== 'all') params.set('cat', opts.cat);
+  if (opts.src) params.set('src', opts.src);
+  if (opts.topic) params.set('topic', opts.topic);
+  if (opts.difficulty && opts.difficulty !== 'all') params.set('difficulty', opts.difficulty);
+  params.set('limit', opts.limit || quizSampleSize);
+  let data;
+  try {
+    data = await apiFetch('/questions/sample?' + params.toString());
+  } catch (e) {
+    toast('随机抽题失败：' + e.message, 'error');
+    return;
+  }
+  filtered = (data || []).map(parseQuestion);
+  cur = 0;
+  Object.keys(answers).forEach(function(k) { delete answers[k]; });
+  renderQuizChips(filtered);
+  const note = document.getElementById('quizNote');
+  if (note) note.textContent = '示例刷题 · 随机抽取 ' + filtered.length + ' 题' + (opts.cat && opts.cat !== 'all' ? '（' + opts.cat + '）' : '（全库随机）');
+  if (filtered.length === 0) toast('该筛选下暂无题目，换个条件试试', 'warning');
+  renderQ();
+  buildNav();
+}
+function renderQuizChips(arr) {
+  const counts = {};
+  (arr || []).forEach(function(q) { counts[q.cat] = (counts[q.cat] || 0) + 1; });
+  document.querySelectorAll('#catChips .chip').forEach(function(c) {
+    const cat = c.dataset.cat;
+    if (cat === 'all') c.textContent = '随机 ' + (arr ? arr.length : 0) + ' 题';
+    else c.textContent = (cat === '考研' ? '考研' : cat === '考公' ? '考公' : '大厂笔面') + (counts[cat] ? '(' + counts[cat] + ')' : '');
+  });
+}
 document.querySelectorAll('#catChips .chip').forEach(function(c) {
   c.addEventListener('click', async function() {
     document.querySelectorAll('#catChips .chip').forEach(function(x) { x.classList.remove('active'); });
     c.classList.add('active');
-    const cat = c.dataset.cat;
-    await loadQuestions(cat);
-    filtered = questionsCache.slice();
-    cur = 0;
-    Object.keys(answers).forEach(function(k) { delete answers[k]; });
-    updateCatChips();
-    renderQ();
-    buildNav();
+    await loadQuizSample({ cat: c.dataset.cat });
   });
 });
 
@@ -3052,6 +3142,118 @@ async function startTopicPractice(topic) {
 }
 
 /* ================================================================
+   全量题库抽屉（示例刷题之外的 2 万+ 题窗口）
+   ================================================================ */
+let bankPage = 0;
+const BANK_PAGE_SIZE = 30;
+let bankMetaCache = null;
+function escAttr(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+async function loadBankMetaOnce() {
+  if (bankMetaCache) return bankMetaCache;
+  try { bankMetaCache = await apiFetch('/questions/meta'); } catch (e) { bankMetaCache = null; }
+  return bankMetaCache;
+}
+async function openBankDrawer() {
+  const d = document.getElementById('bankDrawer');
+  const m = document.getElementById('bankMask');
+  if (!d) return;
+  d.classList.add('open'); m.classList.add('open'); d.setAttribute('aria-hidden', 'false');
+  const meta = await loadBankMetaOnce();
+  const total = (meta && meta.total) || 0;
+  const note = document.getElementById('bankTotalNote');
+  if (note) note.textContent = '共 ' + total.toLocaleString() + ' 题 · 随机刷题 / 分类浏览';
+  const srcSel = document.getElementById('bankSrc');
+  if (meta && meta.sources) {
+    const names = Object.keys(meta.sources).sort(function (a, b) { return meta.sources[b] - meta.sources[a]; });
+    srcSel.innerHTML = '<option value="">全部来源</option>' + names.map(function (n) {
+      return '<option value="' + escAttr(n) + '">' + escHtml(n) + ' (' + meta.sources[n] + ')</option>';
+    }).join('');
+  }
+  const topicSel = document.getElementById('bankTopic');
+  if (meta && meta.topics) {
+    const topics = Object.keys(meta.topics).sort();
+    topicSel.innerHTML = '<option value="">全部知识点</option>' + topics.map(function (t) {
+      return '<option value="' + escAttr(t) + '">' + escHtml(t) + '</option>';
+    }).join('');
+  }
+  bankPage = 0;
+  loadBankList(0);
+}
+function closeBankDrawer() {
+  const d = document.getElementById('bankDrawer');
+  const m = document.getElementById('bankMask');
+  if (!d) return;
+  d.classList.remove('open'); m.classList.remove('open'); d.setAttribute('aria-hidden', 'true');
+}
+function bankFilters() {
+  return {
+    cat: document.getElementById('bankCat').value,
+    difficulty: document.getElementById('bankDiff').value,
+    src: document.getElementById('bankSrc').value,
+    topic: document.getElementById('bankTopic').value,
+    q: document.getElementById('bankSearch').value.trim()
+  };
+}
+async function loadBankList(page) {
+  const f = bankFilters();
+  const params = new URLSearchParams();
+  if (f.cat && f.cat !== 'all') params.set('cat', f.cat);
+  if (f.difficulty && f.difficulty !== 'all') params.set('difficulty', f.difficulty);
+  if (f.src) params.set('src', f.src);
+  if (f.topic) params.set('topic', f.topic);
+  if (f.q) params.set('q', f.q);
+  params.set('offset', page * BANK_PAGE_SIZE);
+  params.set('limit', BANK_PAGE_SIZE);
+  const list = document.getElementById('bankList');
+  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-3)">加载中…</div>';
+  let data;
+  try { data = await apiFetch('/questions/page?' + params.toString()); }
+  catch (e) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-3)">加载失败：' + escHtml(e.message) + '</div>'; return; }
+  bankPage = page;
+  const items = data.items || [];
+  if (!items.length) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-3)">无匹配题目，换个筛选条件试试</div>';
+  } else {
+    list.innerHTML = items.map(function (it) {
+      const diffCls = 'diff-' + (it.difficulty || 'medium');
+      return '<div class="bank-item">' +
+        '<div class="bi-stem">' + escHtml(it.stem) + '</div>' +
+        '<div class="bi-meta">' +
+          '<span class="badge-pill">' + escHtml(it.cat) + '</span>' +
+          '<span class="badge-pill">' + escHtml(it.topic || '') + '</span>' +
+          '<span class="badge-pill ' + diffCls + '">' + escHtml(it.difficulty || '') + '</span>' +
+          '<span class="badge-pill" style="background:var(--teal-soft,#e3fafc);color:var(--teal)">' + escHtml(it.src || '') + '</span>' +
+          '<button class="bi-prac" data-id="' + it.id + '">练</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    list.querySelectorAll('.bi-prac').forEach(function (b) {
+      b.addEventListener('click', function () { startBankQuestion(+b.dataset.id); });
+    });
+  }
+  const totalPages = Math.max(1, Math.ceil((data.total || 0) / BANK_PAGE_SIZE));
+  document.getElementById('bankPageInfo').textContent = '第 ' + (page + 1) + ' / ' + totalPages + ' 页（共 ' + (data.total || 0) + ' 题）';
+  document.getElementById('bankPrev').disabled = page <= 0;
+  document.getElementById('bankNext').disabled = page >= totalPages - 1;
+}
+async function startBankQuestion(id) {
+  let q;
+  try { q = await apiFetch('/questions/' + id); }
+  catch (e) { toast('加载题目失败：' + e.message, 'error'); return; }
+  closeBankDrawer();
+  switchView('quiz');
+  filtered = [parseQuestion(q)]; cur = 0;
+  Object.keys(answers).forEach(function (k) { delete answers[k]; });
+  renderQuizChips(filtered);
+  renderQ(); buildNav();
+  toast('开始练习该题');
+}
+
+/* ================================================================
    Step ⑦ 成长中心 / 段位 / 榜单
    ================================================================ */
 async function renderGrowth() {
@@ -3231,6 +3433,40 @@ function bindExtraControls() {
     catch (e) { toast('更新失败：' + e.message, 'error'); }
     finally { loadBankMeta(); loadAggStatus(); b.disabled = false; b.textContent = old; }
   });
+
+  /* 题库抽屉 & 随机刷题工具栏 */
+  const ob = document.getElementById('openBankBtn');
+  if (ob) ob.addEventListener('click', openBankDrawer);
+  const rb = document.getElementById('reshuffleBtn');
+  if (rb) rb.addEventListener('click', function () {
+    const a = document.querySelector('#catChips .chip.active');
+    loadQuizSample({ cat: a ? a.dataset.cat : 'all' });
+  });
+  const bc = document.getElementById('bankCloseBtn');
+  if (bc) bc.addEventListener('click', closeBankDrawer);
+  const bm = document.getElementById('bankMask');
+  if (bm) bm.addEventListener('click', closeBankDrawer);
+  const br = document.getElementById('bankRandomBtn');
+  if (br) br.addEventListener('click', function () { const f = bankFilters(); closeBankDrawer(); loadQuizSample(f); });
+  const breset = document.getElementById('bankResetBtn');
+  if (breset) breset.addEventListener('click', function () {
+    document.getElementById('bankCat').value = 'all';
+    document.getElementById('bankDiff').value = 'all';
+    document.getElementById('bankSrc').value = '';
+    document.getElementById('bankTopic').value = '';
+    document.getElementById('bankSearch').value = '';
+    loadBankList(0);
+  });
+  const bprev = document.getElementById('bankPrev');
+  if (bprev) bprev.addEventListener('click', function () { if (bankPage > 0) loadBankList(bankPage - 1); });
+  const bnext = document.getElementById('bankNext');
+  if (bnext) bnext.addEventListener('click', function () { loadBankList(bankPage + 1); });
+  ['bankCat', 'bankDiff', 'bankSrc', 'bankTopic'].forEach(function (id) {
+    const elx = document.getElementById(id);
+    if (elx) elx.addEventListener('change', function () { loadBankList(0); });
+  });
+  const bs = document.getElementById('bankSearch');
+  if (bs) { let t; bs.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { loadBankList(0); }, 350); }); }
 }
 bindExtraControls();
 
@@ -3241,11 +3477,8 @@ bindExtraControls();
   updateAuthUI();
   updateDemoBanner();
   await loadQuestions();
-  updateCatChips();
-  filtered = questionsCache.slice();
   updateHomeStats();
-  renderQ();
-  buildNav();
+  await loadQuizSample();
 })();
 </script>
 <script>
