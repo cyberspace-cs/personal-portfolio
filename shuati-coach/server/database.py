@@ -16,6 +16,50 @@ def get_db():
     return conn
 
 
+# ===== 题库权威性维度 =====
+# official     : 官方真题（历年考试原题，具有最高权威性）
+# institution  : 权威机构 / 教材题（肖秀荣1000题、粉笔、LeetCode、牛客等）
+# ai_sim       : AI 生成的模拟练习题（非官方，仅供练习，答案不保证 100% 正确）
+SRC_TYPE_OFFICIAL = "official"
+SRC_TYPE_INSTITUTION = "institution"
+SRC_TYPE_AI = "ai_sim"
+
+_OFFICIAL_SRCS = {"考研真题"}
+_INSTITUTION_SRCS = {
+    "考研帮", "牛客网", "粉笔行测", "LeetCode", "中公题库",
+    "华图教育", "肖秀荣1000题", "考研英语", "剑指Offer",
+}
+
+
+def _migrate_questions_schema(conn):
+    """questions 表向后兼容迁移：补充权威性字段（src_type / year / license）。
+
+    幂等：仅补缺失列，并按来源把真实种子从默认 ai_sim 重新分类为 official / institution；
+    AI 生成题（src='AI生成(DeepSeek)'）保持 ai_sim。已在正确类别的行不会被重复改写。
+    """
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(questions)").fetchall()}
+    if "src_type" not in cols:
+        conn.execute("ALTER TABLE questions ADD COLUMN src_type TEXT NOT NULL DEFAULT 'ai_sim'")
+    if "year" not in cols:
+        conn.execute("ALTER TABLE questions ADD COLUMN year INTEGER")
+    if "license" not in cols:
+        conn.execute("ALTER TABLE questions ADD COLUMN license TEXT NOT NULL DEFAULT ''")
+
+    if _OFFICIAL_SRCS:
+        ph = ",".join("?" * len(_OFFICIAL_SRCS))
+        conn.execute(
+            f"UPDATE questions SET src_type='official' WHERE src IN ({ph}) AND src_type='ai_sim'",
+            tuple(_OFFICIAL_SRCS),
+        )
+    if _INSTITUTION_SRCS:
+        ph = ",".join("?" * len(_INSTITUTION_SRCS))
+        conn.execute(
+            f"UPDATE questions SET src_type='institution' WHERE src IN ({ph}) AND src_type='ai_sim'",
+            tuple(_INSTITUTION_SRCS),
+        )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_questions_src_type ON questions(src_type)")
+
+
 def init_db():
     """初始化数据库表"""
     conn = get_db()
@@ -131,6 +175,7 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user ON quiz_attempts(user_id);
         CREATE INDEX IF NOT EXISTS idx_quiz_attempts_qid ON quiz_attempts(question_id);
     """)
+    _migrate_questions_schema(conn)
     conn.commit()
     conn.close()
 

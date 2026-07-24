@@ -151,8 +151,8 @@ async def _gen_batch(cat, subject, topic, difficulty, n):
 
 def _insert(conn, rows):
     conn.executemany(
-        "INSERT INTO questions (cat, src, type, stem, opts, answer, explain, topic, difficulty) "
-        "VALUES (?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO questions (cat, src, type, stem, opts, answer, explain, topic, difficulty, src_type) "
+        "VALUES (?,?,?,?,?,?,?,?,?,?)",
         rows,
     )
     conn.commit()
@@ -184,7 +184,7 @@ async def expand(per_cell=12, only_cat=None, dry_run=False, concurrency=8):
                 cat, "AI生成(DeepSeek)", "单选题",
                 q["stem"], json.dumps(q["opts"], ensure_ascii=False),
                 json.dumps(q["answer"], ensure_ascii=False), q["explain"],
-                f"{subject}·{topic}", diff,
+                f"{subject}·{topic}", diff, "ai_sim",
             ))
         if rows:
             if not dry_run:

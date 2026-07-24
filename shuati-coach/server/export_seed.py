@@ -34,7 +34,7 @@ def main():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     rows = conn.execute(
-        "SELECT cat, src, type, stem, opts, answer, explain, topic, difficulty FROM questions ORDER BY id"
+        "SELECT cat, src, type, stem, opts, answer, explain, topic, difficulty, src_type, year, license FROM questions ORDER BY id"
     ).fetchall()
     conn.close()
 

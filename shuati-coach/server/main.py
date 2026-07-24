@@ -470,9 +470,10 @@ def seed_questions():
         qs = _load_seed_questions()
         for q in qs:
             conn.execute(
-                "INSERT INTO questions (cat, src, type, stem, opts, answer, explain, topic, difficulty) VALUES (?,?,?,?,?,?,?,?,?)",
+                "INSERT INTO questions (cat, src, type, stem, opts, answer, explain, topic, difficulty, src_type) VALUES (?,?,?,?,?,?,?,?,?,?)",
                 (q["cat"], q["src"], q["type"], q["stem"],
-                 _norm(q["opts"]), _norm(q["answer"]), q["explain"], q["topic"], q["difficulty"])
+                 _norm(q["opts"]), _norm(q["answer"]), q["explain"], q["topic"],
+                 q["difficulty"], q.get("src_type") or "ai_sim")
             )
         conn.commit()
         print(f"[seed] 已插入题库 {len(qs)} 题")
@@ -602,13 +603,14 @@ def questions_meta():
     额外返回题库版本信息（version/sources/checksum），由 questions.json 提供。"""
     from collections import Counter
     conn = get_db()
-    rows = conn.execute("SELECT cat, type, src, difficulty, topic FROM questions").fetchall()
+    rows = conn.execute("SELECT cat, type, src, difficulty, topic, src_type, year FROM questions").fetchall()
     conn.close()
     cats = Counter(r["cat"] for r in rows)
     types = Counter(r["type"] for r in rows)
     srcs = Counter(r["src"] for r in rows)
     diff = Counter(r["difficulty"] for r in rows)
     topics = Counter(r["topic"] for r in rows)
+    src_types = Counter(r["src_type"] or "ai_sim" for r in rows)
 
     # 版本元信息（来自 data/questions.json）
     meta_extra = {"version": None, "generated_at": None, "sources": dict(srcs), "checksum": ""}
@@ -647,6 +649,7 @@ def questions_meta():
         "cats": dict(cats),
         "types": dict(types),
         "sources": meta_extra["sources"],
+        "src_types": dict(src_types),
         "difficulty": dict(diff),
         "topics": dict(topics),
         "version": meta_extra["version"],
