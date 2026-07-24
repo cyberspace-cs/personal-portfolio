@@ -410,6 +410,25 @@
   .badge-pill.diff-easy{background:#e6fcf5;color:#0ca678}
   .badge-pill.diff-medium{background:#fff3bf;color:#e67700}
   .badge-pill.diff-hard{background:#ffe3e3;color:#e03131}
+  /* 权威角标 */
+  .auth-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px;white-space:nowrap;vertical-align:middle;margin-left:6px}
+  .auth-official{background:#e6fcf5;color:#0ca678;border:1px solid #63e6be}
+  .auth-inst{background:#edf2ff;color:#3b5bdb;border:1px solid #91a7ff}
+  .auth-ai{background:#fff4e6;color:#e8590c;border:1px solid #ffc078}
+  /* 全局免责横幅 */
+  .disclaimer-bar{display:flex;align-items:flex-start;gap:10px;background:linear-gradient(90deg,#fff4e6,#fff9db);border-bottom:1px solid #ffe8cc;color:#b54708;font-size:13px;line-height:1.6;padding:9px 18px;font-weight:600}
+  .disclaimer-bar .d-ico{font-size:16px;flex:0 0 auto;line-height:1.4}
+  .disclaimer-bar b{color:#d9480f}
+  /* 聚合权威卡片 */
+  .agg-auth{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+  .agg-auth .aa{background:#fff;border:1px solid #eceef3;border-radius:12px;padding:11px 10px;text-align:center}
+  .agg-auth .aa .aa-n{font-size:20px;font-weight:800;line-height:1.1}
+  .agg-auth .aa .aa-l{font-size:11.5px;color:#868e96;margin-top:3px}
+  .agg-auth .aa.official .aa-n{color:#0ca678}
+  .agg-auth .aa.inst .aa-n{color:#3b5bdb}
+  .agg-auth .aa.ai .aa-n{color:#e8590c}
+  .agg-note{margin-top:12px;font-size:12.5px;color:#b54708;background:#fff4e6;border:1px solid #ffe8cc;border-radius:10px;padding:10px 12px;line-height:1.7}
+  .agg-note b{color:#d9480f}
   .bank-item .bi-prac{margin-left:auto;font-size:12px;padding:4px 12px;border-radius:8px;border:1px solid var(--brand);background:transparent;color:var(--brand);cursor:pointer;font-weight:700}
   .bank-item .bi-prac:hover{background:var(--brand);color:#fff}
   .bank-pager{display:flex;align-items:center;justify-content:space-between;margin-top:14px;font-size:13px;color:var(--ink-3)}
@@ -697,6 +716,12 @@
   </div>
 </header>
 
+<!-- 全局免责声明横幅 -->
+<div class="disclaimer-bar">
+  <span class="d-ico">⚠️</span>
+  <span>免责声明：当前题库中 <b>AI 生成的模拟练习题占绝大多数</b>，仅供练习参考，<b>非官方真题</b>，答案不保证 100% 正确；标注「官方真题 / 权威机构」的题来源可溯。正式备考请以官方发布真题与权威教材为准。</span>
+</div>
+
 <!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
 
@@ -713,7 +738,7 @@
   <section class="hero">
     <div class="container hero-grid">
       <div>
-        <span class="badge"><span class="dot"></span> 多源题库聚合 · 智能备考</span>
+        <span class="badge"><span class="dot"></span> 题库权威标注 · 智能备考</span>
         <h1 class="hero-title">一站式打通<br><span class="grad">考研 · 考公 · 大厂</span> 全部题库</h1>
         <p class="hero-sub">告别多平台反复切换与数据割裂。聚合分散题库，统一管理错题与刷题进度，用个性化学习路径把碎片化刷题变成系统化备考。</p>
         <div class="btn-row">
@@ -1207,7 +1232,7 @@
           <div class="ki" style="background:var(--brand-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#3b5bdb" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></div>
           <div class="kn" id="kpiTotal">0</div>
           <div class="kl">累计刷题</div>
-          <div class="kd up">▲ 多源聚合</div>
+          <div class="kd up">▲ 题库聚合</div>
         </div>
         <div class="kpi">
           <div class="ki" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#0ca678" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg></div>
@@ -1333,10 +1358,10 @@
       </div>
 
       <div class="rec-card">
-        <h4><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></span> 多源题库聚合状态</h4>
+        <h4><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></span> 题库权威性分布</h4>
         <div class="desc" id="aggHead">题库聚合状态加载中…</div>
         <div class="agg-strip" id="aggStrip"></div>
-        <div class="desc" style="margin-top:12px;font-size:12px;color:var(--ink-3)">数据来自 <code>/api/questions/meta</code>，随题库更新实时刷新（含本轮 AI 规模化生成的题目）。</div>
+        <div class="desc" style="margin-top:12px;font-size:12px;color:var(--ink-3)">数据来自 <code>/api/questions/meta</code>，按权威性实时统计：AI 模拟题占绝大多数，官方 / 权威题已单独标注。</div>
       </div>
     </div>
   </section>
@@ -1461,7 +1486,7 @@
         <div class="highlight-grid">
           <div class="hl-card">
             <div class="hl-icon" style="background:linear-gradient(135deg,var(--brand),var(--brand-2))"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></div>
-            <h3>多源聚合引擎</h3>
+            <h3>题库聚合引擎</h3>
             <p>打通考研帮、粉笔行测、LeetCode、牛客网、中公题库等主流平台，统一入口刷题，消灭数据孤岛。</p>
           </div>
           <div class="hl-card">
@@ -1682,6 +1707,13 @@ function parseQuestion(q) {
     answer: typeof q.answer === 'string' ? JSON.parse(q.answer) : q.answer,
     _idx: q.id
   };
+}
+
+// 权威性角标：official=官方真题 / institution=权威机构 / ai_sim=AI模拟·非官方
+function authBadge(st) {
+  if (st === 'official') return '<span class="auth-badge auth-official">✓ 官方真题</span>';
+  if (st === 'institution') return '<span class="auth-badge auth-inst">★ 权威机构</span>';
+  return '<span class="auth-badge auth-ai">AI模拟·非官方</span>';
 }
 
 async function loadQuestions(cat) {
@@ -2168,7 +2200,7 @@ function renderQ() {
   el('qProg').style.width = ((cur + 1) / filtered.length * 100) + '%';
 
   const diffMap = { easy: '简单', medium: '中等', hard: '困难' };
-  el('qTags').innerHTML = '<span class="q-tag topic">' + q.topic + '</span><span class="q-tag diff-' + q.difficulty + '">' + (diffMap[q.difficulty] || q.difficulty) + '</span>';
+  el('qTags').innerHTML = '<span class="q-tag topic">' + q.topic + '</span><span class="q-tag diff-' + q.difficulty + '">' + (diffMap[q.difficulty] || q.difficulty) + '</span>' + (q.src_type ? authBadge(q.src_type) : '');
 
   el('qStem').innerHTML = q.stem + '<span class="src-tag">来源：' + (q.src || '') + '</span>';
 
@@ -2782,28 +2814,35 @@ function loadBankMeta() {
 }
 
 function loadAggStatus() {
-  // 「多源题库聚合状态」：从 /api/questions/meta 读取真实来源分布与题量，替换旧写死的「已同步 N 题」卡片
+  // 「题库权威性分布」：从 /api/questions/meta 读取 src_types（官方真题/权威机构/AI模拟）与来源明细
   const head = document.getElementById('aggHead');
   const strip = document.getElementById('aggStrip');
   if (!strip) return;
   apiFetch('/api/questions/meta').then(function(meta) {
     const total = meta.total || 0;
+    const st = meta.src_types || {};
+    const ai = st.ai_sim || 0, inst = st.institution || 0, off = st.official || 0;
+    const pct = function(n) { return total ? Math.round(n / total * 100) : 0; };
+    if (head) head.innerHTML = '题库权威性分布 · 共 ' + total + ' 题' + (meta.version != null ? ' · v' + meta.version : '') + (meta.generated_at ? ' · 最近同步 ' + meta.generated_at : '');
+    let html = '<div class="agg-auth">'
+      + '<div class="aa official"><div class="aa-n">' + off + '</div><div class="aa-l">官方真题 · ' + pct(off) + '%</div></div>'
+      + '<div class="aa inst"><div class="aa-n">' + inst + '</div><div class="aa-l">权威机构 · ' + pct(inst) + '%</div></div>'
+      + '<div class="aa ai"><div class="aa-n">' + ai + '</div><div class="aa-l">AI模拟·非官方 · ' + pct(ai) + '%</div></div>'
+      + '</div>';
+    html += '<div class="agg-note">⚠️ 当前 <b>' + pct(ai) + '%</b> 的题目由 AI 大模型生成，为<b>模拟练习题，非官方真题</b>，答案仅供参考。标注「官方真题 / 权威机构」的题来源可溯；正式备考请以官方真题与权威教材为准。</div>';
     const srcs = meta.sources || {};
     const entries = Object.entries(srcs).sort(function(a, b) { return b[1] - a[1]; });
-    const ver = meta.version != null ? ('v' + meta.version) : '';
-    const ts = meta.generated_at ? (' · 最近同步 ' + meta.generated_at) : '';
-    if (head) head.innerHTML = '已接入 ' + entries.length + ' 个来源 · 共 ' + total + ' 题' + (ver ? ' · ' + ver : '') + ts;
-    if (!entries.length) {
-      strip.innerHTML = '<div class="agg"><div class="ai" style="background:#3b5bdb">题</div><div class="an">总题库</div><div class="as"><span class="stat-dot"></span>已同步 ' + total + ' 题</div></div>';
-      return;
+    if (entries.length) {
+      const palette = ['#3b5bdb', '#0ca678', '#7048e8', '#f08c00', '#e8590c', '#1098ad', '#d6336c', '#5f3dc4', '#2b8a3e', '#1864ab', '#0c8599'];
+      html += '<div style="margin-top:12px;font-size:12px;color:var(--ink-3);font-weight:700">来源明细（' + entries.length + ' 个，其中「AI生成」为模拟源）</div>';
+      html += '<div class="agg-strip" style="margin-top:8px">'
+        + entries.map(function(e, i) {
+            const name = e[0] || '题', cnt = e[1], color = palette[i % palette.length];
+            return '<div class="agg" title="' + name + '"><div class="ai" style="background:' + color + '">' + (name.slice(0, 1)) + '</div><div class="an">' + name + '</div><div class="as"><span class="stat-dot"></span>' + cnt + ' 题</div></div>';
+          }).join('')
+        + '</div>';
     }
-    const palette = ['#3b5bdb', '#0ca678', '#7048e8', '#f08c00', '#e8590c', '#1098ad', '#d6336c', '#5f3dc4', '#2b8a3e', '#1864ab', '#0c8599'];
-    strip.innerHTML = entries.map(function(e, i) {
-      const name = e[0] || '题', cnt = e[1];
-      const ch = name.slice(0, 1);
-      const color = palette[i % palette.length];
-      return '<div class="agg" title="' + name + '"><div class="ai" style="background:' + color + '">' + ch + '</div><div class="an">' + name + '</div><div class="as"><span class="stat-dot"></span>已同步 ' + cnt + ' 题</div></div>';
-    }).join('');
+    strip.innerHTML = html;
   }).catch(function() {
     if (head) head.textContent = '题库状态加载失败';
     strip.innerHTML = '<div class="agg"><div class="ai" style="background:#495057">!</div><div class="an">题库状态</div><div class="as">加载失败</div></div>';
@@ -3241,6 +3280,7 @@ async function loadBankList(page) {
           '<span class="badge-pill">' + escHtml(it.topic || '') + '</span>' +
           '<span class="badge-pill ' + diffCls + '">' + escHtml(it.difficulty || '') + '</span>' +
           '<span class="badge-pill" style="background:var(--teal-soft,#e3fafc);color:var(--teal)">' + escHtml(it.src || '') + '</span>' +
+          (it.src_type ? authBadge(it.src_type) : '') +
           '<button class="bi-prac" data-id="' + it.id + '">练</button>' +
         '</div>' +
       '</div>';

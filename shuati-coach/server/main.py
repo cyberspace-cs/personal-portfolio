@@ -583,7 +583,7 @@ def page_questions(
         args.append("%" + q + "%")
     total = conn.execute("SELECT COUNT(*) FROM questions WHERE 1=1" + where, args).fetchone()[0]
     rows = conn.execute(
-        "SELECT id, cat, src, type, topic, difficulty, stem FROM questions WHERE 1=1"
+        "SELECT id, cat, src, type, topic, difficulty, stem, src_type, year FROM questions WHERE 1=1"
         + where
         + " ORDER BY id LIMIT ? OFFSET ?",
         args + [limit, offset],
