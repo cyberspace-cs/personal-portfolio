@@ -1,0 +1,288 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================================
+   蓝白酷炫 HUD 设计系统
+   - 深蓝黑底 + 蓝/冰蓝/青色霓虹强调
+   - 网格背景、扫描线、科技线、终端 kicker、英雄辉光
+   ========================================================================= */
+:root {
+  --bg: #eaf2ff;
+  --surface: #ffffff;
+  --surface-2: #e3edfd;
+  --border: #c9dcfb;
+  --muted: #4b6491;
+  --fg: #081633;
+  --fg-rgb: 8 22 51;
+  --accent: #2563eb;
+  --accent-rgb: 37 99 235;
+  --accent-2: #0891b2;
+  --accent-2-rgb: 8 145 178;
+  --grid: rgba(37, 99, 235, 0.06);
+  --glow: rgba(37, 99, 235, 0.35);
+}
+
+.dark {
+  --bg: #050b18;
+  --surface: #0a1526;
+  --surface-2: #0f2138;
+  --border: rgba(96, 165, 250, 0.18);
+  --muted: #8aa6cf;
+  --fg: #e9f2ff;
+  --fg-rgb: 233 242 255;
+  --accent: #3b82f6;
+  --accent-rgb: 59 130 246;
+  --accent-2: #22d3ee;
+  --accent-2-rgb: 34 211 238;
+  --grid: rgba(59, 130, 246, 0.09);
+  --glow: rgba(59, 130, 246, 0.45);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* 科技感网格背景 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
+  z-index: 0;
+  mask-image: radial-gradient(circle at 50% 0%, black, transparent 78%);
+}
+
+/* 扫描线（酷炫质感，极弱） */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to bottom, rgba(120, 170, 255, 0.035) 0, rgba(120, 170, 255, 0.035) 1px, transparent 1px, transparent 3px
+  );
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+}
+
+#app {
+  position: relative;
+  z-index: 1;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+@layer components {
+  .card {
+    @apply rounded-2xl border bg-surface p-4 transition-all duration-200;
+    box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px -22px var(--glow);
+  }
+  .card-hover:hover {
+    @apply -translate-y-1 border-accent/50;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
+      0 18px 50px -18px var(--glow);
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-150 disabled:opacity-50;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    @apply text-white;
+    box-shadow: 0 8px 26px -10px var(--glow), 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent) inset;
+  }
+  .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 10px 34px -8px var(--glow); }
+  .btn-ghost {
+    @apply border bg-surface-2 text-fg;
+  }
+  .btn-ghost:hover {
+    @apply border-accent/50 text-accent;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+  .input {
+    @apply w-full rounded-xl border bg-surface-2 px-3 py-2 text-sm text-fg outline-none transition-colors;
+  }
+  .input:focus {
+    @apply border-accent;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border bg-surface px-3 py-1.5 text-sm font-medium transition-all duration-150;
+  }
+  .chip-active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    @apply border-transparent text-white;
+    box-shadow: 0 6px 20px -10px var(--glow);
+  }
+  .neon {
+    background: linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .glass {
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
+    backdrop-filter: blur(10px);
+    border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  }
+}
+
+/* ===== 酷炫装饰元素 ===== */
+/* 终端 kicker 标签 */
+.kicker {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 11px;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.kicker::before {
+  content: '//';
+  opacity: 0.6;
+}
+
+/* 英雄区辉光 */
+.hero-glow {
+  position: relative;
+}
+.hero-glow::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -10%;
+  width: min(760px, 90%);
+  height: 360px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--accent) 28%, transparent), transparent 70%);
+  filter: blur(20px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* 大标题渐变（白→冰蓝→天蓝） */
+.gradient-text {
+  background: linear-gradient(120deg, #ffffff 0%, #bae6fd 45%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+:root .gradient-text {
+  background: linear-gradient(120deg, #0b1f44 0%, #2563eb 55%, #0891b2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 科技分割线 */
+.tech-line {
+  height: 1px;
+  background:
+    linear-gradient(90deg, transparent, var(--accent) 50%, transparent);
+  opacity: 0.5;
+  position: relative;
+}
+.tech-line::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--glow);
+}
+
+.fade-in { animation: fadeIn 0.35s ease both; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Markdown 渲染 */
+.prose-cs h2 { @apply mt-6 mb-2 text-lg font-bold text-fg; }
+.prose-cs h3 { @apply mt-4 mb-2 text-base font-bold text-fg; }
+.prose-cs p { @apply my-2 leading-relaxed text-fg/90; }
+.prose-cs ul { @apply my-2 list-disc space-y-1 pl-5 text-fg/90; }
+.prose-cs ol { @apply my-2 list-decimal space-y-1 pl-5 text-fg/90; }
+.prose-cs a { @apply text-accent underline-offset-2 hover:underline; }
+.prose-cs code { @apply rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[0.85em]; }
+.prose-cs pre { @apply my-3 overflow-x-auto rounded-xl border bg-surface-2 p-3; }
+.prose-cs pre code { @apply bg-transparent p-0; }
+.prose-cs strong { @apply font-semibold text-fg; }
+
+/* 动态技术架构图 */
+.arch-flow {
+  stroke-dasharray: 6 10;
+  animation: dash 1.4s linear infinite;
+}
+@keyframes dash {
+  to { stroke-dashoffset: -32; }
+}
+.arch-pulse {
+  animation: archPulse 2.6s ease-in-out infinite;
+}
+@keyframes archPulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+.float-y { animation: floatY 5s ease-in-out infinite; }
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* ===== 来源筛选图标动效 ===== */
+.src-chip { position: relative; overflow: hidden; }
+.src-icon {
+  transition: transform 0.22s ease, filter 0.22s ease;
+  transform-origin: center;
+}
+/* 悬停：图标轻微放大上浮 */
+.src-chip:hover .src-icon,
+.src-icon-hover {
+  transform: scale(1.18) translateY(-1px);
+}
+/* 选中态：图标脉冲 + 霓虹辉光 */
+.src-icon-on {
+  animation: srcPulse 1.7s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px var(--glow));
+}
+@keyframes srcPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.26); }
+}
