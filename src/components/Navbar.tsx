@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Sun, Moon, Palette } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import { personalInfo } from '../data/portfolio';
 
 export default function Navbar() {
@@ -8,6 +9,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('about');
   const { language, toggleLanguage, t } = useLanguage();
+  const { mode, palette, setMode, setPalette } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,12 +18,6 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const initials = personalInfo.name.en
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase();
 
   const navLinks: { href: string; label: string; external?: boolean }[] = [
     { href: '#about', label: t.navAbout },
@@ -36,7 +32,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const sections = navLinks.map((link) => link.href.substring(1));
-    
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -56,11 +52,43 @@ export default function Navbar() {
     return () => observer.disconnect();
   }, []);
 
+  const ThemeControls = ({ mobile = false }: { mobile?: boolean }) => (
+    <div className={`flex items-center gap-2 ${mobile ? '' : 'ml-2'}`}>
+      {/* 深浅切换：auto / light / dark 循环 */}
+      <button
+        onClick={() =>
+          setMode(mode === 'auto' ? 'light' : mode === 'light' ? 'dark' : 'auto')
+        }
+        className="p-2 rounded-lg border border-line text-muted hover:border-accent hover:text-accent transition-all duration-200"
+        title={
+          mode === 'auto'
+            ? '跟随系统（点击切换浅色）'
+            : mode === 'light'
+              ? '浅色（点击切换深色）'
+              : '深色（点击跟随系统）'
+        }
+        aria-label="切换深浅模式"
+      >
+        {mode === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+      </button>
+
+      {/* 风格切换：科技蓝 / 暖色 */}
+      <button
+        onClick={() => setPalette(palette === 'tech' ? 'warm' : 'tech')}
+        className="p-2 rounded-lg border border-line text-muted hover:border-accent hover:text-accent transition-all duration-200"
+        title={palette === 'tech' ? '科技蓝（点击切换暖色）' : '暖色（点击切换科技蓝）'}
+        aria-label="切换配色风格"
+      >
+        <Palette size={16} />
+      </button>
+    </div>
+  );
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-slate-900/80 backdrop-blur-lg border-b border-slate-800'
+          ? 'bg-bg/80 backdrop-blur-lg border-b border-line'
           : 'bg-transparent'
       }`}
     >
@@ -68,10 +96,10 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <a href="#" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-400 flex items-center justify-center">
-              <span className="text-sm font-bold text-white">{initials[0]}</span>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-accent-2 flex items-center justify-center">
+              <span className="text-sm font-bold text-on-accent">T</span>
             </div>
-            <span className="text-lg font-bold text-slate-100">{initials}.</span>
+            <span className="text-lg font-bold text-fg">Tao Xie</span>
           </a>
 
           {/* Desktop Navigation */}
@@ -87,34 +115,37 @@ export default function Navbar() {
                     : {})}
                   className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${
                     isActive
-                      ? 'bg-sky-500/15 text-sky-400'
-                      : 'text-slate-400 hover:text-sky-400 hover:bg-slate-800/50'
-                  } ${link.external ? 'border border-sky-500/30 hover:border-sky-400' : ''}`}
+                      ? 'bg-accent/15 text-accent'
+                      : 'text-muted hover:text-accent hover:bg-surface-2/50'
+                  } ${link.external ? 'border border-accent/30 hover:border-accent' : ''}`}
                 >
                   {link.label}
                 </a>
               );
             })}
-            
+
             {/* Language Toggle */}
             <button
               onClick={toggleLanguage}
-              className="ml-4 px-3 py-1.5 rounded-lg border border-slate-600 text-sm text-slate-300 hover:border-sky-400 hover:text-sky-400 transition-all duration-200"
+              className="ml-2 px-3 py-1.5 rounded-lg border border-line text-sm text-muted hover:border-accent hover:text-accent transition-all duration-200"
             >
               {language === 'en' ? '中文' : 'EN'}
             </button>
+
+            <ThemeControls />
           </div>
 
           {/* Mobile Menu Button */}
           <div className="flex items-center gap-2 md:hidden">
             <button
               onClick={toggleLanguage}
-              className="p-2 rounded-lg border border-slate-600 text-slate-300 hover:border-sky-400 hover:text-sky-400 transition-all duration-200"
+              className="p-2 rounded-lg border border-line text-muted hover:border-accent hover:text-accent transition-all duration-200"
             >
               {language === 'en' ? '中' : 'EN'}
             </button>
+            <ThemeControls mobile />
             <button
-              className="p-2 text-slate-400 hover:text-slate-100 transition-colors"
+              className="p-2 text-muted hover:text-fg transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label="Toggle menu"
             >
@@ -130,7 +161,7 @@ export default function Navbar() {
           isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 px-4 py-4">
+        <div className="bg-bg/95 backdrop-blur-lg border-t border-line px-4 py-4">
           <div className="flex flex-col gap-4">
             {navLinks.map((link) => {
               const isActive = activeSection === link.href.substring(1);
@@ -143,9 +174,9 @@ export default function Navbar() {
                     : {})}
                   className={`px-3 py-2 rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-sky-500/15 text-sky-400'
-                      : 'text-slate-400 hover:text-sky-400'
-                  } ${link.external ? 'border border-sky-500/30' : ''}`}
+                      ? 'bg-accent/15 text-accent'
+                      : 'text-muted hover:text-accent'
+                  } ${link.external ? 'border border-accent/30' : ''}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.label}

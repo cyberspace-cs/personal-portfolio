@@ -19,15 +19,15 @@ export default function Footer() {
     .join('');
 
   return (
-    <footer className="py-8 border-t border-slate-800">
+    <footer className="py-8 border-t border-line">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Logo & Copyright */}
           <div className="flex items-center gap-4">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-400 flex items-center justify-center">
-              <span className="text-xs font-bold text-white">{initials}</span>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-accent-2 flex items-center justify-center">
+              <span className="text-xs font-bold text-on-accent">{initials}</span>
             </div>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-faint">
               © {currentYear} {personalInfo.name[language]}. {t.footerAllRights}
             </p>
           </div>
@@ -42,7 +42,7 @@ export default function Footer() {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 hover:text-sky-400 hover:bg-slate-700 transition-all duration-300"
+                  className="w-9 h-9 rounded-lg bg-surface flex items-center justify-center text-faint hover:text-accent hover:bg-surface-2 transition-all duration-300"
                   aria-label={link.name}
                 >
                   <Icon size={16} />
@@ -52,7 +52,7 @@ export default function Footer() {
           </div>
 
           {/* Built with */}
-          <p className="text-sm text-slate-500 flex items-center gap-1">
+          <p className="text-sm text-faint flex items-center gap-1">
             {t.footerBuiltWith} <Heart size={14} className="text-red-500" /> using React & Tailwind
           </p>
         </div>
