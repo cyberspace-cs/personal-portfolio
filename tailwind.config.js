@@ -1,24 +1,21 @@
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  darkMode: 'class',
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        'slate': {
-          900: '#0f172a',
-          800: '#1e293b',
-          700: '#334155',
-          400: '#94a3b8',
-          100: '#f1f5f9',
-        },
-        'sky': {
-          400: '#38bdf8',
-        },
-        'indigo': {
-          400: '#818cf8',
-        },
+        // 语义化色板：映射到 index.css 中的 CSS 变量
+        // 深浅由 .dark 切换，风格由 [data-palette] 切换
+        bg: 'rgb(var(--c-bg) / <alpha-value>)',
+        surface: 'rgb(var(--c-surface) / <alpha-value>)',
+        'surface-2': 'rgb(var(--c-surface-2) / <alpha-value>)',
+        fg: 'rgb(var(--c-fg) / <alpha-value>)',
+        muted: 'rgb(var(--c-muted) / <alpha-value>)',
+        faint: 'rgb(var(--c-faint) / <alpha-value>)',
+        line: 'rgb(var(--c-line) / <alpha-value>)',
+        accent: 'rgb(var(--c-accent) / <alpha-value>)',
+        'accent-2': 'rgb(var(--c-accent-2) / <alpha-value>)',
+        'on-accent': 'rgb(var(--c-on-accent) / <alpha-value>)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -27,4 +24,4 @@ export default {
     },
   },
   plugins: [],
-}
+};
