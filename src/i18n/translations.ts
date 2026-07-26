@@ -10,6 +10,17 @@ export interface Translations {
   navContact: string;
   navLearning: string;
   navBriefing: string;
+  navBlog: string;
+
+  // Blog
+  blogTitle: string;
+  blogSubtitle: string;
+  blogBack: string;
+  blogPublished: string;
+  blogReading: string;
+  blogTags: string;
+  blogEmpty: string;
+  blogMinRead: string;
 
   // Hero
   heroGreeting: string;
@@ -68,6 +79,7 @@ export const translations: Record<Language, Translations> = {
     navContact: 'Contact',
     navLearning: 'Learning',
     navBriefing: 'AI Briefing',
+    navBlog: 'Blog',
 
     // Hero
     heroGreeting: "Hello, I'm",
@@ -117,6 +129,16 @@ export const translations: Record<Language, Translations> = {
     // Footer
     footerBuiltWith: 'Built with',
     footerAllRights: 'All rights reserved.',
+
+    // Blog
+    blogTitle: 'Blog',
+    blogSubtitle: 'Notes on LLM, Agents, and the road to embodied intelligence.',
+    blogBack: 'Back to Blog',
+    blogPublished: 'Published',
+    blogReading: 'Reading',
+    blogTags: 'Tags',
+    blogEmpty: 'No posts yet.',
+    blogMinRead: 'min read',
   },
 
   zh: {
@@ -129,6 +151,7 @@ export const translations: Record<Language, Translations> = {
     navContact: '联系',
     navLearning: '学习资料',
     navBriefing: 'AI 简报',
+    navBlog: '博客',
 
     // Hero
     heroGreeting: '你好，我是',
@@ -178,5 +201,15 @@ export const translations: Record<Language, Translations> = {
     // Footer
     footerBuiltWith: '使用',
     footerAllRights: '版权所有。',
+
+    // Blog
+    blogTitle: '博客',
+    blogSubtitle: '关于大模型、智能体，以及通往具身智能之路的思考与笔记。',
+    blogBack: '返回博客',
+    blogPublished: '发布于',
+    blogReading: '阅读',
+    blogTags: '标签',
+    blogEmpty: '暂无文章。',
+    blogMinRead: '分钟阅读',
   },
 };

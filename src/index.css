@@ -140,3 +140,137 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background-color: rgb(var(--c-faint));
 }
+
+/* =========================================================
+   博客正文排版 .blog-prose
+   直接复用站点语义色板（--c-fg / --c-muted / --c-accent / --c-line / --c-surface），
+   深浅 + 科技蓝/暖色 全部自动联动。代码块配色交给 highlight.js 主题。
+   ========================================================= */
+.blog-prose {
+  color: rgb(var(--c-fg));
+  font-size: 1.0625rem;
+  line-height: 1.85;
+}
+.blog-prose > * + * {
+  margin-top: 1.25em;
+}
+.blog-prose h1,
+.blog-prose h2,
+.blog-prose h3,
+.blog-prose h4 {
+  color: rgb(var(--c-fg));
+  font-weight: 700;
+  line-height: 1.35;
+  scroll-margin-top: 6rem;
+}
+.blog-prose h1 {
+  font-size: 1.9rem;
+  margin-top: 2em;
+}
+.blog-prose h2 {
+  font-size: 1.5rem;
+  margin-top: 2em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid rgb(var(--c-line));
+}
+.blog-prose h3 {
+  font-size: 1.25rem;
+  margin-top: 1.6em;
+}
+.blog-prose h4 {
+  font-size: 1.1rem;
+  margin-top: 1.4em;
+}
+.blog-prose p {
+  color: rgb(var(--c-fg));
+}
+.blog-prose a {
+  color: rgb(var(--c-accent));
+  text-decoration: none;
+  border-bottom: 1px solid rgb(var(--c-accent) / 0.4);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.blog-prose a:hover {
+  color: rgb(var(--c-accent-2));
+  border-bottom-color: rgb(var(--c-accent-2));
+}
+.blog-prose strong {
+  color: rgb(var(--c-fg));
+  font-weight: 700;
+}
+.blog-prose ul,
+.blog-prose ol {
+  padding-left: 1.5em;
+  color: rgb(var(--c-fg));
+}
+.blog-prose ul {
+  list-style: disc;
+}
+.blog-prose ol {
+  list-style: decimal;
+}
+.blog-prose li {
+  margin-top: 0.5em;
+}
+.blog-prose li::marker {
+  color: rgb(var(--c-accent));
+}
+.blog-prose blockquote {
+  border-left: 3px solid rgb(var(--c-accent));
+  padding: 0.2em 1em;
+  color: rgb(var(--c-muted));
+  background: rgb(var(--c-surface) / 0.5);
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+.blog-prose code {
+  font-family: 'JetBrains Mono', Menlo, monospace;
+  font-size: 0.9em;
+  background: rgb(var(--c-surface-2));
+  color: rgb(var(--c-accent));
+  padding: 0.15em 0.4em;
+  border-radius: 0.35rem;
+}
+.blog-prose pre {
+  margin-top: 1.5em;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(var(--c-line));
+  overflow-x: auto;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.blog-prose pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+  border-radius: 0;
+}
+.blog-prose img {
+  border-radius: 0.75rem;
+  border: 1px solid rgb(var(--c-line));
+  max-width: 100%;
+}
+.blog-prose hr {
+  border: none;
+  border-top: 1px solid rgb(var(--c-line));
+  margin: 2.5em 0;
+}
+.blog-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+.blog-prose th,
+.blog-prose td {
+  border: 1px solid rgb(var(--c-line));
+  padding: 0.6em 0.8em;
+  text-align: left;
+}
+.blog-prose th {
+  background: rgb(var(--c-surface));
+  color: rgb(var(--c-fg));
+  font-weight: 600;
+}
+.blog-prose ul li a {
+  border-bottom: none;
+}
