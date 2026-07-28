@@ -39,6 +39,8 @@ export default function BlogPost() {
         ← {t.blogBack}
       </Link>
 
+      {/* cozy 卡片容器（仅博客页） */}
+      <div className="blog-shell">
       {/* 标题区 */}
       <header className="mt-6 mb-8 border-b border-line pb-8">
         <div className="flex flex-wrap items-center gap-2 text-xs text-faint mb-4">
@@ -84,6 +86,7 @@ export default function BlogPost() {
         >
           ← {t.blogBack}
         </Link>
+      </div>
       </div>
     </article>
   );

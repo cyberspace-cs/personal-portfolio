@@ -274,3 +274,43 @@ body {
 .blog-prose ul li a {
   border-bottom: none;
 }
+
+/* =========================================================
+   博客页 cozy 卡片风（借鉴 lvyovo-wiki：毛玻璃白卡 + 青绿主色 #35bfab）
+   仅作用于博客文章页，不动整站其他页面。
+   ========================================================= */
+.blog-shell {
+  --c-accent: 53 191 171;   /* #35bfab 青绿 */
+  --c-accent-2: 31 201 231; /* #1fc9e7 */
+  margin-top: 1.5rem;
+  background: rgb(var(--c-surface) / 0.55);
+  border: 1px solid rgb(var(--c-line));
+  border-radius: 1.5rem;
+  padding: 2.25rem 1.75rem;
+  box-shadow: 0 18px 50px -28px rgb(0 0 0 / 0.55);
+  backdrop-filter: blur(8px);
+}
+@media (min-width: 640px) {
+  .blog-shell {
+    padding: 3rem 2.75rem;
+  }
+}
+.blog-shell .blog-prose h2 {
+  border-bottom: 2px solid rgb(var(--c-accent) / 0.5);
+  padding-bottom: 0.35em;
+}
+.blog-shell .blog-prose blockquote {
+  background: rgb(var(--c-accent) / 0.08);
+  border-left-color: rgb(var(--c-accent));
+}
+.blog-shell .blog-prose a {
+  color: rgb(var(--c-accent));
+  border-bottom-color: rgb(var(--c-accent) / 0.4);
+}
+.blog-shell .blog-prose a:hover {
+  color: rgb(var(--c-accent-2));
+  border-bottom-color: rgb(var(--c-accent-2));
+}
+.blog-shell .blog-prose code {
+  color: rgb(var(--c-accent));
+}
