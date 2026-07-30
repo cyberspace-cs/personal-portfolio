@@ -1,6 +1,0 @@
-.me { display: flex; align-items: center; gap: 16rpx; }
-.avatar { font-size: 64rpx; }
-.me-name { font-size: 32rpx; font-weight: 700; }
-.rv-head { display: flex; justify-content: space-between; margin-bottom: 8rpx; font-size: 28rpx; }
-.status { font-size: 22rpx; color: #0984E3; }
-.empty { text-align: center; padding: 40rpx; }
