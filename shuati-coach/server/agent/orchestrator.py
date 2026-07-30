@@ -3,7 +3,8 @@
 流程对标 Step3「规划-执行 / 反思」范式与 LangGraph Supervisor：
   意图识别(Supervisor) → 路由子 Agent(diagnose/wrongbook/plan/rag_qa) → 反思 Agent 补建议
 - 编排层用 agent.supervisor.StateGraph 实现，API 与 LangGraph 同构，生产可一键迁移。
-- 上下文预算：五段式（身份/长期画像/诊断摘要/对话历史/当前）由 MemoryStore 统一限额拼接。
+- 上下文预算：六段式（身份/长期画像/诊断摘要/对话历史[含压缩]/近期事件/当前）由 MemoryStore
+  统一限额拼接；对话历史采用上下文感知滚动摘要压缩（近窗原文、远窗 LLM 摘要）。
 - 持久化：短期对话与长期画像存 SQLite，重启不丢（见 agent.memory）。
 """
 import json
@@ -12,7 +13,43 @@ from agent.llm import call_llm, HAS_KEY
 from agent.inference import optimized_call_llm
 from agent.tools import CoachTools
 from agent.memory import MemoryStore
-from agent.supervisor import StateGraph, END
+# 编排层：优先真 LangGraph（L2 持久化 checkpoint），不可用时降级自研同构实现
+try:
+    from langgraph.graph import StateGraph, END  # type: ignore
+    HAS_LANGGRAPH = True
+except Exception:  # 未安装 langgraph → 降级自研 supervisor
+    from agent.supervisor import StateGraph, END
+    HAS_LANGGRAPH = False
+
+
+# L2 持久化 checkpoint（学习计划可回溯重放）；不可用时降级内存 checkpoint(L1)
+# 注意：异步 saver 必须在 running event loop 内创建，故为 async，首次 handle 时惰性调用。
+_SAVER = None
+async def _get_saver():
+    global _SAVER
+    if _SAVER is not None:
+        return _SAVER
+    try:
+        try:
+            from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver  # type: ignore
+        except Exception:
+            from langgraph_checkpoint_sqlite.aio import AsyncSqliteSaver  # type: ignore
+        import aiosqlite, os
+        db_path = os.environ.get(
+            "COACH_CHECKPOINT_DB",
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "coach_checkpoints.db"),
+        )
+        conn = await aiosqlite.connect(db_path)
+        _SAVER = AsyncSqliteSaver(conn)  # L2：持久化 checkpoint（需 aiosqlite）
+    except Exception as e:  # 缺少 aiosqlite / langgraph-checkpoint-sqlite → 降级内存 checkpoint(L1)
+        try:
+            from langgraph.checkpoint.memory import MemorySaver  # type: ignore
+            _SAVER = MemorySaver()
+            print(f"[warn] 使用内存 checkpoint(L1)，持久化不可用: {e}")
+        except Exception:
+            print(f"[warn] LangGraph checkpoint 完全不可用，降级为无 checkpoint: {e}")
+            _SAVER = False
+    return _SAVER or None
 from agent.anomaly import LearningAnomalyDetector
 
 
@@ -20,6 +57,8 @@ class CoachAgent:
     def __init__(self):
         self.tools = CoachTools()
         self._graph = self._build_graph()
+        self._use_lg = HAS_LANGGRAPH
+        self._lg_saver_ready = False  # 首次 handle 时惰性挂载 L2 持久化 checkpoint
 
     def _memory(self, user_id: int, session_id: str) -> MemoryStore:
         return MemoryStore(user_id, session_id)
@@ -51,7 +90,7 @@ class CoachAgent:
         return {"intent": intent}
 
     async def _n_diagnose(self, state):
-        mem = state["mem"]
+        mem = state.get("mem") or self._memory(state["user_id"], state["session_id"])
         diag = self.tools.diagnose(state["user_id"])
         mem.update_long("last_diagnose",
                         json.dumps([w["topic"] for w in diag["weak_topics"]], ensure_ascii=False))
@@ -67,14 +106,14 @@ class CoachAgent:
                           + alert)}
 
     async def _n_wrongbook(self, state):
-        mem = state["mem"]
+        mem = state.get("mem") or self._memory(state["user_id"], state["session_id"])
         wb = self.tools.wrong_book(state["user_id"])
         mem.record_event("wrongbook", f"查看高频错题 {len(wb)} 道")
         return {"cards": {"wrong": wb},
                 "reply": f"你共有 {len(wb)} 道高频错题（按错误次数排序），先把 error_count 最高的几道吃透。"}
 
     async def _n_plan(self, state):
-        mem = state["mem"]
+        mem = state.get("mem") or self._memory(state["user_id"], state["session_id"])
         diag = self.tools.diagnose(state["user_id"])
         plan = await self.tools.plan(state["user_id"], diag["all"])
         mem.update_long("last_plan", json.dumps(plan.get("focus", []), ensure_ascii=False))
@@ -83,7 +122,7 @@ class CoachAgent:
                 "reply": "已基于你的真实掌握度生成冲刺计划👇 我会在后续对话里持续跟进你的进度。"}
 
     async def _n_rag_qa(self, state):
-        mem = state["mem"]
+        mem = state.get("mem") or self._memory(state["user_id"], state["session_id"])
         last_diagnose = mem.get_long("last_diagnose") or ""
         context = mem.build_context(state["message"], last_diagnose)
         rag = await self.tools.rag_qa(state["message"], context, state["user_id"])
@@ -109,7 +148,47 @@ class CoachAgent:
         return {"reply": reply + extra, "reflect": extra}
 
     # ---------- 图构建（与 LangGraph StateGraph 同构） ----------
+    def _assemble_graph(self):
+        """组装真 LangGraph（不含 saver），供同步/异步编译复用。"""
+        from typing import TypedDict
+        from langgraph.graph import StateGraph as LGStateGraph
+
+        class CoachState(TypedDict, total=False):
+            user_id: int
+            message: str
+            session_id: str
+            ctx_summary: str
+            intent: str
+            cards: dict
+            reply: str
+            rag: dict
+            reflect: str
+            source_detail: str
+            anomaly_alert: str
+
+        g = LGStateGraph(CoachState)
+        g.add_node("classify", self._n_classify)
+        g.add_node("diagnose", self._n_diagnose)
+        g.add_node("wrongbook", self._n_wrongbook)
+        g.add_node("plan", self._n_plan)
+        g.add_node("rag_qa", self._n_rag_qa)
+        g.add_node("reflect", self._n_reflect)
+        g.set_entry_point("classify")
+        g.add_conditional_edges("classify", lambda s: s["intent"], {
+            "diagnose": "diagnose", "wrongbook": "wrongbook",
+            "plan": "plan", "chat": "rag_qa",
+        })
+        g.add_edge("diagnose", "reflect")
+        g.add_edge("wrongbook", "reflect")
+        g.add_edge("plan", "reflect")
+        g.add_edge("rag_qa", "reflect")
+        g.set_finish_point("reflect")
+        return g
+
     def _build_graph(self):
+        """编排层：优先真 LangGraph（先 L1 编译，首次 handle 惰性升级 L2 持久化），否则降级自研同构。"""
+        if HAS_LANGGRAPH:
+            return self._assemble_graph().compile()  # 无 saver（L1），运行时升级
         g = StateGraph()
         g.add_node("classify", self._n_classify)
         g.add_node("diagnose", self._n_diagnose)
@@ -129,6 +208,14 @@ class CoachAgent:
         g.set_finish_point("reflect")
         return g.compile()
 
+    async def _build_langgraph_async(self):
+        """首次 handle 时调用：组装图并挂载 L2 异步持久化 checkpoint。"""
+        g = self._assemble_graph()
+        saver = await _get_saver()
+        if saver is not None:
+            return g.compile(checkpointer=saver)
+        return g.compile()
+
     # ---------- 统一入口 ----------
     async def handle(self, user_id: int, message: str, session_id: str = "default",
                      history=None) -> dict:
@@ -136,11 +223,19 @@ class CoachAgent:
         last_diagnose = mem.get_long("last_diagnose") or "暂无诊断记录"
         state = {
             "user_id": user_id, "message": message, "session_id": session_id,
-            "mem": mem, "ctx_summary": last_diagnose,
+            "ctx_summary": last_diagnose,
             "intent": None, "cards": {}, "reply": "", "rag": {}, "reflect": "",
             "source_detail": "agent",
         }
-        final = await self._graph.invoke(state)
+        if self._use_lg:
+            if not self._lg_saver_ready:
+                # 首次调用：在 running loop 内挂载 L2 异步持久化 checkpoint（学习计划可回溯重放）
+                self._graph = await self._build_langgraph_async()
+                self._lg_saver_ready = True
+            final = await self._graph.ainvoke(state, {"configurable": {"thread_id": session_id}})
+        else:
+            state["mem"] = mem
+            final = await self._graph.invoke(state)
         result = {
             "intent": final["intent"],
             "session_id": session_id,
@@ -153,7 +248,7 @@ class CoachAgent:
             result["rag"] = final["rag"]
         if final.get("anomaly_alert"):
             result["anomaly_alert"] = final["anomaly_alert"]
-        # 记忆落盘（短期多轮上下文，持久化）
-        mem.add_turn("user", message)
-        mem.add_turn("assistant", final.get("reply", ""))
+        # 记忆落盘（短期多轮上下文，持久化 + 上下文感知压缩）
+        await mem.add_turn("user", message)
+        await mem.add_turn("assistant", final.get("reply", ""))
         return result

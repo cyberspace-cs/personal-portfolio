@@ -52,8 +52,8 @@ async def agent_rag(data: AgentChatIn):
     last_diagnose = mem.get_long("last_diagnose") or ""
     context = mem.build_context(data.message, last_diagnose)
     rag = await _agent.tools.rag_qa(data.message, context, data.user_id)
-    mem.add_turn("user", data.message)
-    mem.add_turn("assistant", rag.get("reply", ""))
+    await mem.add_turn("user", data.message)
+    await mem.add_turn("assistant", rag.get("reply", ""))
     return {
         "intent": "rag",
         "reply": rag.get("reply", ""),
