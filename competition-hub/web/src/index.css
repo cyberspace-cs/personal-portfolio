@@ -1,0 +1,177 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #0a1024;
+  color: #e8eefb;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+    'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background-image:
+    radial-gradient(1000px 620px at 8% -12%, rgba(59, 130, 246, 0.20), transparent 55%),
+    radial-gradient(900px 600px at 100% -6%, rgba(96, 165, 250, 0.18), transparent 52%),
+    radial-gradient(820px 520px at 50% 118%, rgba(224, 242, 254, 0.10), transparent 55%),
+    linear-gradient(180deg, #0a1024 0%, #0c1530 100%);
+  background-attachment: fixed;
+}
+
+/* 赛博网格背景 */
+.cyber-grid {
+  background-image:
+    linear-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.08) 1px, transparent 1px);
+  background-size: 38px 38px;
+}
+
+@layer components {
+  .glass {
+    @apply rounded-2xl border border-white/15 bg-white/[0.06] backdrop-blur-md;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .glass-strong {
+    @apply rounded-2xl border border-white/15 bg-ink-850/80 backdrop-blur-xl;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .neon-text {
+    text-shadow: 0 0 18px rgba(34, 211, 238, 0.55);
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium
+      transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-neon-cyan/90 to-neon-blue/90 text-ink-950 font-semibold
+      hover:shadow-glow hover:brightness-110;
+  }
+  .btn-ghost {
+    @apply btn border border-white/15 bg-white/5 text-slate-200 hover:bg-white/10;
+  }
+  .input {
+    @apply w-full rounded-xl border border-white/10 bg-ink-900/70 px-3 py-2 text-sm text-slate-100
+      outline-none transition focus:border-neon-cyan/60 focus:ring-2 focus:ring-neon-cyan/20
+      placeholder:text-slate-500;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5
+      text-xs font-medium text-slate-300 transition hover:border-neon-cyan/40 hover:text-white;
+  }
+  .chip-active {
+    @apply border-neon-cyan/60 bg-neon-cyan/15 text-neon-cyan shadow-glow;
+  }
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.25);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 卡片入场动画（按 --i 错峰） */
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(16px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+.card-enter {
+  animation: cardEnter 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+@keyframes floatGlow {
+  0%, 100% { opacity: 0.45; transform: translateY(0); }
+  50% { opacity: 0.85; transform: translateY(-6px); }
+}
+.hero-glow { animation: floatGlow 6s ease-in-out infinite; }
+
+/* 骨架屏微光 */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.09), transparent);
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* 标签徽标（聚合来源 / 标签） */
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #cbd5e1;
+}
+
+/* ===== 蓝白酷炫科技未来风工具类 ===== */
+/* 渐变文字（品牌 / 标题强调）白 → 冰蓝 → 蔚蓝 */
+.gradient-text {
+  background: linear-gradient(100deg, #ffffff 0%, #bae6fd 32%, #60a5fa 68%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* 等宽 kicker（黑客松 / 终端风标签） */
+.kicker {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 11px;
+  color: #7dd3fc;
+}
+/* 扫描线叠层（极轻，营造 CRT / 指挥中心质感） */
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.03) 0 1px,
+    transparent 1px 3px
+  );
+  opacity: 0.6;
+}
+/* 卡片顶部科技光带（蓝白） */
+.tech-line {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(59, 130, 246, 0.75),
+    rgba(186, 230, 253, 0.75),
+    transparent
+  );
+}
+
+/* 滚动条调亮（配合更亮的暗色阶） */
+::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.35);
+  border-radius: 999px;
+}

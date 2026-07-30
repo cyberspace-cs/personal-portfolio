@@ -1,0 +1,1246 @@
+[
+  {
+    "title": "ARC Prize 2026 - ARC-AGI-3",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "ARC Prize Foundation",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$850,000",
+    "prize_amount": 5950000,
+    "status": "ongoing",
+    "summary": "构建具备流体智能（fluid intelligence）的 AI 系统。",
+    "description": "构建具备流体智能（fluid intelligence）的 AI 系统。",
+    "tags": [
+      "AGI",
+      "推理",
+      "LLM"
+    ],
+    "featured": true
+  },
+  {
+    "title": "ARC Prize 2026 - ARC-AGI-2",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-2",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "ARC Prize Foundation",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$700,000",
+    "prize_amount": 4900000,
+    "status": "ongoing",
+    "summary": "面向新颖推理能力的 AI 挑战。",
+    "description": "面向新颖推理能力的 AI 挑战。",
+    "tags": [
+      "AGI",
+      "推理"
+    ],
+    "featured": false
+  },
+  {
+    "title": "Pokémon TCG AI Battle Challenge - Strategy",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/pokemon-tcg-ai-battle-challenge-strategy",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "The Pokémon Company",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$240,000",
+    "prize_amount": 1680000,
+    "status": "ongoing",
+    "summary": "分析数据并构建宝可梦卡牌对战策略智能体。",
+    "description": "分析数据并构建宝可梦卡牌对战策略智能体。",
+    "tags": [
+      "Agent",
+      "游戏AI"
+    ],
+    "featured": false
+  },
+  {
+    "title": "Pokémon TCG AI Battle Challenge - Simulation",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/pokemon-tcg-ai-battle",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "The Pokémon Company",
+    "location": "线上",
+    "mode": "online",
+    "prize": "",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "训练能自动对战的宝可梦卡牌 AI。",
+    "description": "训练能自动对战的宝可梦卡牌 AI。",
+    "tags": [
+      "Agent",
+      "游戏AI"
+    ],
+    "featured": false
+  },
+  {
+    "title": "AI Agent Security - Multi-Step Tool Attacks",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/ai-agent-security-multi-step-tool-attacks",
+    "category_slug": "ctf",
+    "category_name": "网络安全 / CTF",
+    "organizer": "Kaggle",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$50,000",
+    "prize_amount": 350000,
+    "status": "ongoing",
+    "summary": "构建攻击算法，发现工具调用型 AI 智能体的多步失效。",
+    "description": "构建攻击算法，发现工具调用型 AI 智能体的多步失效。",
+    "tags": [
+      "AI安全",
+      "Agent",
+      "红队"
+    ],
+    "featured": false
+  },
+  {
+    "title": "Biohub - Cell Tracking During Development",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/biohub-cell-tracking-during-development",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "Chan Zuckerberg Biohub",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$60,000",
+    "prize_amount": 420000,
+    "status": "ongoing",
+    "summary": "在 3D 时空维度检测并追踪斑马鱼细胞。",
+    "description": "在 3D 时空维度检测并追踪斑马鱼细胞。",
+    "tags": [
+      "CV",
+      "生物医学"
+    ],
+    "featured": false
+  },
+  {
+    "title": "ROGII - Wellbore Geology Prediction",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/rogii-wellbore-geology-prediction",
+    "category_slug": "data",
+    "category_name": "数据竞赛 / Kaggle",
+    "organizer": "ROGII",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$50,000",
+    "prize_amount": 350000,
+    "status": "ongoing",
+    "summary": "用机器学习自动化油气钻井地质预测。",
+    "description": "用机器学习自动化油气钻井地质预测。",
+    "tags": [
+      "地质",
+      "回归"
+    ],
+    "featured": false
+  },
+  {
+    "title": "LLM Classification Finetuning",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/llm-classification-finetuning",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "Kaggle",
+    "location": "线上",
+    "mode": "online",
+    "prize": "",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "基于 Chatbot Arena 对话微调 LLM 预测人类偏好。",
+    "description": "基于 Chatbot Arena 对话微调 LLM 预测人类偏好。",
+    "tags": [
+      "LLM",
+      "微调",
+      "NLP"
+    ],
+    "featured": false
+  },
+  {
+    "title": "Autonomous Agent Prediction (Beta)",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/autonomous-agent-prediction-beta",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "Kaggle",
+    "location": "线上",
+    "mode": "online",
+    "prize": "",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "提交能自主训练模型并参赛的智能体。",
+    "description": "提交能自主训练模型并参赛的智能体。",
+    "tags": [
+      "Agent",
+      "AutoML"
+    ],
+    "featured": false
+  },
+  {
+    "title": "BenchFlow - Agent Skill Lift",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/skill-lift",
+    "category_slug": "hackathon",
+    "category_name": "黑客松",
+    "organizer": "BenchFlow",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$20,000",
+    "prize_amount": 140000,
+    "status": "ongoing",
+    "summary": "用 SkillsBench 评测 AI 智能体的能力与安全。",
+    "description": "用 SkillsBench 评测 AI 智能体的能力与安全。",
+    "tags": [
+      "Agent",
+      "评测"
+    ],
+    "featured": false
+  },
+  {
+    "title": "Solar Filament Segmentation Challenge 2026",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/filament-segmentation-2026",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "NASA GONG",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$3,000",
+    "prize_amount": 21000,
+    "status": "ongoing",
+    "summary": "基于 H-Alpha 观测的太阳暗条自动分割。",
+    "description": "基于 H-Alpha 观测的太阳暗条自动分割。",
+    "tags": [
+      "CV",
+      "天文"
+    ],
+    "featured": false
+  },
+  {
+    "title": "INFORMS RAS 2026 Problem Solving Competition",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/informs-ras-2026-problem-solving-competition",
+    "category_slug": "algorithm",
+    "category_name": "算法竞赛",
+    "organizer": "INFORMS",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$3,750",
+    "prize_amount": 26250,
+    "status": "ongoing",
+    "summary": "北美一级铁路的列车编组优化问题。",
+    "description": "北美一级铁路的列车编组优化问题。",
+    "tags": [
+      "运筹",
+      "优化"
+    ],
+    "featured": false
+  },
+  {
+    "title": "MuseumSCAT Specimen Collection Annotation",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/museumscat-specimen-collection-annotation-task",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "Natural History Museum of Denmark",
+    "location": "线上",
+    "mode": "online",
+    "prize": "",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "帮助博物馆自动化标本标签转录。",
+    "description": "帮助博物馆自动化标本标签转录。",
+    "tags": [
+      "OCR",
+      "CV"
+    ],
+    "featured": false
+  },
+  {
+    "title": "Neural Debris Removal in Streak Detection Models",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/neural-debris-removal-in-streak-detection-models",
+    "category_slug": "ctf",
+    "category_name": "网络安全 / CTF",
+    "organizer": "European Space Agency",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$1,000",
+    "prize_amount": 7000,
+    "status": "ongoing",
+    "summary": "ESA 安全 AI 系列：星痕检测模型去噪。",
+    "description": "ESA 安全 AI 系列：星痕检测模型去噪。",
+    "tags": [
+      "安全AI",
+      "CV"
+    ],
+    "featured": false
+  },
+  {
+    "title": "Liquidity Arena 2026 - AI Quant Trading",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/liquidity-arena-ai-quant-trading-competition",
+    "category_slug": "data",
+    "category_name": "数据竞赛 / Kaggle",
+    "organizer": "Liquidity Arena",
+    "location": "线上",
+    "mode": "online",
+    "prize": "",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "用量化交易智能体博弈市场流动性。",
+    "description": "用量化交易智能体博弈市场流动性。",
+    "tags": [
+      "量化",
+      "金融"
+    ],
+    "featured": false
+  },
+  {
+    "title": "CUHK-X Competition - Small Model Track",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/cuhk-x-competition-small-model-track",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "CUHK",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$10,000",
+    "prize_amount": 70000,
+    "status": "ongoing",
+    "summary": "用小模型完成动作分类任务。",
+    "description": "用小模型完成动作分类任务。",
+    "tags": [
+      "小模型",
+      "CV"
+    ],
+    "featured": false
+  },
+  {
+    "title": "CUHK-X Competition - Large Model Track",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/cuhk-x-competition-large-model-track",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "CUHK",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$10,000",
+    "prize_amount": 70000,
+    "status": "ongoing",
+    "summary": "用大模型回答专业问题。",
+    "description": "用大模型回答专业问题。",
+    "tags": [
+      "大模型",
+      "NLP"
+    ],
+    "featured": false
+  },
+  {
+    "title": "Hyperspectral Object Tracking Challenge 2026",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/hyperspectral-object-tracking-challenge-2026",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "Kaggle",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$3,526",
+    "prize_amount": 24682,
+    "status": "ongoing",
+    "summary": "高光谱视频目标跟踪挑战。",
+    "description": "高光谱视频目标跟踪挑战。",
+    "tags": [
+      "CV",
+      "跟踪"
+    ],
+    "featured": false
+  },
+  {
+    "title": "Soccer Feature Engineering Hackathon",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/soccer-feature-engineering-hackathon",
+    "category_slug": "hackathon",
+    "category_name": "黑客松",
+    "organizer": "Kaggle",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$10,000",
+    "prize_amount": 70000,
+    "status": "ongoing",
+    "summary": "把比赛事件流转化为新的球员表现特征。",
+    "description": "把比赛事件流转化为新的球员表现特征。",
+    "tags": [
+      "特征工程",
+      "体育"
+    ],
+    "featured": false
+  },
+  {
+    "title": "Titanic - Machine Learning from Disaster",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/titanic",
+    "category_slug": "data",
+    "category_name": "数据竞赛 / Kaggle",
+    "organizer": "Kaggle",
+    "location": "线上",
+    "mode": "online",
+    "prize": "",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "入门经典：预测泰坦尼克号生还。",
+    "description": "入门经典：预测泰坦尼克号生还。",
+    "tags": [
+      "入门",
+      "分类"
+    ],
+    "featured": false
+  },
+  {
+    "title": "House Prices - Advanced Regression Techniques",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques",
+    "category_slug": "data",
+    "category_name": "数据竞赛 / Kaggle",
+    "organizer": "Kaggle",
+    "location": "线上",
+    "mode": "online",
+    "prize": "",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "房价预测，练习特征工程与集成学习。",
+    "description": "房价预测，练习特征工程与集成学习。",
+    "tags": [
+      "回归",
+      "表格"
+    ],
+    "featured": false
+  },
+  {
+    "title": "Spaceship Titanic",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/spaceship-titanic",
+    "category_slug": "data",
+    "category_name": "数据竞赛 / Kaggle",
+    "organizer": "Kaggle",
+    "location": "线上",
+    "mode": "online",
+    "prize": "",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "预测乘客是否被传送到了平行维度。",
+    "description": "预测乘客是否被传送到了平行维度。",
+    "tags": [
+      "分类",
+      "趣味"
+    ],
+    "featured": false
+  },
+  {
+    "title": "ARC Prize 2026 - Paper Track",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/arc-prize-2026-paper-track",
+    "category_slug": "hackathon",
+    "category_name": "黑客松",
+    "organizer": "ARC Prize Foundation",
+    "location": "线上",
+    "mode": "online",
+    "prize": "",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "记录你针对 ARC Prize 2026 的概念方案。",
+    "description": "记录你针对 ARC Prize 2026 的概念方案。",
+    "tags": [
+      "AGI",
+      "论文"
+    ],
+    "featured": false
+  },
+  {
+    "title": "NVIDIA Nemotron Model Reasoning Challenge",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/nvidia-nemotron-model-reasoning-challenge",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "NVIDIA",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$106,388",
+    "prize_amount": 744716,
+    "status": "ended",
+    "summary": "评测 Nemotron 模型推理能力。",
+    "description": "评测 Nemotron 模型推理能力。",
+    "tags": [
+      "LLM",
+      "推理"
+    ],
+    "featured": false
+  },
+  {
+    "title": "BirdCLEF+ 2026",
+    "source": "Kaggle",
+    "source_url": "https://www.kaggle.com/competitions/birdclef-2026",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "LifeCLEF",
+    "location": "线上",
+    "mode": "online",
+    "prize": "$50,000",
+    "prize_amount": 350000,
+    "status": "ended",
+    "summary": "从声音中识别鸟类物种。",
+    "description": "从声音中识别鸟类物种。",
+    "tags": [
+      "音频",
+      "生物"
+    ],
+    "featured": false
+  },
+  {
+    "title": "AI新睿人才“星探计划”",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1169",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "DataFountain",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 100,000",
+    "prize_amount": 100000,
+    "status": "ongoing",
+    "summary": "挖掘与扶持 AI 新锐人才。",
+    "description": "挖掘与扶持 AI 新锐人才。",
+    "tags": [
+      "人才",
+      "AI"
+    ],
+    "featured": false
+  },
+  {
+    "title": "“猎鹰·微波智探”雷达多目标智能探测与识别",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1166",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "DataFountain",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 200,000",
+    "prize_amount": 200000,
+    "status": "ongoing",
+    "summary": "雷达多目标智能探测与识别挑战。",
+    "description": "雷达多目标智能探测与识别挑战。",
+    "tags": [
+      "雷达",
+      "检测"
+    ],
+    "featured": false
+  },
+  {
+    "title": "具有多模态能力的客服智能体设计",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1165",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "DataFountain",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 150,000",
+    "prize_amount": 150000,
+    "status": "ongoing",
+    "summary": "构建具备多模态能力的客服智能体。",
+    "description": "构建具备多模态能力的客服智能体。",
+    "tags": [
+      "Agent",
+      "多模态"
+    ],
+    "featured": false
+  },
+  {
+    "title": "红外智感—红外开放世界全模态分割挑战",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1164",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "DataFountain",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 150,000",
+    "prize_amount": 150000,
+    "status": "ongoing",
+    "summary": "红外开放世界下的全模态分割。",
+    "description": "红外开放世界下的全模态分割。",
+    "tags": [
+      "分割",
+      "红外"
+    ],
+    "featured": false
+  },
+  {
+    "title": "多模态感知融合增强的具身自主抓取任务挑战",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1163",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "DataFountain",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 180,000",
+    "prize_amount": 180000,
+    "status": "ongoing",
+    "summary": "具身智能：多模态感知融合自主抓取。",
+    "description": "具身智能：多模态感知融合自主抓取。",
+    "tags": [
+      "具身",
+      "机器人"
+    ],
+    "featured": false
+  },
+  {
+    "title": "大数据和人工智能赛道",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1153",
+    "category_slug": "data",
+    "category_name": "数据竞赛 / Kaggle",
+    "organizer": "数字中国创新大赛",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 100,000",
+    "prize_amount": 100000,
+    "status": "ongoing",
+    "summary": "数字中国创新大赛：大数据与人工智能赛道。",
+    "description": "数字中国创新大赛：大数据与人工智能赛道。",
+    "tags": [
+      "政务",
+      "大数据"
+    ],
+    "featured": false
+  },
+  {
+    "title": "高端智能制造和半导体赛道",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1154",
+    "category_slug": "data",
+    "category_name": "数据竞赛 / Kaggle",
+    "organizer": "数字中国创新大赛",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 100,000",
+    "prize_amount": 100000,
+    "status": "ongoing",
+    "summary": "聚焦智能制造与半导体数据建模。",
+    "description": "聚焦智能制造与半导体数据建模。",
+    "tags": [
+      "制造",
+      "半导体"
+    ],
+    "featured": false
+  },
+  {
+    "title": "新材料和新能源赛道",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1155",
+    "category_slug": "data",
+    "category_name": "数据竞赛 / Kaggle",
+    "organizer": "数字中国创新大赛",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 100,000",
+    "prize_amount": 100000,
+    "status": "ongoing",
+    "summary": "新材料与新能源方向的数据竞赛。",
+    "description": "新材料与新能源方向的数据竞赛。",
+    "tags": [
+      "新能源",
+      "材料"
+    ],
+    "featured": false
+  },
+  {
+    "title": "生物医药和医疗器械赛道",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1156",
+    "category_slug": "data",
+    "category_name": "数据竞赛 / Kaggle",
+    "organizer": "数字中国创新大赛",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 100,000",
+    "prize_amount": 100000,
+    "status": "ongoing",
+    "summary": "生物医药与医疗器械数据建模。",
+    "description": "生物医药与医疗器械数据建模。",
+    "tags": [
+      "医药",
+      "生物"
+    ],
+    "featured": false
+  },
+  {
+    "title": "6G/B6G 内生AI：“控制语义”系统设计",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1146",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "DataFountain",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 120,000",
+    "prize_amount": 120000,
+    "status": "ongoing",
+    "summary": "面向 6G/B6G 的内生 AI 控制语义系统设计。",
+    "description": "面向 6G/B6G 的内生 AI 控制语义系统设计。",
+    "tags": [
+      "6G",
+      "通信"
+    ],
+    "featured": false
+  },
+  {
+    "title": "多模态BadCase极限挑战赛",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1104",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "DataFountain",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 80,000",
+    "prize_amount": 80000,
+    "status": "ongoing",
+    "summary": "极限打磨多模态模型 BadCase。",
+    "description": "极限打磨多模态模型 BadCase。",
+    "tags": [
+      "多模态",
+      "评测"
+    ],
+    "featured": false
+  },
+  {
+    "title": "基于人工智能的闽江流域水情预报",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1102",
+    "category_slug": "data",
+    "category_name": "数据竞赛 / Kaggle",
+    "organizer": "DataFountain",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 90,000",
+    "prize_amount": 90000,
+    "status": "ongoing",
+    "summary": "用 AI 做闽江流域水情预报。",
+    "description": "用 AI 做闽江流域水情预报。",
+    "tags": [
+      "时序",
+      "水文"
+    ],
+    "featured": false
+  },
+  {
+    "title": "电算协同促进能效提升探索与实践",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1103",
+    "category_slug": "data",
+    "category_name": "数据竞赛 / Kaggle",
+    "organizer": "DataFountain",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 90,000",
+    "prize_amount": 90000,
+    "status": "ongoing",
+    "summary": "电算协同优化能效。",
+    "description": "电算协同优化能效。",
+    "tags": [
+      "能源",
+      "优化"
+    ],
+    "featured": false
+  },
+  {
+    "title": "盲区突围：模型BadCase极限挑战赛",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1097",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "DataFountain",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 80,000",
+    "prize_amount": 80000,
+    "status": "ongoing",
+    "summary": "寻找并修复模型盲区 BadCase。",
+    "description": "寻找并修复模型盲区 BadCase。",
+    "tags": [
+      "鲁棒性",
+      "评测"
+    ],
+    "featured": false
+  },
+  {
+    "title": "中文开源数据集驱动中文大模型智能跃迁挑战赛",
+    "source": "DataFountain",
+    "source_url": "https://www.datafountain.cn/competitions/1098",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "DataFountain",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 100,000",
+    "prize_amount": 100000,
+    "status": "ongoing",
+    "summary": "用中文开源数据集提升大模型能力。",
+    "description": "用中文开源数据集提升大模型能力。",
+    "tags": [
+      "LLM",
+      "中文"
+    ],
+    "featured": false
+  },
+  {
+    "title": "2026中国软件杯—文心小汪赛道",
+    "source": "百度 AI Studio",
+    "source_url": "https://aistudio.baidu.com/competition/detail/1468",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "中国软件杯组委会",
+    "location": "线上",
+    "mode": "online",
+    "prize": "国赛奖项",
+    "prize_amount": 0,
+    "status": "ended",
+    "summary": "基于文心大模型与飞桨的四足机器狗消防侦察救援系统。",
+    "description": "基于文心大模型与飞桨的四足机器狗消防侦察救援系统。",
+    "tags": [
+      "文心",
+      "飞桨",
+      "CV"
+    ],
+    "featured": false
+  },
+  {
+    "title": "第二十一届全国大学生智能汽车竞赛：百度人工智能模型竞速赛",
+    "source": "百度 AI Studio",
+    "source_url": "https://aistudio.baidu.com/competition/detail/1486",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "百度",
+    "location": "线上",
+    "mode": "online",
+    "prize": "国赛奖项",
+    "prize_amount": 0,
+    "status": "ended",
+    "summary": "智能汽车 AI 模型竞速。",
+    "description": "智能汽车 AI 模型竞速。",
+    "tags": [
+      "自动驾驶",
+      "OCR"
+    ],
+    "featured": false
+  },
+  {
+    "title": "第二十一届全国大学生智能汽车竞赛：百度智慧交通组创意赛",
+    "source": "百度 AI Studio",
+    "source_url": "https://aistudio.baidu.com/competition/detail/1484",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "百度",
+    "location": "线上",
+    "mode": "online",
+    "prize": "国赛奖项",
+    "prize_amount": 0,
+    "status": "ended",
+    "summary": "智慧交通组创意赛。",
+    "description": "智慧交通组创意赛。",
+    "tags": [
+      "智慧交通",
+      "创意"
+    ],
+    "featured": false
+  },
+  {
+    "title": "千言数据集：低资源翻译-法俄泰与中文互译",
+    "source": "百度 AI Studio",
+    "source_url": "https://aistudio.baidu.com/competition/detail/728",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "百度 NLP",
+    "location": "线上",
+    "mode": "online",
+    "prize": "千言礼包",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "“一带一路”重点语种低资源翻译。",
+    "description": "“一带一路”重点语种低资源翻译。",
+    "tags": [
+      "机器翻译",
+      "NLP"
+    ],
+    "featured": false
+  },
+  {
+    "title": "千言数据集-航旅纵横：段落级答案抽取",
+    "source": "百度 AI Studio",
+    "source_url": "https://aistudio.baidu.com/competition/detail/666",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "百度 NLP",
+    "location": "线上",
+    "mode": "online",
+    "prize": "千言礼包",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "民航领域段落级问答对抽取。",
+    "description": "民航领域段落级问答对抽取。",
+    "tags": [
+      "阅读理解",
+      "NLP"
+    ],
+    "featured": false
+  },
+  {
+    "title": "千言数据集-航旅纵横：细粒度文本级答案抽取",
+    "source": "百度 AI Studio",
+    "source_url": "https://aistudio.baidu.com/competition/detail/668",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "百度 NLP",
+    "location": "线上",
+    "mode": "online",
+    "prize": "千言礼包",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "民航领域细粒度文本答案抽取。",
+    "description": "民航领域细粒度文本答案抽取。",
+    "tags": [
+      "阅读理解",
+      "NLP"
+    ],
+    "featured": false
+  },
+  {
+    "title": "千言数据集：对话共指消解评测",
+    "source": "百度 AI Studio",
+    "source_url": "https://aistudio.baidu.com/competition/detail/550",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "百度 NLP",
+    "location": "线上",
+    "mode": "online",
+    "prize": "千言礼包",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "任务型对话系统的共指消解。",
+    "description": "任务型对话系统的共指消解。",
+    "tags": [
+      "对话",
+      "NLP"
+    ],
+    "featured": false
+  },
+  {
+    "title": "千言数据集：视频看点抽取",
+    "source": "百度 AI Studio",
+    "source_url": "https://aistudio.baidu.com/competition/detail/672",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "百度 NLP",
+    "location": "线上",
+    "mode": "online",
+    "prize": "千言礼包",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "从视频中抽取看点并给出时间。",
+    "description": "从视频中抽取看点并给出时间。",
+    "tags": [
+      "多模态",
+      "NLP"
+    ],
+    "featured": false
+  },
+  {
+    "title": "千言数据集：中学语文阅读理解",
+    "source": "百度 AI Studio",
+    "source_url": "https://aistudio.baidu.com/competition/detail/708",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "百度 NLP",
+    "location": "线上",
+    "mode": "online",
+    "prize": "千言礼包",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "推进中文自然语言处理发展。",
+    "description": "推进中文自然语言处理发展。",
+    "tags": [
+      "阅读理解",
+      "NLP"
+    ],
+    "featured": false
+  },
+  {
+    "title": "基于文心CV大模型的智慧城市视觉多任务识别",
+    "source": "百度 AI Studio",
+    "source_url": "https://aistudio.baidu.com/competition/detail/778",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "百度 CV",
+    "location": "线上",
+    "mode": "online",
+    "prize": "积分奖励",
+    "prize_amount": 0,
+    "status": "ongoing",
+    "summary": "人脸/人体/车辆/商品多任务视觉大一统。",
+    "description": "人脸/人体/车辆/商品多任务视觉大一统。",
+    "tags": [
+      "CV",
+      "文心"
+    ],
+    "featured": false
+  },
+  {
+    "title": "2024年能源行业人工智能应用大赛-电力现场安监管控",
+    "source": "腾讯云",
+    "source_url": "https://cloud.tencent.com/developer/competition/introduction/10054",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "中国能源研究会",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 实时",
+    "prize_amount": 0,
+    "status": "ended",
+    "summary": "电力现场安全智能管控的多模态大模型竞赛。",
+    "description": "电力现场安全智能管控的多模态大模型竞赛。",
+    "tags": [
+      "能源",
+      "AI"
+    ],
+    "featured": false
+  },
+  {
+    "title": "2024年能源行业人工智能应用大赛-电力系统智能调度",
+    "source": "腾讯云",
+    "source_url": "https://cloud.tencent.com/developer/competition/introduction/10055",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "中国能源研究会",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 实时",
+    "prize_amount": 0,
+    "status": "ended",
+    "summary": "电力系统智能调度决策模型。",
+    "description": "电力系统智能调度决策模型。",
+    "tags": [
+      "能源",
+      "调度"
+    ],
+    "featured": false
+  },
+  {
+    "title": "腾讯网络安全 T-Star 高校挑战赛",
+    "source": "腾讯云",
+    "source_url": "https://cloud.tencent.com/developer/competition/introduction/10042",
+    "category_slug": "ctf",
+    "category_name": "网络安全 / CTF",
+    "organizer": "腾讯安全响应中心",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 28,000",
+    "prize_amount": 28000,
+    "status": "ended",
+    "summary": "密室逃脱式 CTF，培育网安人才。",
+    "description": "密室逃脱式 CTF，培育网安人才。",
+    "tags": [
+      "CTF",
+      "安全"
+    ],
+    "featured": false
+  },
+  {
+    "title": "腾讯云数据库 TDSQL 精英挑战赛",
+    "source": "腾讯云",
+    "source_url": "https://cloud.tencent.com/developer/competition/introduction/10027",
+    "category_slug": "algorithm",
+    "category_name": "算法竞赛",
+    "organizer": "腾讯云数据库",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 350,000",
+    "prize_amount": 350000,
+    "status": "ended",
+    "summary": "基于 TDSQL 的数据库技术与商业创新挑战。",
+    "description": "基于 TDSQL 的数据库技术与商业创新挑战。",
+    "tags": [
+      "数据库",
+      "算法"
+    ],
+    "featured": false
+  },
+  {
+    "title": "2021 腾讯广告算法大赛-视频广告秒级语义解析",
+    "source": "腾讯云",
+    "source_url": "https://cloud.tencent.com/developer/competition/introduction/10006",
+    "category_slug": "data",
+    "category_name": "数据竞赛 / Kaggle",
+    "organizer": "腾讯广告",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 950,000",
+    "prize_amount": 950000,
+    "status": "ended",
+    "summary": "视频广告秒级语义解析与多模态标签。",
+    "description": "视频广告秒级语义解析与多模态标签。",
+    "tags": [
+      "广告",
+      "多模态"
+    ],
+    "featured": false
+  },
+  {
+    "title": "“觅影”医学人工智能算法大赛",
+    "source": "腾讯云",
+    "source_url": "https://cloud.tencent.com/developer/competition/introduction/10021",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "腾讯医疗健康",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 450,000",
+    "prize_amount": 450000,
+    "status": "ended",
+    "summary": "AI 辅助医学诊断算法挑战。",
+    "description": "AI 辅助医学诊断算法挑战。",
+    "tags": [
+      "医疗",
+      "CV"
+    ],
+    "featured": false
+  },
+  {
+    "title": "2025 AI 原生编程挑战赛—AIOps 故障定位挑战赛",
+    "source": "阿里云天池",
+    "source_url": "https://tianchi.aliyun.com/competition/entrance/532387",
+    "category_slug": "ai",
+    "category_name": "AI 大模型",
+    "organizer": "阿里云天池",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 300,000",
+    "prize_amount": 300000,
+    "status": "ended",
+    "summary": "云原生与 AIGC 时代的系统稳定性保障。",
+    "description": "云原生与 AIGC 时代的系统稳定性保障。",
+    "tags": [
+      "AIOps",
+      "运维"
+    ],
+    "featured": false
+  },
+  {
+    "title": "中国研究生数学建模竞赛",
+    "source": "中国研究生数学建模竞赛组委会",
+    "source_url": "https://gmcm.seu.edu.cn",
+    "category_slug": "algorithm",
+    "category_name": "算法竞赛",
+    "organizer": "中国研究生数学建模竞赛组委会",
+    "location": "多城市",
+    "mode": "offline",
+    "prize": "证书 + 奖金",
+    "prize_amount": 0,
+    "status": "upcoming",
+    "summary": "三天三夜的团队数学建模实战。",
+    "description": "三天三夜的团队数学建模实战。",
+    "tags": [
+      "数学建模",
+      "研究生"
+    ],
+    "featured": false
+  },
+  {
+    "title": "全国大学生工业设计大赛（智能产品）",
+    "source": "教育部设计学教指委",
+    "source_url": "https://www.cuidc.net",
+    "category_slug": "design",
+    "category_name": "视觉 / 产品竞赛",
+    "organizer": "教育部高等学校设计学教指委",
+    "location": "多城市",
+    "mode": "offline",
+    "prize": "证书 + 奖金",
+    "prize_amount": 0,
+    "status": "upcoming",
+    "summary": "智能硬件与产品服务系统设计。",
+    "description": "智能硬件与产品服务系统设计。",
+    "tags": [
+      "工业设计",
+      "智能硬件"
+    ],
+    "featured": false
+  },
+  {
+    "title": "强网拟态防御国际精英赛",
+    "source": "国家网络空间安全基地",
+    "source_url": "https://www.qiangwangbei.com",
+    "category_slug": "ctf",
+    "category_name": "网络安全 / CTF",
+    "organizer": "国家网络空间安全基地",
+    "location": "郑州",
+    "mode": "hybrid",
+    "prize": "¥ 300,000",
+    "prize_amount": 300000,
+    "status": "upcoming",
+    "summary": "拟态防御场景下的高阶 CTF 对抗。",
+    "description": "拟态防御场景下的高阶 CTF 对抗。",
+    "tags": [
+      "拟态",
+      "CTF"
+    ],
+    "featured": true
+  },
+  {
+    "title": "Tianfu Cup 国际网络安全大赛",
+    "source": "天府杯组委会",
+    "source_url": "https://www.tianfucup.com",
+    "category_slug": "ctf",
+    "category_name": "网络安全 / CTF",
+    "organizer": "天府杯组委会",
+    "location": "成都",
+    "mode": "offline",
+    "prize": "$ 1,000,000",
+    "prize_amount": 7000000,
+    "status": "upcoming",
+    "summary": "面向主流软硬件的实战漏洞挖掘与利用。",
+    "description": "面向主流软硬件的实战漏洞挖掘与利用。",
+    "tags": [
+      "漏洞",
+      "实战"
+    ],
+    "featured": false
+  },
+  {
+    "title": "京东 618 智能供应链算法大赛",
+    "source": "京东零售技术",
+    "source_url": "https://jdsc.jd.com",
+    "category_slug": "data",
+    "category_name": "数据竞赛 / Kaggle",
+    "organizer": "京东零售技术",
+    "location": "线上",
+    "mode": "online",
+    "prize": "¥ 200,000",
+    "prize_amount": 200000,
+    "status": "ended",
+    "summary": "销量预测与智能补货联合优化。",
+    "description": "销量预测与智能补货联合优化。",
+    "tags": [
+      "供应链",
+      "预测"
+    ],
+    "featured": false
+  }
+]

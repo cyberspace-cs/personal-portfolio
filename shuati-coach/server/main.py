@@ -11,11 +11,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from database import get_db, init_db, DB_DIR
+from database import (
+    get_db, init_db, DB_DIR,
+    record_bank_version, get_active_study_plan, save_study_plan,
+    add_quiz_attempt_batch, get_topic_mastery, compute_profile,
+)
 from models import (
     ChatIn, ExamRecordIn, ExamRecordOut, ExplainIn, GenIn, MasteryOut, QuestionOut,
-    QuizRecordIn, QuizRecordOut, ReportIn, StreakOut, UserLogin,
+    QuizCheckIn, QuizRecordIn, QuizRecordOut, ReportIn, StreakOut, UserLogin,
     UserOut, UserRegister, WrongBookIn, WrongBookOut,
+    PlanDay, StudyPlanRequest, StudyPlanResponse, StudyPlanSaveIn, StudyPlanOut, QuestionBankVersionOut,
+    GraphNode, GraphEdge, WeakPoint, WeakPointsOut, AdaptivePlanRequest,
+    WrongBookGroupOut, RelatedQuestionOut, BankUpdateOut, ProfileOut, LeaderboardItem,
+    BadgeModel, ExamStartIn, ExamStartOut, ExamSubmitIn,
 )
 
 # 定制化备考 Agent（多智能体编排 / 工具调用 / 分层记忆）
@@ -75,8 +83,10 @@ _EXPLAIN_SCHEMA = {
         "summary": {"type": "string"},
         "steps": {"type": "array", "items": {"type": "string"}},
         "tips": {"type": "string"},
+        "exam_point": {"type": "string", "description": "名师视角：本题核心考点（一句话）"},
+        "pitfalls": {"type": "string", "description": "名师视角：易错点 / 考场陷阱"},
     },
-    "required": ["summary", "steps", "tips"],
+    "required": ["summary", "steps", "tips", "exam_point", "pitfalls"],
 }
 _GEN_SCHEMA = {
     "type": "object",
@@ -107,10 +117,44 @@ _REPORT_SCHEMA = {
     "required": ["overall", "prediction", "focusTopics", "plan", "encouragement"],
 }
 
+_PLAN_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "week_start": {"type": "string", "description": "周一开始日期 YYYY-MM-DD"},
+        "days": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "day": {"type": "integer"},
+                    "theme": {"type": "string"},
+                    "topics": {"type": "array", "items": {"type": "string"}},
+                    "count": {"type": "integer"},
+                    "tip": {"type": "string"},
+                },
+                "required": ["day", "theme", "topics", "count", "tip"],
+            },
+        },
+    },
+    "required": ["week_start", "days"],
+}
+
 
 async def _structured_llm(system: str, user: str, tool_name: str, schema: dict, max_tokens: int = 700) -> dict:
-    """用虚拟工具范式向激活厂商要结构化 JSON；返回空 dict 表示失败（调用方应降级）。"""
-    return await call_llm_tool(system, user, tool_name, schema, max_tokens)
+    """用虚拟工具范式向激活厂商要结构化 JSON；返回空 dict 表示失败（调用方应降级）。
+
+    健壮性：厂商接口偶发超时/网络抖动时自动重试一次，仍失败则降级为空 dict，
+    由调用方回退到确定性 fallback，绝不让端点 500。
+    """
+    last: dict = {}
+    for attempt in range(2):
+        try:
+            last = await call_llm_tool(system, user, tool_name, schema, max_tokens)
+            if last:
+                return last
+        except Exception as e:  # 网络/超时/厂商错误 -> 重试一次后降级
+            print(f"[llm:{tool_name}] 第{attempt + 1}次调用失败：{repr(e)}")
+    return last
 
 # 启动时初始化数据库（lifespan 事件，替代已弃用的 on_event）
 from contextlib import asynccontextmanager
@@ -396,17 +440,45 @@ SEED_QUESTIONS = [
 ]
 
 
+def _load_seed_questions():
+    """优先从 data/questions.json 加载题库；缺失/异常时回退到代码内 SEED_QUESTIONS。"""
+    path = os.path.join(DB_DIR, "data", "questions.json")
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            qs = data.get("questions", [])
+            if qs:
+                return qs
+        except Exception as e:
+            print("[seed] 读取 questions.json 失败，回退硬编码题库:", e)
+    return SEED_QUESTIONS
+
+
+def _norm(v):
+    """opts/answer 兼容 'JSON 字符串' 与 '列表' 两种格式，统一转成 JSON 字符串入库。"""
+    if isinstance(v, str):
+        return v
+    return json.dumps(v, ensure_ascii=False)
+
+
 def seed_questions():
-    """如果题库为空则插入种子数据"""
+    """如果题库为空则插入种子数据（来自 questions.json 或代码内 SEED_QUESTIONS）。"""
     conn = get_db()
     count = conn.execute("SELECT COUNT(*) FROM questions").fetchone()[0]
     if count == 0:
-        for q in SEED_QUESTIONS:
+        qs = _load_seed_questions()
+        for q in qs:
             conn.execute(
-                "INSERT INTO questions (cat, src, type, stem, opts, answer, explain, topic, difficulty) VALUES (?,?,?,?,?,?,?,?,?)",
-                (q["cat"], q["src"], q["type"], q["stem"], q["opts"], q["answer"], q["explain"], q["topic"], q["difficulty"])
+                "INSERT INTO questions (cat, src, type, stem, opts, answer, explain, topic, difficulty, src_type) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                (q["cat"], q["src"], q["type"], q["stem"],
+                 _norm(q["opts"]), _norm(q["answer"]), q["explain"], q["topic"],
+                 q["difficulty"], q.get("src_type") or "ai_sim")
             )
         conn.commit()
+        print(f"[seed] 已插入题库 {len(qs)} 题")
+    else:
+        print(f"[seed] 题库已有 {count} 题，跳过初始化")
     conn.close()
 
 
@@ -414,7 +486,21 @@ def seed_questions():
 # 密码工具
 # ================================================================
 def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+    """加盐 SHA-256：存储格式 `salt$hash`，避免相同密码产生相同哈希。"""
+    import hmac
+    salt = os.urandom(16).hex()
+    h = hashlib.sha256((salt + password).encode()).hexdigest()
+    return f"{salt}${h}"
+
+
+def verify_password(password: str, stored: str) -> bool:
+    """校验密码：兼容升级前的无盐哈希（旧库）与新版加盐哈希。"""
+    import hmac
+    if not stored or "$" not in stored:
+        # 兼容升级前的无盐哈希
+        return hmac.compare_digest(hashlib.sha256(password.encode()).hexdigest(), stored or "")
+    salt, h = stored.split("$", 1)
+    return hmac.compare_digest(hashlib.sha256((salt + password).encode()).hexdigest(), h)
 
 
 # ================================================================
@@ -430,6 +516,241 @@ def list_questions(cat: str | None = None):
         rows = conn.execute("SELECT * FROM questions ORDER BY id").fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+@app.get("/api/questions/sample")
+def sample_questions(
+    cat: str | None = None,
+    src: str | None = None,
+    topic: str | None = None,
+    difficulty: str | None = None,
+    limit: int = 150,
+):
+    """随机抽取题（示例刷题 / 随机刷题），避免一次性把全库 2 万+ 题拉到前端。"""
+    limit = max(1, min(int(limit or 150), 500))
+    conn = get_db()
+    sql = "SELECT * FROM questions WHERE 1=1"
+    args: list = []
+    if cat and cat != "all":
+        sql += " AND cat=?"
+        args.append(cat)
+    if src:
+        sql += " AND src=?"
+        args.append(src)
+    if topic:
+        sql += " AND topic=?"
+        args.append(topic)
+    if difficulty and difficulty != "all":
+        sql += " AND difficulty=?"
+        args.append(difficulty)
+    sql += " ORDER BY RANDOM() LIMIT ?"
+    args.append(limit)
+    rows = conn.execute(sql, args).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/questions/page")
+def page_questions(
+    offset: int = 0,
+    limit: int = 30,
+    cat: str | None = None,
+    src: str | None = None,
+    topic: str | None = None,
+    difficulty: str | None = None,
+    q: str | None = None,
+):
+    """分页浏览全量题库（全量题库抽屉用），支持按分类/来源/知识点/难度/关键词过滤。"""
+    offset = max(0, int(offset or 0))
+    limit = max(1, min(int(limit or 30), 100))
+    conn = get_db()
+    where = ""
+    args: list = []
+    if cat and cat != "all":
+        where += " AND cat=?"
+        args.append(cat)
+    if src:
+        where += " AND src=?"
+        args.append(src)
+    if topic:
+        where += " AND topic=?"
+        args.append(topic)
+    if difficulty and difficulty != "all":
+        where += " AND difficulty=?"
+        args.append(difficulty)
+    if q:
+        where += " AND stem LIKE ?"
+        args.append("%" + q + "%")
+    total = conn.execute("SELECT COUNT(*) FROM questions WHERE 1=1" + where, args).fetchone()[0]
+    rows = conn.execute(
+        "SELECT id, cat, src, type, topic, difficulty, stem, src_type, year FROM questions WHERE 1=1"
+        + where
+        + " ORDER BY id LIMIT ? OFFSET ?",
+        args + [limit, offset],
+    ).fetchall()
+    conn.close()
+    return {
+        "total": total,
+        "offset": offset,
+        "limit": limit,
+        "items": [dict(r) for r in rows],
+    }
+
+
+@app.get("/api/questions/meta")
+def questions_meta():
+    """公开展示题库概况（无需登录），用于首页/demo 展示与体验模式统计。
+    额外返回题库版本信息（version/sources/checksum），由 questions.json 提供。"""
+    from collections import Counter
+    conn = get_db()
+    rows = conn.execute("SELECT cat, type, src, difficulty, topic, src_type, year FROM questions").fetchall()
+    conn.close()
+    cats = Counter(r["cat"] for r in rows)
+    types = Counter(r["type"] for r in rows)
+    srcs = Counter(r["src"] for r in rows)
+    diff = Counter(r["difficulty"] for r in rows)
+    topics = Counter(r["topic"] for r in rows)
+    src_types = Counter(r["src_type"] or "ai_sim" for r in rows)
+
+    # 版本元信息（来自 data/questions.json）
+    meta_extra = {"version": None, "generated_at": None, "sources": dict(srcs), "checksum": ""}
+    try:
+        qj_path = os.path.join(DB_DIR, "data", "questions.json")
+        if os.path.exists(qj_path):
+            with open(qj_path, "r", encoding="utf-8") as f:
+                qj = json.load(f)
+            meta_extra["version"] = qj.get("version")
+            meta_extra["generated_at"] = qj.get("generated_at")
+            # 注意：sources 始终用实时库 GROUP BY 统计（见上方 srcs），
+            # 保证「多源题库聚合状态」卡片与实际题量一致；
+            # 不再用 questions.json 的静态快照覆盖，否则会与 total 对不上。
+            meta_extra["checksum"] = qj.get("checksum", "")
+    except Exception:
+        pass
+
+    # 最近一次题库版本更新时间（来自 question_bank_versions 审计表）
+    updated_at = None
+    try:
+        conn2 = get_db()
+        vr = conn2.execute(
+            "SELECT created_at, version, checksum, status FROM question_bank_versions ORDER BY id DESC LIMIT 1"
+        ).fetchone()
+        conn2.close()
+        if vr:
+            updated_at = vr["created_at"]
+            # 若 JSON 无版本，用审计表版本兜底
+            if meta_extra["version"] is None and vr["version"]:
+                meta_extra["version"] = vr["version"]
+    except Exception:
+        pass
+
+    return {
+        "total": len(rows),
+        "cats": dict(cats),
+        "types": dict(types),
+        "sources": meta_extra["sources"],
+        "src_types": dict(src_types),
+        "difficulty": dict(diff),
+        "topics": dict(topics),
+        "version": meta_extra["version"],
+        "generated_at": meta_extra["generated_at"],
+        "updated_at": updated_at,
+        "checksum": meta_extra["checksum"],
+    }
+
+
+@app.post("/api/bank/update", response_model=BankUpdateOut)
+def bank_update():
+    """题库元信息定时更新：统计当前题库规模/来源，写入一条新版本记录（审计+回滚），返回最新元信息。
+
+    演示环境无外部爬虫，故以"重新计量 + 落版本记录"模拟每日/每周的题库同步更新机制。
+    """
+    import hashlib as _hl
+    conn = get_db()
+    try:
+        rows = conn.execute("SELECT id, cat, src, topic FROM questions").fetchall()
+        total = len(rows)
+        src_counter = {}
+        for r in rows:
+            src_counter[r["src"]] = src_counter.get(r["src"], 0) + 1
+        # 计算校验和（基于题目 id+src 的确定性指纹）
+        digest_src = "|".join(f"{r['id']}:{r['src']}" for r in rows)
+        checksum = _hl.md5(digest_src.encode("utf-8")).hexdigest()[:12]
+        # 最近版本 +1
+        prev = conn.execute("SELECT MAX(version) AS v FROM question_bank_versions").fetchone()
+        new_version = (prev["v"] or 0) + 1
+        # 落库
+        cur = conn.execute(
+            "INSERT INTO question_bank_versions (version, count, sources_json, summary, status, checksum) "
+            "VALUES (?,?,?,?,?,?)",
+            (new_version, total, json.dumps(src_counter, ensure_ascii=False),
+             f"定时同步：题库共 {total} 题，来源 {len(src_counter)} 个平台", "published", checksum),
+        )
+        conn.commit()
+        row_id = cur.lastrowid
+        vrow = conn.execute(
+            "SELECT version, count, sources_json, summary, status, checksum, created_at FROM question_bank_versions WHERE id=?",
+            (row_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+    return BankUpdateOut(
+        version=vrow["version"], count=vrow["count"],
+        sources=json.loads(vrow["sources_json"] or "{}"),
+        checksum=vrow["checksum"], updated_at=vrow["created_at"], summary=vrow["summary"],
+    )
+
+
+@app.get("/api/daily")
+def daily_question():
+    """每日一题：按日期确定性选题（当天稳定、跨天轮换），无需登录。
+
+    与竞品（LeetCode 每日一题 / 洛谷每日一题）一致的"每日更新"机制——
+    用户每天打开都能看到一道由日期稳定推导的题目，跨天自动轮换，形成打卡习惯。
+    """
+    today = date.today().isoformat()
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT id, cat, src, type, stem, opts, answer, explain, topic, difficulty "
+        "FROM questions ORDER BY id"
+    ).fetchall()
+    conn.close()
+    if not rows:
+        return {"date": today, "question": None}
+    n = len(rows)
+    # 用日期字符串做稳定哈希，保证当天不变、跨天轮换、且覆盖全库
+    h = int(hashlib.md5(today.encode("utf-8")).hexdigest(), 16)
+    q = dict(rows[h % n])
+    return {"date": today, "question": q}
+
+
+@app.post("/api/quiz/check")
+def check_quiz(data: QuizCheckIn):
+    """匿名判分（体验模式）：给定作答返回每题对错、正确答案与解析，不落库。
+    前端可在未登录时调用，体验完整刷题+讲解流程。"""
+    conn = get_db()
+    results = []
+    correct_count = 0
+    for item in data.items:
+        row = conn.execute("SELECT * FROM questions WHERE id=?", (item.question_id,)).fetchone()
+        if not row:
+            continue
+        q = dict(row)
+        correct_ans = json.loads(q["answer"]) if isinstance(q["answer"], str) else q["answer"]
+        ok = sorted(item.selected) == sorted(correct_ans)
+        if ok:
+            correct_count += 1
+        results.append({
+            "id": q["id"],
+            "correct": ok,
+            "correct_answer": correct_ans,
+            "explain": q["explain"],
+            "topic": q["topic"],
+            "stem": q["stem"],
+            "type": q["type"],
+        })
+    conn.close()
+    return {"total": len(results), "correct": correct_count, "results": results}
 
 
 @app.get("/api/questions/{question_id}", response_model=QuestionOut)
@@ -461,18 +782,17 @@ def register(data: UserRegister):
     user_id = cur.lastrowid
     row = conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
     conn.close()
-    return dict(row)
+    return {"id": row["id"], "user_id": row["id"], "username": row["username"], "created_at": row["created_at"] or ""}
 
 
 @app.post("/api/login", response_model=UserOut)
 def login(data: UserLogin):
     conn = get_db()
-    h = hash_password(data.password)
-    row = conn.execute("SELECT * FROM users WHERE username=? AND password_hash=?", (data.username, h)).fetchone()
+    row = conn.execute("SELECT * FROM users WHERE username=?", (data.username,)).fetchone()
     conn.close()
-    if not row:
+    if not row or not verify_password(data.password, row["password_hash"]):
         raise HTTPException(401, "用户名或密码错误")
-    return dict(row)
+    return {"id": row["id"], "user_id": row["id"], "username": row["username"], "created_at": row["created_at"] or ""}
 
 
 # ================================================================
@@ -480,6 +800,10 @@ def login(data: UserLogin):
 # ================================================================
 @app.post("/api/quiz/record", response_model=QuizRecordOut)
 def create_quiz_record(data: QuizRecordIn):
+    # 体验模式（匿名）：不落库，仅回显
+    if data.user_id is None:
+        return {"ok": True, "demo": True, "id": 0, "user_id": 0,
+                "cat": data.cat, "total": data.total, "correct": data.correct, "created_at": ""}
     conn = get_db()
     cur = conn.execute(
         "INSERT INTO quiz_records (user_id, cat, total, correct) VALUES (?,?,?,?)",
@@ -501,12 +825,40 @@ def get_quiz_history(user_id: int):
     return [dict(r) for r in rows]
 
 
+@app.post("/api/quiz/attempt")
+def log_quiz_attempt(data: QuizCheckIn):
+    """批量记录逐题作答明细（弱项诊断 / 知识图谱 / 自适应的数据底座）。匿名用户不落库。"""
+    if data.user_id is None:
+        return {"ok": True, "demo": True, "count": 0}
+    items = []
+    conn = get_db()
+    for it in data.items:
+        q = conn.execute("SELECT topic, cat FROM questions WHERE id=?", (it.question_id,)).fetchone()
+        if not q:
+            continue
+        # 该题是否已在该次提交中：前端按逐题正确性给出 correct 标记
+        items.append({
+            "question_id": it.question_id,
+            "topic": q["topic"],
+            "cat": q["cat"],
+            "correct": 1 if getattr(it, "correct", None) else 0,
+        })
+    conn.close()
+    try:
+        add_quiz_attempt_batch(data.user_id, items)
+    except Exception as e:
+        print("[quiz/attempt] 记录失败（已忽略）:", e)
+    return {"ok": True, "count": len(items)}
+
+
 # ================================================================
 # 错题本 API
 # ================================================================
 @app.post("/api/wrong-book")
 def add_wrong_question(data: WrongBookIn):
-    """添加错题记录，重复错误则计数+1"""
+    """添加错题记录，重复错误则计数+1（匿名体验模式不落库）"""
+    if data.user_id is None:
+        return {"ok": True, "demo": True}
     conn = get_db()
     existing = conn.execute(
         "SELECT id, error_count FROM wrong_book WHERE user_id=? AND question_id=?",
@@ -537,6 +889,42 @@ def get_wrong_book(user_id: int):
         FROM wrong_book wb JOIN questions q ON wb.question_id = q.id
         WHERE wb.user_id=? ORDER BY wb.error_count DESC
     """, (user_id,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/wrong-book/group/{user_id}", response_model=WrongBookGroupOut)
+def get_wrong_book_grouped(user_id: int):
+    """错题本智能归类：按知识点 topic 分组，便于同类集中复盘。"""
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT wb.question_id, wb.error_count, wb.last_error_at,
+               q.stem, q.topic, q.src, q.difficulty
+        FROM wrong_book wb JOIN questions q ON wb.question_id = q.id
+        WHERE wb.user_id=? ORDER BY wb.error_count DESC
+    """, (user_id,)).fetchall()
+    conn.close()
+    flat = [dict(r) for r in rows]
+    grouped = {}
+    for r in flat:
+        grouped.setdefault(r["topic"], []).append(dict(r))
+    return WrongBookGroupOut(grouped=grouped, flat=flat)
+
+
+@app.get("/api/related-questions", response_model=list[RelatedQuestionOut])
+def get_related_questions(qid: int, limit: int = 5):
+    """举一反三：返回与给定题目同知识点(topic)的其他题目（排除自身），用于同类巩固。"""
+    conn = get_db()
+    q = conn.execute("SELECT topic FROM questions WHERE id=?", (qid,)).fetchone()
+    if not q:
+        conn.close()
+        return []
+    topic = q["topic"]
+    rows = conn.execute(
+        "SELECT id, cat, src, type, stem, opts, answer, explain, topic, difficulty "
+        "FROM questions WHERE topic=? AND id<>? ORDER BY RANDOM() LIMIT ?",
+        (topic, qid, limit),
+    ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
@@ -589,6 +977,10 @@ def checkin(user_id: int):
 # ================================================================
 @app.post("/api/exam/record")
 def create_exam_record(data: ExamRecordIn):
+    if data.user_id is None:
+        return {"ok": True, "demo": True, "id": 0, "user_id": 0,
+                "exam_type": data.exam_type, "total": data.total, "correct": data.correct,
+                "duration": data.duration, "time_used": data.time_used, "created_at": ""}
     conn = get_db()
     cur = conn.execute(
         "INSERT INTO exam_records (user_id, exam_type, total, correct, duration, time_used) VALUES (?,?,?,?,?,?)",
@@ -608,6 +1000,93 @@ def get_exam_records(user_id: int):
     ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+# ================================================================
+# 自适应模拟考场（Step ⑧）
+# ================================================================
+@app.post("/api/exam/start", response_model=ExamStartOut)
+def exam_start(data: ExamStartIn):
+    """自适应组卷：登录用户优先抽取薄弱知识点题目（约 60%），并混合难度；匿名用户从分类随机抽题。"""
+    conn = get_db()
+    try:
+        pool = conn.execute(
+            "SELECT id, topic, difficulty FROM questions WHERE cat=? ORDER BY id", (data.cat,)
+        ).fetchall()
+    finally:
+        conn.close()
+    if not pool:
+        return ExamStartOut(question_ids=[], adaptive=False, difficulty_note="该分类暂无题目")
+    pool_ids = [r["id"] for r in pool]
+
+    if data.user_id:
+        master = get_topic_mastery(data.user_id)
+        # 知识点按掌握度升序 → 最弱优先
+        topic_mastery = {}
+        for r in pool:
+            t = r["topic"]
+            topic_mastery.setdefault(t, master.get(t, {"mastery": 50})["mastery"])
+        weak_topics = sorted(set(topic_mastery), key=lambda t: topic_mastery[t])
+        weak_pool = [r["id"] for r in pool if r["topic"] in weak_topics[: max(1, len(weak_topics) // 2)]]
+        strong_pool = [r["id"] for r in pool if r["id"] not in weak_pool]
+        import random as _rnd
+        _rnd.seed()
+        weak_n = min(len(weak_pool), max(1, int(data.count * 0.6)))
+        strong_n = min(len(strong_pool), data.count - weak_n)
+        chosen = _rnd.sample(weak_pool, weak_n) + _rnd.sample(strong_pool, strong_n) if weak_pool and strong_pool else (_rnd.sample(pool_ids, min(data.count, len(pool_ids))))
+        # 若不足，补随机
+        while len(chosen) < min(data.count, len(pool_ids)):
+            add = _rnd.choice(pool_ids)
+            if add not in chosen:
+                chosen.append(add)
+        note = f"已为你自适应组卷：优先抽取 {weak_n} 道薄弱知识点题 + {strong_n} 道巩固题"
+        return ExamStartOut(question_ids=chosen[:data.count], adaptive=True, difficulty_note=note)
+    else:
+        import random as _rnd
+        _rnd.seed()
+        chosen = _rnd.sample(pool_ids, min(data.count, len(pool_ids)))
+        return ExamStartOut(question_ids=chosen, adaptive=False, difficulty_note="体验模式：分类随机组卷（登录后启用自适应）")
+
+
+@app.post("/api/exam/submit", response_model=dict)
+def exam_submit(data: ExamSubmitIn):
+    """自适应交卷：记录考场成绩 + 逐题诊断 + 打卡；返回本次最需巩固的薄弱点。"""
+    # 记录逐题诊断
+    if data.user_id and data.attempts:
+        try:
+            add_quiz_attempt_batch(data.user_id, data.attempts)
+        except Exception as e:
+            print("[exam/submit] 逐题诊断记录失败（已忽略）:", e)
+    # 记录考场成绩
+    if data.user_id is not None:
+        conn = get_db()
+        conn.execute(
+            "INSERT INTO exam_records (user_id, exam_type, total, correct, duration, time_used) VALUES (?,?,?,?,?,?)",
+            (data.user_id, data.exam_type, data.total, data.correct, data.duration, data.time_used),
+        )
+        conn.execute(
+            "INSERT OR IGNORE INTO daily_streaks (user_id, check_date) VALUES (?,?)",
+            (data.user_id, str(date.today())),
+        )
+        conn.commit()
+        conn.close()
+    # 计算自适应反馈（最弱知识点）
+    weak_topics = data.weak_topics or []
+    if data.user_id:
+        master = get_topic_mastery(data.user_id)
+        weak_topics = sorted(master, key=lambda t: master[t]["mastery"])[:3]
+    accuracy = round(data.correct / data.total * 100) if data.total else 0
+    feedback = (
+        "本次自适应诊断完成！" + (f"建议重点巩固：{ '、'.join(weak_topics) }。" if weak_topics else "继续保持，薄弱点不明显。")
+    )
+    return {
+        "ok": True,
+        "score": accuracy,
+        "accuracy": accuracy,
+        "weak_topics": weak_topics,
+        "adaptive_feedback": feedback,
+        "recorded": data.user_id is not None,
+    }
 
 
 # ================================================================
@@ -648,6 +1127,282 @@ def get_mastery(user_id: int):
 
 
 # ================================================================
+# 薄弱知识点知识图谱诊断（Step ②）
+# ================================================================
+@app.get("/api/weak-points/{user_id}", response_model=WeakPointsOut)
+def get_weak_points(user_id: int):
+    """基于逐题作答明细，诊断薄弱知识点并构建知识点→分类的知识图谱。
+
+    图谱节点：全部题库知识点(topic) + 分类(cat)；边：topic→所属 cat。
+    每个 topic 节点带掌握度（来自 quiz_attempts，无作答记录为 null）。
+    """
+    conn = get_db()
+    try:
+        # 知识点掌握度（来自逐题作答明细）
+        master = get_topic_mastery(user_id)
+        # 全部题库知识点与分类，构建完整知识图谱
+        topics = conn.execute("SELECT DISTINCT topic, cat FROM questions WHERE topic<>'' ORDER BY cat, topic").fetchall()
+        cats = conn.execute("SELECT DISTINCT cat FROM questions WHERE cat<>'' ORDER BY cat").fetchall()
+        # 也保留基于错题的弱项（无作答记录时仍有价值）
+        wrong_rows = conn.execute("""
+            SELECT q.topic, COUNT(DISTINCT wb.question_id) as wrong_count
+            FROM wrong_book wb JOIN questions q ON wb.question_id=q.id
+            WHERE wb.user_id=? GROUP BY q.topic
+        """, (user_id,)).fetchall()
+        wrong_map = {r["topic"]: r["wrong_count"] for r in wrong_rows}
+    finally:
+        conn.close()
+
+    cat_nodes = []
+    for c in cats:
+        cat = c["cat"]
+        cat_nodes.append(GraphNode(id="cat:" + cat, label=cat, type="cat", cat=cat))
+    topic_nodes = []
+    edges = []
+    weak = []
+    for t in topics:
+        topic = t["topic"]; cat = t["cat"]
+        m = master.get(topic)
+        if m:
+            mastery = m["mastery"]
+            total = m["total"]; correct = m["correct"]
+        else:
+            # 没有逐题记录但有错题：用错题数估算一个偏低掌握度，体现"薄弱"
+            wc = wrong_map.get(topic, 0)
+            mastery = max(0, 100 - wc * 20) if wc else None
+            total = wc; correct = max(0, wc - wc)
+        node = GraphNode(id="topic:" + topic, label=topic, type="topic", cat=cat, mastery=mastery)
+        topic_nodes.append(node)
+        edges.append(GraphEdge(source="topic:" + topic, target="cat:" + cat))
+        if mastery is not None:
+            weak_score = 100 - mastery
+            weak.append(WeakPoint(topic=topic, cat=cat, total=total, correct=correct, mastery=mastery, weak_score=weak_score))
+    weak.sort(key=lambda x: x.weak_score, reverse=True)
+
+    nodes = cat_nodes + topic_nodes
+    return WeakPointsOut(weak=weak, graph={"nodes": [n.model_dump() for n in nodes], "edges": [e.model_dump() for e in edges]})
+
+
+# ================================================================
+# AI 学习计划（诊断 → 可执行日程）
+# ================================================================
+def _build_study_context(user_id, cat, days):
+    """聚合用户数据，构造学习计划上下文。匿名(user_id=None)仅用题库总体分布。"""
+    conn = get_db()
+    try:
+        if user_id:
+            mastery_rows = conn.execute("""
+                SELECT q.topic, COUNT(DISTINCT wb.question_id) as wrong_count
+                FROM wrong_book wb JOIN questions q ON wb.question_id=q.id
+                WHERE wb.user_id=? GROUP BY q.topic
+            """, (user_id,)).fetchall()
+            weak = []
+            for r in mastery_rows:
+                topic = r["topic"]
+                total = conn.execute("SELECT COUNT(*) cnt FROM questions WHERE topic=?", (topic,)).fetchone()["cnt"]
+                m = 100 - (r["wrong_count"] * 15)
+                weak.append((topic, max(0, m)))
+            weak.sort(key=lambda x: x[1])  # 掌握度最低排前
+            weak_topics = [t for t, _ in weak[:8]]
+            rec = conn.execute("SELECT COUNT(*) c, COALESCE(SUM(total),0) t FROM quiz_records WHERE user_id=?", (user_id,)).fetchone()
+            quiz_count = rec["c"]
+            quiz_total = rec["t"]
+            streak = 0  # 连续天数由 /api/streak 计算，此处仅作上下文占位
+        else:
+            weak_topics = []
+            quiz_count = 0
+            quiz_total = 0
+            streak = 0
+        all_topics = [r["topic"] for r in conn.execute("SELECT DISTINCT topic FROM questions").fetchall()]
+        cats = [r["cat"] for r in conn.execute("SELECT DISTINCT cat FROM questions").fetchall()]
+    finally:
+        conn.close()
+    return {
+        "user_id": user_id, "cat": cat, "days": days,
+        "weak_topics": weak_topics, "all_topics": all_topics, "cats": cats,
+        "quiz_count": quiz_count, "quiz_total": quiz_total, "streak": streak,
+    }
+
+
+@app.post("/api/study-plan", response_model=StudyPlanResponse)
+async def api_study_plan(data: StudyPlanRequest):
+    """生成 AI 学习计划：登录用户基于个人数据，匿名返回示例预览。LLM 失败降级。"""
+    ctx = _build_study_context(data.user_id, data.cat, data.days)
+    cat_line = f"目标分类：{data.cat}" if data.cat else "目标分类：全部（考研/考公/大厂）"
+    weak_line = "、".join(ctx["weak_topics"]) if ctx["weak_topics"] else "（暂无错题数据，按题库知识点示例规划）"
+    user_line = "已登录用户（基于个人错题/练习数据）" if data.user_id else "匿名访客（仅示例预览，不读取个人数据）"
+    system = (
+        "你是备考规划教练。根据用户薄弱知识点与目标，生成一份结构化的每日学习计划。"
+        "计划需可执行：每天一个主题、若干知识点、建议题量、一句复习贴士。只输出结构化 JSON，不要解释。"
+    )
+    user = (
+        f"{user_line}。{cat_line}。计划天数：{data.days} 天。\n"
+        f"薄弱知识点（掌握度从低到高）：{weak_line}\n"
+        f"全知识点库：{'、'.join(ctx['all_topics'])}\n"
+        f"历史练习次数：{ctx['quiz_count']}，累计题量：{ctx['quiz_total']}，连续打卡：{ctx['streak']} 天。\n"
+        f"请输出 week_start（本周一 YYYY-MM-DD）与 days 数组（每天含 day/theme/topics/count/tip）。"
+    )
+    plan = await _structured_llm(system, user, "study_plan", _PLAN_SCHEMA, max_tokens=900)
+    if not plan or not plan.get("days"):
+        plan = fallback_study_plan(ctx["weak_topics"], ctx["all_topics"], data.cat or "", data.days)
+        return StudyPlanResponse(fallback=True, plan=plan)
+    norm_days = []
+    for d in plan.get("days", [])[: data.days]:
+        norm_days.append({
+            "day": int(d.get("day", len(norm_days) + 1)),
+            "theme": str(d.get("theme", "")),
+            "topics": [str(x) for x in (d.get("topics") or [])],
+            "count": int(d.get("count", 15) or 15),
+            "tip": str(d.get("tip", "")),
+        })
+    plan["days"] = norm_days
+    return StudyPlanResponse(fallback=False, plan=plan)
+
+
+@app.get("/api/study-plan/{user_id}", response_model=StudyPlanOut)
+def get_study_plan(user_id: int):
+    """读取用户当前活跃学习计划。"""
+    row = get_active_study_plan(user_id)
+    if not row:
+        raise HTTPException(404, "暂无保存的学习计划")
+    return row
+
+
+@app.post("/api/study-plan/save", response_model=StudyPlanOut)
+def save_study_plan_api(data: StudyPlanSaveIn):
+    """保存（UPSERT）当前活跃学习计划：旧计划置为非活跃，插入新计划。"""
+    conn = get_db()
+    user = conn.execute("SELECT id FROM users WHERE id=?", (data.user_id,)).fetchone()
+    if not user:
+        conn.close()
+        raise HTTPException(400, "用户不存在，无法保存计划")
+    conn.close()
+    try:
+        rid = save_study_plan(data.user_id, data.cat, data.plan_json, data.week_start)
+    except Exception as e:
+        raise HTTPException(400, "保存失败：" + str(e))
+    conn = get_db()
+    row = conn.execute("SELECT * FROM study_plans WHERE id=?", (rid,)).fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(500, "保存失败")
+    return dict(row)
+
+
+# ================================================================
+# 学习激励 / 段位 / 榜单（Step ⑦）
+# ================================================================
+@app.get("/api/profile/{user_id}", response_model=ProfileOut)
+def get_profile(user_id: int):
+    """成长画像：经验值 / 等级 / 段位 / 徽章 / 准确率。"""
+    try:
+        p = compute_profile(user_id)
+    except Exception as e:
+        print("[profile]", e)
+        raise HTTPException(500, "计算画像失败")
+    p["badges"] = [b.model_dump() for b in [BadgeModel(**b) for b in p["badges"]]]
+    return ProfileOut(**p)
+
+
+@app.get("/api/leaderboard", response_model=list[LeaderboardItem])
+def get_leaderboard(limit: int = 20):
+    """段位榜单：按经验值对所有用户排名（仅展示有学习记录的用户）。"""
+    conn = get_db()
+    try:
+        users = conn.execute("SELECT id, username FROM users ORDER BY id").fetchall()
+    finally:
+        conn.close()
+    items = []
+    for u in users:
+        try:
+            p = compute_profile(u["id"])
+        except Exception:
+            continue
+        if p["exp"] <= 0:
+            continue
+        items.append(LeaderboardItem(
+            user_id=u["id"], username=u["username"], exp=p["exp"],
+            level=p["level"], level_name=p["level_name"], accuracy=p["accuracy"],
+        ))
+    items.sort(key=lambda x: x.exp, reverse=True)
+    return items[:limit]
+
+
+# ================================================================
+# 自适应学习计划（Step ③）：基于逐题掌握度，优先攻克最弱知识点
+# ================================================================
+def _weak_topics_from_mastery(user_id, cat=None, limit=8):
+    """从逐题作答明细 / 错题本推导薄弱知识点（掌握度升序）。"""
+    conn = get_db()
+    try:
+        master = get_topic_mastery(user_id)
+        rows = conn.execute("""
+            SELECT q.topic, COUNT(DISTINCT wb.question_id) as wrong_count
+            FROM wrong_book wb JOIN questions q ON wb.question_id=q.id
+            WHERE wb.user_id=? GROUP BY q.topic
+        """, (user_id,)).fetchall()
+    finally:
+        conn.close()
+    wrong_map = {r["topic"]: r["wrong_count"] for r in rows}
+    scored = []
+    # 优先用逐题掌握度
+    for topic, m in master.items():
+        if cat:
+            # 仅在指定分类下
+            pass
+        scored.append((topic, m["mastery"]))
+    # 补充仅有错题、无逐题记录的知识点
+    for topic, wc in wrong_map.items():
+        if topic not in master:
+            scored.append((topic, max(0, 100 - wc * 20)))
+    scored.sort(key=lambda x: x[1])  # 掌握度从低到高
+    return [t for t, _ in scored[:limit]]
+
+
+@app.post("/api/study-plan/adaptive", response_model=StudyPlanResponse)
+async def api_study_plan_adaptive(data: AdaptivePlanRequest):
+    """自适应计划：以逐题掌握度诊断出的薄弱知识点为主线，按"最弱优先"排布每日训练。"""
+    weak_topics = _weak_topics_from_mastery(data.user_id) if data.user_id else []
+    if data.cat and weak_topics:
+        # 过滤到目标分类（若题库 topic 已含分类语义则不过滤，这里仅作上下文）
+        pass
+    all_topics = []
+    conn = get_db()
+    try:
+        all_topics = [r["topic"] for r in conn.execute("SELECT DISTINCT topic FROM questions WHERE topic<>''").fetchall()]
+    finally:
+        conn.close()
+    cat_line = f"目标分类：{data.cat}" if data.cat else "目标分类：全部（考研/考公/大厂）"
+    weak_line = "、".join(weak_topics) if weak_topics else "（暂无逐题诊断数据，按题库知识点示例规划）"
+    system = (
+        "你是备考规划教练。基于用户薄弱知识点掌握度，生成一份『自适应』每日计划："
+        "优先安排最弱知识点，每天一个主题、若干知识点、建议题量、一句复习贴士。只输出结构化 JSON。"
+    )
+    user = (
+        f"匿名访客（仅示例）" if not data.user_id else "已登录用户（基于逐题诊断数据）"
+        f"。{cat_line}。计划天数：{data.days} 天。\n"
+        f"自适应薄弱主线（掌握度从低到高）：{weak_line}\n"
+        f"全知识点库：{'、'.join(all_topics)}\n"
+        f"请按『最弱优先』原则排布 days 数组（每天含 day/theme/topics/count/tip）。"
+    )
+    plan = await _structured_llm(system, user, "study_plan_adaptive", _PLAN_SCHEMA, max_tokens=900)
+    if not plan or not plan.get("days"):
+        plan = fallback_study_plan(weak_topics, all_topics, data.cat or "", data.days)
+        return StudyPlanResponse(fallback=True, plan=plan, weak_topics=weak_topics)
+    norm_days = []
+    for d in plan.get("days", [])[: data.days]:
+        norm_days.append({
+            "day": int(d.get("day", len(norm_days) + 1)),
+            "theme": str(d.get("theme", "")),
+            "topics": [str(x) for x in (d.get("topics") or [])],
+            "count": int(d.get("count", 15) or 15),
+            "tip": str(d.get("tip", "")),
+        })
+    plan["days"] = norm_days
+    return StudyPlanResponse(fallback=False, plan=plan, weak_topics=weak_topics)
+
+
+# ================================================================
 # AI 能力接口（讲题 / 变式题 / 押题报告）
 #   无 API_KEY 时返回结构化降级内容，前端始终可用
 # ================================================================
@@ -668,7 +1423,40 @@ def fallback_explain(q: dict) -> dict:
             f'巩固：{ q.get("explain", "") }',
         ],
         "tips": "建议把本题加入错题本，按遗忘曲线复习，并联想同类考点。",
+        "exam_point": f'核心考点：{q.get("topic", "")}（{q.get("difficulty", "medium")}难度）',
+        "pitfalls": "注意排除干扰项，先判考点再下结论，避免凭直觉选答。",
+        "teacher": {"exam_point": f'核心考点：{q.get("topic", "")}', "pitfalls": "考场常见陷阱：混淆相近概念、忽略题干限定词。"},
     }
+
+
+def _explain_style_prompt(style: str) -> str:
+    if style == "concise":
+        return "请用极简风格讲题：summary 一句话结论，steps 不超过 3 条，直击要点。"
+    if style == "story":
+        return "请用生动类比 / 生活化故事讲题，让抽象考点更易记忆，steps 可带场景化描述。"
+    return "讲解需条理清晰、面向备考学生。"
+
+
+def fallback_study_plan(weak_topics: list, all_topics: list, cat: str, days: int = 7) -> dict:
+    """确定性降级：按薄弱知识点升序铺满 days 天，无 LLM 也可用。"""
+    from datetime import timedelta
+    today = date.today()
+    monday = today - timedelta(days=today.weekday())
+    week_start = monday.isoformat()
+    pool = list(weak_topics) if weak_topics else list(all_topics)
+    if not pool:
+        pool = ["综合巩固"]
+    plan_days = []
+    for i in range(days):
+        t = pool[i % len(pool)]
+        plan_days.append({
+            "day": i + 1,
+            "theme": f"第{i + 1}天 · {t}",
+            "topics": [t],
+            "count": 15,
+            "tip": "先复习概念再做题，错题当晚复盘。",
+        })
+    return {"week_start": week_start, "days": plan_days}
 
 
 def fallback_gen(q: dict) -> dict:
@@ -717,7 +1505,8 @@ def fallback_report(p: dict) -> dict:
 @app.post("/api/explain")
 async def api_explain(data: ExplainIn):
     q = data.question.model_dump()
-    key = "explain:" + str(q.get("_idx") or q.get("stem", ""))
+    style = data.style or "default"
+    key = "explain:" + style + ":" + str(q.get("_idx") or q.get("stem", ""))
     cached = _cache_get(key)
     if cached:
         return cached
@@ -725,16 +1514,22 @@ async def api_explain(data: ExplainIn):
         if not HAS_KEY:
             result = fallback_explain(q)
         else:
-            system = ("你是资深备考讲师，擅长把题目讲透。请基于题目与官方解析，输出结构化结果："
-                      "summary=简要结论, steps=步骤要点数组, tips=1句记忆/避坑建议。语言通俗、面向备考学生。")
+            system = ("你是资深备考讲师，擅长把题目讲透（双师模式）。请基于题目与官方解析输出结构化结果："
+                      "summary=简要结论；steps=步骤要点数组；tips=1句记忆/避坑建议；"
+                      "exam_point=名师视角一句话核心考点；pitfalls=名师视角易错点/考场陷阱。"
+                      + _explain_style_prompt(style))
             user = (f'题目：{q.get("stem","")}\n选项：{ " ".join(f"{_letter(i)}.{o}" for i,o in enumerate(q.get("opts",[]))) }\n'
                     f'正确答案：{ "、".join(_letter(i) for i in q.get("answer",[])) }\n'
                     f'知识点：{q.get("topic","")}\n官方解析：{q.get("explain","（无）")}')
-            result = await _structured_llm(system, user, "explain_question", _EXPLAIN_SCHEMA, 600)
+            result = await _structured_llm(system, user, "explain_question", _EXPLAIN_SCHEMA, 700)
             if not result:
                 result = fallback_explain(q)
             else:
                 result["source"] = "llm"
+                result["teacher"] = {
+                    "exam_point": result.get("exam_point", ""),
+                    "pitfalls": result.get("pitfalls", ""),
+                }
         _cache_set(key, result)
         return result
     except Exception as e:

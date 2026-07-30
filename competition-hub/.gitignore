@@ -1,0 +1,30 @@
+# ===== Python 虚拟环境 =====
+.venv/
+venv/
+
+# ===== Python 缓存 =====
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ===== 本地数据库（运行时生成） =====
+server/data/
+*.db
+*.db-wal
+*.db-shm
+
+# ===== 前端依赖与构建产物（由部署阶段构建） =====
+node_modules/
+web/dist/
+
+# 解除对前端源码目录的误忽略（仓库根 .gitignore 的 lib/ 会匹配 web/src/lib）
+!web/src/lib/
+
+# ===== 环境变量（含密钥，禁止提交） =====
+.env
+.env.local
+.env.*.local
+
+# ===== 测试缓存 =====
+server/tests/__pycache__/

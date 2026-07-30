@@ -21,24 +21,24 @@ export default function About() {
       >
         {/* Section Header */}
         <div className="flex items-center gap-4 mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-100">{t.aboutTitle}</h2>
-          <div className="flex-1 h-px bg-gradient-to-r from-slate-700 to-transparent" />
+          <h2 className="text-3xl sm:text-4xl font-bold text-fg">{t.aboutTitle}</h2>
+          <div className="flex-1 h-px bg-gradient-to-r from-line to-transparent" />
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 items-start">
           {/* Avatar */}
           <div className="md:col-span-1 flex justify-center md:justify-start">
             <div className="relative">
-              <div className="w-48 h-48 rounded-2xl bg-gradient-to-br from-sky-400/20 to-indigo-400/20 p-1">
-                <div className="w-full h-full rounded-xl bg-slate-800 flex items-center justify-center">
-                  <span className="text-6xl font-bold bg-gradient-to-br from-sky-400 to-indigo-400 bg-clip-text text-transparent">
+              <div className="w-48 h-48 rounded-2xl bg-gradient-to-br from-accent/20 to-accent-2/20 p-1">
+                <div className="w-full h-full rounded-xl bg-surface flex items-center justify-center">
+                  <span className="text-6xl font-bold bg-gradient-to-br from-accent to-accent-2 bg-clip-text text-transparent">
                     {initials}
                   </span>
                 </div>
               </div>
               {/* Decorative elements */}
-              <div className="absolute -top-4 -right-4 w-16 h-16 border border-sky-400/30 rounded-xl -z-10" />
-              <div className="absolute -bottom-4 -left-4 w-12 h-12 bg-indigo-400/20 rounded-lg -z-10" />
+              <div className="absolute -top-4 -right-4 w-16 h-16 border border-accent/30 rounded-xl -z-10" />
+              <div className="absolute -bottom-4 -left-4 w-12 h-12 bg-accent-2/20 rounded-lg -z-10" />
             </div>
           </div>
 
@@ -47,7 +47,7 @@ export default function About() {
             {t.aboutContent.map((paragraph, index) => (
               <p
                 key={index}
-                className="text-slate-400 leading-relaxed"
+                className="text-muted leading-relaxed"
                 style={{
                   transitionDelay: `${index * 100}ms`,
                 }}
@@ -58,13 +58,13 @@ export default function About() {
 
             {/* Quick Info */}
             <div className="grid grid-cols-2 gap-4 pt-4">
-              <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
-                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">{t.aboutLocation}</p>
-                <p className="text-slate-200">{personalInfo.location[language]}</p>
+              <div className="p-4 rounded-lg bg-surface/50 border border-line">
+                <p className="text-xs text-faint uppercase tracking-wider mb-1">{t.aboutLocation}</p>
+                <p className="text-fg">{personalInfo.location[language]}</p>
               </div>
-              <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
-                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">{t.contactEmail}</p>
-                <p className="text-slate-200 truncate">{personalInfo.email}</p>
+              <div className="p-4 rounded-lg bg-surface/50 border border-line">
+                <p className="text-xs text-faint uppercase tracking-wider mb-1">{t.contactEmail}</p>
+                <p className="text-fg truncate">{personalInfo.email}</p>
               </div>
             </div>
           </div>

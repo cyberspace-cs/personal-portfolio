@@ -1,0 +1,1400 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>竞赛雷达 · 预览（自动聚合 + 真实赛事链接）</title>
+<style>
+  :root{--cyan:#22d3ee;--violet:#a78bfa;--pink:#f472b6;--amber:#fbbf24;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:radial-gradient(1200px 600px at 70% -10%,rgba(34,211,238,.12),transparent),#070b14;color:#e2e8f0;min-height:100vh}
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 20px 64px}
+  header h1{font-size:30px;margin:0;color:#fff;letter-spacing:1px}
+  header h1 b{color:var(--cyan)}
+  .sub{color:#94a3b8;margin:6px 0 0;font-size:14px}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0 26px}
+  .stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 16px;min-width:96px}
+  .stat b{display:block;font-size:22px;color:var(--cyan)}
+  .stat span{font-size:12px;color:#94a3b8}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+  .card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;
+    opacity:0;transform:translateY(10px);animation:enter .5s ease forwards;animation-delay:calc(var(--i)*40ms)}
+  @keyframes enter{to{opacity:1;transform:none}}
+  .cover{position:relative;height:120px;background:linear-gradient(135deg,#0ea5e9,#7c3aed);overflow:hidden}
+  .cover::after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:22px 22px;opacity:.35}
+  .cat{position:absolute;left:10px;top:10px;font-size:12px;background:rgba(0,0,0,.4);padding:3px 8px;border-radius:8px;color:#fff}
+  .badge{position:absolute;right:10px;top:10px;font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid}
+  .from{position:absolute;left:10px;bottom:10px;font-size:10px;background:rgba(0,0,0,.45);padding:2px 7px;border-radius:7px;color:var(--cyan)}
+  .body{padding:14px 16px 16px}
+  .body h3{margin:0 0 6px;font-size:15px;line-height:1.35}
+  .body h3 a{color:#fff;text-decoration:none}
+  .body h3 a:hover{color:var(--cyan)}
+  .body p{margin:0 0 10px;font-size:12px;color:#94a3b8;line-height:1.5;height:36px;overflow:hidden}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .chip{font-size:11px;background:rgba(34,211,238,.12);color:var(--cyan);padding:2px 8px;border-radius:999px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:#94a3b8;margin-bottom:10px}
+  .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid rgba(255,255,255,.06);padding-top:10px}
+  .src{font-size:11px;color:var(--cyan);text-decoration:none;font-weight:600}
+  .src:hover{text-decoration:underline}
+  .org{font-size:11px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .note{margin-top:28px;font-size:12px;color:#64748b;border-top:1px dashed rgba(255,255,255,.1);padding-top:14px}
+</style></head>
+<body><div class="wrap">
+  <header>
+    <h1>竞赛<b>雷达</b> · 预览</h1>
+    <p class="sub">自动聚合引擎已接入多源真实赛事，每张卡片均带「查看官网」真实链接（数据快照来自本地 8210 服务）。</p>
+  </header>
+  <div class="stats">
+    <div class="stat"><b>64</b><span>赛事总数</span></div>
+    <div class="stat"><b>47</b><span>进行中</span></div>
+    <div class="stat"><b>4</b><span>即将开始</span></div>
+    <div class="stat"><b>13</b><span>已结束</span></div>
+    <div class="stat"><b>7</b><span>分类</span></div>
+  </div>
+  <div class="grid">
+    <article class="card" style="--i:0">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-slate-500/50 bg-slate-500/10 text-slate-400">已结束</span>
+        <span class="from">聚合自 京东零售技术</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://jdsc.jd.com" target="_blank" rel="noreferrer">京东 618 智能供应链算法大赛</a></h3>
+        <p>销量预测与智能补货联合优化。</p>
+        <div class="tags"><span class="chip">#供应链</span><span class="chip">#预测</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 200,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://jdsc.jd.com" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：京东零售技术</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:1">
+      <div class="cover">
+        <span class="cat">🛡️ 网络安全</span>
+        <span class="badge border-sky-400/50 bg-sky-400/10 text-sky-300">即将开始</span>
+        <span class="from">聚合自 天府杯组委会</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.tianfucup.com" target="_blank" rel="noreferrer">Tianfu Cup 国际网络安全大赛</a></h3>
+        <p>面向主流软硬件的实战漏洞挖掘与利用。</p>
+        <div class="tags"><span class="chip">#漏洞</span><span class="chip">#实战</span></div>
+        <div class="meta">
+          <span>📍 成都</span>
+          <span>🏆 $ 1,000,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.tianfucup.com" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：天府杯组委会</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:2">
+      <div class="cover">
+        <span class="cat">🛡️ 网络安全</span>
+        <span class="badge border-sky-400/50 bg-sky-400/10 text-sky-300">即将开始</span>
+        <span class="from">聚合自 国家网络空间安全基地</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.qiangwangbei.com" target="_blank" rel="noreferrer">强网拟态防御国际精英赛</a></h3>
+        <p>拟态防御场景下的高阶 CTF 对抗。</p>
+        <div class="tags"><span class="chip">#拟态</span><span class="chip">#CTF</span></div>
+        <div class="meta">
+          <span>📍 郑州</span>
+          <span>🏆 ¥ 300,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.qiangwangbei.com" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：国家网络空间安全基地</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:3">
+      <div class="cover">
+        <span class="cat">🎨 设计竞赛</span>
+        <span class="badge border-sky-400/50 bg-sky-400/10 text-sky-300">即将开始</span>
+        <span class="from">聚合自 教育部设计学教指委</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.cuidc.net" target="_blank" rel="noreferrer">全国大学生工业设计大赛（智能产品）</a></h3>
+        <p>智能硬件与产品服务系统设计。</p>
+        <div class="tags"><span class="chip">#工业设计</span><span class="chip">#智能硬件</span></div>
+        <div class="meta">
+          <span>📍 多城市</span>
+          <span>🏆 证书 + 奖金</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.cuidc.net" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：教育部高等学校设计学教指委</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:4">
+      <div class="cover">
+        <span class="cat">🧮 算法竞赛</span>
+        <span class="badge border-sky-400/50 bg-sky-400/10 text-sky-300">即将开始</span>
+        <span class="from">聚合自 中国研究生数学建模竞赛组委会</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://gmcm.seu.edu.cn" target="_blank" rel="noreferrer">中国研究生数学建模竞赛</a></h3>
+        <p>三天三夜的团队数学建模实战。</p>
+        <div class="tags"><span class="chip">#数学建模</span><span class="chip">#研究生</span></div>
+        <div class="meta">
+          <span>📍 多城市</span>
+          <span>🏆 证书 + 奖金</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://gmcm.seu.edu.cn" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：中国研究生数学建模竞赛组委会</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:5">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-slate-500/50 bg-slate-500/10 text-slate-400">已结束</span>
+        <span class="from">聚合自 阿里云天池</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://tianchi.aliyun.com/competition/entrance/532387" target="_blank" rel="noreferrer">2025 AI 原生编程挑战赛—AIOps 故障定位挑战赛</a></h3>
+        <p>云原生与 AIGC 时代的系统稳定性保障。</p>
+        <div class="tags"><span class="chip">#AIOps</span><span class="chip">#运维</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 300,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://tianchi.aliyun.com/competition/entrance/532387" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：阿里云天池</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:6">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-slate-500/50 bg-slate-500/10 text-slate-400">已结束</span>
+        <span class="from">聚合自 腾讯云</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://cloud.tencent.com/developer/competition/introduction/10021" target="_blank" rel="noreferrer">“觅影”医学人工智能算法大赛</a></h3>
+        <p>AI 辅助医学诊断算法挑战。</p>
+        <div class="tags"><span class="chip">#医疗</span><span class="chip">#CV</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 450,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://cloud.tencent.com/developer/competition/introduction/10021" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：腾讯医疗健康</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:7">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-slate-500/50 bg-slate-500/10 text-slate-400">已结束</span>
+        <span class="from">聚合自 腾讯云</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://cloud.tencent.com/developer/competition/introduction/10006" target="_blank" rel="noreferrer">2021 腾讯广告算法大赛-视频广告秒级语义解析</a></h3>
+        <p>视频广告秒级语义解析与多模态标签。</p>
+        <div class="tags"><span class="chip">#广告</span><span class="chip">#多模态</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 950,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://cloud.tencent.com/developer/competition/introduction/10006" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：腾讯广告</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:8">
+      <div class="cover">
+        <span class="cat">🧮 算法竞赛</span>
+        <span class="badge border-slate-500/50 bg-slate-500/10 text-slate-400">已结束</span>
+        <span class="from">聚合自 腾讯云</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://cloud.tencent.com/developer/competition/introduction/10027" target="_blank" rel="noreferrer">腾讯云数据库 TDSQL 精英挑战赛</a></h3>
+        <p>基于 TDSQL 的数据库技术与商业创新挑战。</p>
+        <div class="tags"><span class="chip">#数据库</span><span class="chip">#算法</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 350,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://cloud.tencent.com/developer/competition/introduction/10027" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：腾讯云数据库</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:9">
+      <div class="cover">
+        <span class="cat">🛡️ 网络安全</span>
+        <span class="badge border-slate-500/50 bg-slate-500/10 text-slate-400">已结束</span>
+        <span class="from">聚合自 腾讯云</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://cloud.tencent.com/developer/competition/introduction/10042" target="_blank" rel="noreferrer">腾讯网络安全 T-Star 高校挑战赛</a></h3>
+        <p>密室逃脱式 CTF，培育网安人才。</p>
+        <div class="tags"><span class="chip">#CTF</span><span class="chip">#安全</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 28,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://cloud.tencent.com/developer/competition/introduction/10042" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：腾讯安全响应中心</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:10">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-slate-500/50 bg-slate-500/10 text-slate-400">已结束</span>
+        <span class="from">聚合自 腾讯云</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://cloud.tencent.com/developer/competition/introduction/10055" target="_blank" rel="noreferrer">2024年能源行业人工智能应用大赛-电力系统智能调度</a></h3>
+        <p>电力系统智能调度决策模型。</p>
+        <div class="tags"><span class="chip">#能源</span><span class="chip">#调度</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 实时</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://cloud.tencent.com/developer/competition/introduction/10055" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：中国能源研究会</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:11">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-slate-500/50 bg-slate-500/10 text-slate-400">已结束</span>
+        <span class="from">聚合自 腾讯云</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://cloud.tencent.com/developer/competition/introduction/10054" target="_blank" rel="noreferrer">2024年能源行业人工智能应用大赛-电力现场安监管控</a></h3>
+        <p>电力现场安全智能管控的多模态大模型竞赛。</p>
+        <div class="tags"><span class="chip">#能源</span><span class="chip">#AI</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 实时</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://cloud.tencent.com/developer/competition/introduction/10054" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：中国能源研究会</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:12">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 百度 AI Studio</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://aistudio.baidu.com/competition/detail/778" target="_blank" rel="noreferrer">基于文心CV大模型的智慧城市视觉多任务识别</a></h3>
+        <p>人脸/人体/车辆/商品多任务视觉大一统。</p>
+        <div class="tags"><span class="chip">#CV</span><span class="chip">#文心</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 积分奖励</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://aistudio.baidu.com/competition/detail/778" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：百度 CV</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:13">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 百度 AI Studio</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://aistudio.baidu.com/competition/detail/708" target="_blank" rel="noreferrer">千言数据集：中学语文阅读理解</a></h3>
+        <p>推进中文自然语言处理发展。</p>
+        <div class="tags"><span class="chip">#阅读理解</span><span class="chip">#NLP</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 千言礼包</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://aistudio.baidu.com/competition/detail/708" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：百度 NLP</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:14">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 百度 AI Studio</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://aistudio.baidu.com/competition/detail/672" target="_blank" rel="noreferrer">千言数据集：视频看点抽取</a></h3>
+        <p>从视频中抽取看点并给出时间。</p>
+        <div class="tags"><span class="chip">#多模态</span><span class="chip">#NLP</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 千言礼包</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://aistudio.baidu.com/competition/detail/672" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：百度 NLP</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:15">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 百度 AI Studio</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://aistudio.baidu.com/competition/detail/550" target="_blank" rel="noreferrer">千言数据集：对话共指消解评测</a></h3>
+        <p>任务型对话系统的共指消解。</p>
+        <div class="tags"><span class="chip">#对话</span><span class="chip">#NLP</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 千言礼包</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://aistudio.baidu.com/competition/detail/550" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：百度 NLP</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:16">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 百度 AI Studio</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://aistudio.baidu.com/competition/detail/668" target="_blank" rel="noreferrer">千言数据集-航旅纵横：细粒度文本级答案抽取</a></h3>
+        <p>民航领域细粒度文本答案抽取。</p>
+        <div class="tags"><span class="chip">#阅读理解</span><span class="chip">#NLP</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 千言礼包</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://aistudio.baidu.com/competition/detail/668" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：百度 NLP</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:17">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 百度 AI Studio</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://aistudio.baidu.com/competition/detail/666" target="_blank" rel="noreferrer">千言数据集-航旅纵横：段落级答案抽取</a></h3>
+        <p>民航领域段落级问答对抽取。</p>
+        <div class="tags"><span class="chip">#阅读理解</span><span class="chip">#NLP</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 千言礼包</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://aistudio.baidu.com/competition/detail/666" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：百度 NLP</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:18">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 百度 AI Studio</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://aistudio.baidu.com/competition/detail/728" target="_blank" rel="noreferrer">千言数据集：低资源翻译-法俄泰与中文互译</a></h3>
+        <p>“一带一路”重点语种低资源翻译。</p>
+        <div class="tags"><span class="chip">#机器翻译</span><span class="chip">#NLP</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 千言礼包</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://aistudio.baidu.com/competition/detail/728" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：百度 NLP</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:19">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-slate-500/50 bg-slate-500/10 text-slate-400">已结束</span>
+        <span class="from">聚合自 百度 AI Studio</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://aistudio.baidu.com/competition/detail/1484" target="_blank" rel="noreferrer">第二十一届全国大学生智能汽车竞赛：百度智慧交通组创意赛</a></h3>
+        <p>智慧交通组创意赛。</p>
+        <div class="tags"><span class="chip">#智慧交通</span><span class="chip">#创意</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 国赛奖项</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://aistudio.baidu.com/competition/detail/1484" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：百度</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:20">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-slate-500/50 bg-slate-500/10 text-slate-400">已结束</span>
+        <span class="from">聚合自 百度 AI Studio</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://aistudio.baidu.com/competition/detail/1486" target="_blank" rel="noreferrer">第二十一届全国大学生智能汽车竞赛：百度人工智能模型竞速赛</a></h3>
+        <p>智能汽车 AI 模型竞速。</p>
+        <div class="tags"><span class="chip">#自动驾驶</span><span class="chip">#OCR</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 国赛奖项</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://aistudio.baidu.com/competition/detail/1486" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：百度</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:21">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-slate-500/50 bg-slate-500/10 text-slate-400">已结束</span>
+        <span class="from">聚合自 百度 AI Studio</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://aistudio.baidu.com/competition/detail/1468" target="_blank" rel="noreferrer">2026中国软件杯—文心小汪赛道</a></h3>
+        <p>基于文心大模型与飞桨的四足机器狗消防侦察救援系统。</p>
+        <div class="tags"><span class="chip">#文心</span><span class="chip">#飞桨</span><span class="chip">#CV</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 国赛奖项</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://aistudio.baidu.com/competition/detail/1468" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：中国软件杯组委会</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:22">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1098" target="_blank" rel="noreferrer">中文开源数据集驱动中文大模型智能跃迁挑战赛</a></h3>
+        <p>用中文开源数据集提升大模型能力。</p>
+        <div class="tags"><span class="chip">#LLM</span><span class="chip">#中文</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 100,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1098" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：DataFountain</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:23">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1097" target="_blank" rel="noreferrer">盲区突围：模型BadCase极限挑战赛</a></h3>
+        <p>寻找并修复模型盲区 BadCase。</p>
+        <div class="tags"><span class="chip">#鲁棒性</span><span class="chip">#评测</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 80,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1097" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：DataFountain</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:24">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1103" target="_blank" rel="noreferrer">电算协同促进能效提升探索与实践</a></h3>
+        <p>电算协同优化能效。</p>
+        <div class="tags"><span class="chip">#能源</span><span class="chip">#优化</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 90,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1103" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：DataFountain</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:25">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1102" target="_blank" rel="noreferrer">基于人工智能的闽江流域水情预报</a></h3>
+        <p>用 AI 做闽江流域水情预报。</p>
+        <div class="tags"><span class="chip">#时序</span><span class="chip">#水文</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 90,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1102" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：DataFountain</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:26">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1104" target="_blank" rel="noreferrer">多模态BadCase极限挑战赛</a></h3>
+        <p>极限打磨多模态模型 BadCase。</p>
+        <div class="tags"><span class="chip">#多模态</span><span class="chip">#评测</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 80,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1104" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：DataFountain</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:27">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1146" target="_blank" rel="noreferrer">6G/B6G 内生AI：“控制语义”系统设计</a></h3>
+        <p>面向 6G/B6G 的内生 AI 控制语义系统设计。</p>
+        <div class="tags"><span class="chip">#6G</span><span class="chip">#通信</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 120,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1146" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：DataFountain</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:28">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1156" target="_blank" rel="noreferrer">生物医药和医疗器械赛道</a></h3>
+        <p>生物医药与医疗器械数据建模。</p>
+        <div class="tags"><span class="chip">#医药</span><span class="chip">#生物</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 100,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1156" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：数字中国创新大赛</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:29">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1155" target="_blank" rel="noreferrer">新材料和新能源赛道</a></h3>
+        <p>新材料与新能源方向的数据竞赛。</p>
+        <div class="tags"><span class="chip">#新能源</span><span class="chip">#材料</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 100,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1155" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：数字中国创新大赛</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:30">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1154" target="_blank" rel="noreferrer">高端智能制造和半导体赛道</a></h3>
+        <p>聚焦智能制造与半导体数据建模。</p>
+        <div class="tags"><span class="chip">#制造</span><span class="chip">#半导体</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 100,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1154" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：数字中国创新大赛</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:31">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1153" target="_blank" rel="noreferrer">大数据和人工智能赛道</a></h3>
+        <p>数字中国创新大赛：大数据与人工智能赛道。</p>
+        <div class="tags"><span class="chip">#政务</span><span class="chip">#大数据</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 100,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1153" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：数字中国创新大赛</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:32">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1163" target="_blank" rel="noreferrer">多模态感知融合增强的具身自主抓取任务挑战</a></h3>
+        <p>具身智能：多模态感知融合自主抓取。</p>
+        <div class="tags"><span class="chip">#具身</span><span class="chip">#机器人</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 180,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1163" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：DataFountain</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:33">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1164" target="_blank" rel="noreferrer">红外智感—红外开放世界全模态分割挑战</a></h3>
+        <p>红外开放世界下的全模态分割。</p>
+        <div class="tags"><span class="chip">#分割</span><span class="chip">#红外</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 150,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1164" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：DataFountain</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:34">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1165" target="_blank" rel="noreferrer">具有多模态能力的客服智能体设计</a></h3>
+        <p>构建具备多模态能力的客服智能体。</p>
+        <div class="tags"><span class="chip">#Agent</span><span class="chip">#多模态</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 150,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1165" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：DataFountain</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:35">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1166" target="_blank" rel="noreferrer">“猎鹰·微波智探”雷达多目标智能探测与识别</a></h3>
+        <p>雷达多目标智能探测与识别挑战。</p>
+        <div class="tags"><span class="chip">#雷达</span><span class="chip">#检测</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 200,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1166" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：DataFountain</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:36">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 DataFountain</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.datafountain.cn/competitions/1169" target="_blank" rel="noreferrer">AI新睿人才“星探计划”</a></h3>
+        <p>挖掘与扶持 AI 新锐人才。</p>
+        <div class="tags"><span class="chip">#人才</span><span class="chip">#AI</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 ¥ 100,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.datafountain.cn/competitions/1169" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：DataFountain</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:37">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-slate-500/50 bg-slate-500/10 text-slate-400">已结束</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/birdclef-2026" target="_blank" rel="noreferrer">BirdCLEF+ 2026</a></h3>
+        <p>从声音中识别鸟类物种。</p>
+        <div class="tags"><span class="chip">#音频</span><span class="chip">#生物</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $50,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/birdclef-2026" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：LifeCLEF</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:38">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-slate-500/50 bg-slate-500/10 text-slate-400">已结束</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/nvidia-nemotron-model-reasoning-challenge" target="_blank" rel="noreferrer">NVIDIA Nemotron Model Reasoning Challenge</a></h3>
+        <p>评测 Nemotron 模型推理能力。</p>
+        <div class="tags"><span class="chip">#LLM</span><span class="chip">#推理</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $106,388</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/nvidia-nemotron-model-reasoning-challenge" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：NVIDIA</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:39">
+      <div class="cover">
+        <span class="cat">🚀 热门黑客松</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/arc-prize-2026-paper-track" target="_blank" rel="noreferrer">ARC Prize 2026 - Paper Track</a></h3>
+        <p>记录你针对 ARC Prize 2026 的概念方案。</p>
+        <div class="tags"><span class="chip">#AGI</span><span class="chip">#论文</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 荣誉证书</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/arc-prize-2026-paper-track" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：ARC Prize Foundation</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:40">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/spaceship-titanic" target="_blank" rel="noreferrer">Spaceship Titanic</a></h3>
+        <p>预测乘客是否被传送到了平行维度。</p>
+        <div class="tags"><span class="chip">#分类</span><span class="chip">#趣味</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 荣誉证书</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/spaceship-titanic" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：Kaggle</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:41">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques" target="_blank" rel="noreferrer">House Prices - Advanced Regression Techniques</a></h3>
+        <p>房价预测，练习特征工程与集成学习。</p>
+        <div class="tags"><span class="chip">#回归</span><span class="chip">#表格</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 荣誉证书</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：Kaggle</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:42">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/titanic" target="_blank" rel="noreferrer">Titanic - Machine Learning from Disaster</a></h3>
+        <p>入门经典：预测泰坦尼克号生还。</p>
+        <div class="tags"><span class="chip">#入门</span><span class="chip">#分类</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 荣誉证书</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/titanic" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：Kaggle</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:43">
+      <div class="cover">
+        <span class="cat">🚀 热门黑客松</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/soccer-feature-engineering-hackathon" target="_blank" rel="noreferrer">Soccer Feature Engineering Hackathon</a></h3>
+        <p>把比赛事件流转化为新的球员表现特征。</p>
+        <div class="tags"><span class="chip">#特征工程</span><span class="chip">#体育</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $10,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/soccer-feature-engineering-hackathon" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：Kaggle</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:44">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/hyperspectral-object-tracking-challenge-2026" target="_blank" rel="noreferrer">Hyperspectral Object Tracking Challenge 2026</a></h3>
+        <p>高光谱视频目标跟踪挑战。</p>
+        <div class="tags"><span class="chip">#CV</span><span class="chip">#跟踪</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $3,526</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/hyperspectral-object-tracking-challenge-2026" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：Kaggle</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:45">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/cuhk-x-competition-large-model-track" target="_blank" rel="noreferrer">CUHK-X Competition - Large Model Track</a></h3>
+        <p>用大模型回答专业问题。</p>
+        <div class="tags"><span class="chip">#大模型</span><span class="chip">#NLP</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $10,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/cuhk-x-competition-large-model-track" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：CUHK</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:46">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/cuhk-x-competition-small-model-track" target="_blank" rel="noreferrer">CUHK-X Competition - Small Model Track</a></h3>
+        <p>用小模型完成动作分类任务。</p>
+        <div class="tags"><span class="chip">#小模型</span><span class="chip">#CV</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $10,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/cuhk-x-competition-small-model-track" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：CUHK</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:47">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/liquidity-arena-ai-quant-trading-competition" target="_blank" rel="noreferrer">Liquidity Arena 2026 - AI Quant Trading</a></h3>
+        <p>用量化交易智能体博弈市场流动性。</p>
+        <div class="tags"><span class="chip">#量化</span><span class="chip">#金融</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 荣誉证书</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/liquidity-arena-ai-quant-trading-competition" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：Liquidity Arena</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:48">
+      <div class="cover">
+        <span class="cat">🛡️ 网络安全</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/neural-debris-removal-in-streak-detection-models" target="_blank" rel="noreferrer">Neural Debris Removal in Streak Detection Models</a></h3>
+        <p>ESA 安全 AI 系列：星痕检测模型去噪。</p>
+        <div class="tags"><span class="chip">#安全AI</span><span class="chip">#CV</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $1,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/neural-debris-removal-in-streak-detection-models" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：European Space Agency</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:49">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/museumscat-specimen-collection-annotation-task" target="_blank" rel="noreferrer">MuseumSCAT Specimen Collection Annotation</a></h3>
+        <p>帮助博物馆自动化标本标签转录。</p>
+        <div class="tags"><span class="chip">#OCR</span><span class="chip">#CV</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 荣誉证书</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/museumscat-specimen-collection-annotation-task" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：Natural History Museum of Denmark</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:50">
+      <div class="cover">
+        <span class="cat">🧮 算法竞赛</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/informs-ras-2026-problem-solving-competition" target="_blank" rel="noreferrer">INFORMS RAS 2026 Problem Solving Competition</a></h3>
+        <p>北美一级铁路的列车编组优化问题。</p>
+        <div class="tags"><span class="chip">#运筹</span><span class="chip">#优化</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $3,750</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/informs-ras-2026-problem-solving-competition" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：INFORMS</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:51">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/filament-segmentation-2026" target="_blank" rel="noreferrer">Solar Filament Segmentation Challenge 2026</a></h3>
+        <p>基于 H-Alpha 观测的太阳暗条自动分割。</p>
+        <div class="tags"><span class="chip">#CV</span><span class="chip">#天文</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $3,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/filament-segmentation-2026" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：NASA GONG</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:52">
+      <div class="cover">
+        <span class="cat">🚀 热门黑客松</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/skill-lift" target="_blank" rel="noreferrer">BenchFlow - Agent Skill Lift</a></h3>
+        <p>用 SkillsBench 评测 AI 智能体的能力与安全。</p>
+        <div class="tags"><span class="chip">#Agent</span><span class="chip">#评测</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $20,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/skill-lift" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：BenchFlow</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:53">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/autonomous-agent-prediction-beta" target="_blank" rel="noreferrer">Autonomous Agent Prediction (Beta)</a></h3>
+        <p>提交能自主训练模型并参赛的智能体。</p>
+        <div class="tags"><span class="chip">#Agent</span><span class="chip">#AutoML</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 荣誉证书</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/autonomous-agent-prediction-beta" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：Kaggle</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:54">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/llm-classification-finetuning" target="_blank" rel="noreferrer">LLM Classification Finetuning</a></h3>
+        <p>基于 Chatbot Arena 对话微调 LLM 预测人类偏好。</p>
+        <div class="tags"><span class="chip">#LLM</span><span class="chip">#微调</span><span class="chip">#NLP</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 荣誉证书</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/llm-classification-finetuning" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：Kaggle</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:55">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/rogii-wellbore-geology-prediction" target="_blank" rel="noreferrer">ROGII - Wellbore Geology Prediction</a></h3>
+        <p>用机器学习自动化油气钻井地质预测。</p>
+        <div class="tags"><span class="chip">#地质</span><span class="chip">#回归</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $50,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/rogii-wellbore-geology-prediction" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：ROGII</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:56">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/biohub-cell-tracking-during-development" target="_blank" rel="noreferrer">Biohub - Cell Tracking During Development</a></h3>
+        <p>在 3D 时空维度检测并追踪斑马鱼细胞。</p>
+        <div class="tags"><span class="chip">#CV</span><span class="chip">#生物医学</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $60,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/biohub-cell-tracking-during-development" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：Chan Zuckerberg Biohub</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:57">
+      <div class="cover">
+        <span class="cat">🛡️ 网络安全</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/ai-agent-security-multi-step-tool-attacks" target="_blank" rel="noreferrer">AI Agent Security - Multi-Step Tool Attacks</a></h3>
+        <p>构建攻击算法，发现工具调用型 AI 智能体的多步失效。</p>
+        <div class="tags"><span class="chip">#AI安全</span><span class="chip">#Agent</span><span class="chip">#红队</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $50,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/ai-agent-security-multi-step-tool-attacks" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：Kaggle</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:58">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/pokemon-tcg-ai-battle" target="_blank" rel="noreferrer">Pokémon TCG AI Battle Challenge - Simulation</a></h3>
+        <p>训练能自动对战的宝可梦卡牌 AI。</p>
+        <div class="tags"><span class="chip">#Agent</span><span class="chip">#游戏AI</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 荣誉证书</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/pokemon-tcg-ai-battle" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：The Pokémon Company</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:59">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/pokemon-tcg-ai-battle-challenge-strategy" target="_blank" rel="noreferrer">Pokémon TCG AI Battle Challenge - Strategy</a></h3>
+        <p>分析数据并构建宝可梦卡牌对战策略智能体。</p>
+        <div class="tags"><span class="chip">#Agent</span><span class="chip">#游戏AI</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $240,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/pokemon-tcg-ai-battle-challenge-strategy" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：The Pokémon Company</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:60">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-2" target="_blank" rel="noreferrer">ARC Prize 2026 - ARC-AGI-2</a></h3>
+        <p>面向新颖推理能力的 AI 挑战。</p>
+        <div class="tags"><span class="chip">#AGI</span><span class="chip">#推理</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $700,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-2" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：ARC Prize Foundation</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:61">
+      <div class="cover">
+        <span class="cat">🤖 AI 大模型</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 Kaggle</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3" target="_blank" rel="noreferrer">ARC Prize 2026 - ARC-AGI-3</a></h3>
+        <p>构建具备流体智能（fluid intelligence）的 AI 系统。</p>
+        <div class="tags"><span class="chip">#AGI</span><span class="chip">#推理</span><span class="chip">#LLM</span></div>
+        <div class="meta">
+          <span>📍 线上</span>
+          <span>🏆 $850,000</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：ARC Prize Foundation</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:62">
+      <div class="cover">
+        <span class="cat">🚀 热门黑客松</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 天天黑客松(heikesong.cn)</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://heikesong.cn/" target="_blank" rel="noreferrer">DeFi Forge 去中心化金融黑客松</a></h3>
+        <p>构建下一代流动性协议与智能合约，赢取顶级风投资金直连通道与社区生态支持。</p>
+        <div class="tags"><span class="chip">#热门黑客松</span></div>
+        <div class="meta">
+          <span>📍 待定</span>
+          <span>🏆 荣誉证书</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://heikesong.cn/" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：—</span>
+        </div>
+      </div>
+    </article>
+    <article class="card" style="--i:63">
+      <div class="cover">
+        <span class="cat">📊 赛事推荐</span>
+        <span class="badge border-emerald-400/50 bg-emerald-400/10 text-emerald-300">进行中</span>
+        <span class="from">聚合自 天天黑客松(heikesong.cn)</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://heikesong.cn/" target="_blank" rel="noreferrer">全球赛博黑客松 2026 大赛开启</a></h3>
+        <p>百万美元奖金池，召集全球顶尖AI与Web3开发者，共同探索硬核科技的终极可能！</p>
+        <div class="tags"><span class="chip">#赛事推荐</span></div>
+        <div class="meta">
+          <span>📍 待定</span>
+          <span>🏆 荣誉证书</span>
+          <span>👁 0</span>
+        </div>
+        <div class="foot">
+          <a class="src" href="https://heikesong.cn/" target="_blank" rel="noreferrer">↗ 查看官网</a>
+          <span class="org">主办方：—</span>
+        </div>
+      </div>
+    </article></div>
+  <p class="note">本页为静态快照，所有「查看官网」链接均指向真实赛事页面（Kaggle / DataFountain / 百度AI Studio / 腾讯云 / 天池 等）。
+  实时站点：<code>http://127.0.0.1:8210/</code>（管理员可点「一键聚合」重新抓取）。</p>
+</div></body></html>

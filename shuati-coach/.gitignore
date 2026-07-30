@@ -14,6 +14,13 @@ certbot/
 data/
 *.log
 
+# 题库种子需入库（规模化后可作为空库自动 seed 的可复现数据源；其余 data/ 仍忽略）
+!server/data/
+!server/data/questions.json
+# 真实题摄入放置目录结构入库（用户投放的源文件本身不入库，仅保留目录与 .gitkeep）
+!server/data/incoming/
+!server/data/incoming/.gitkeep
+
 # 系统
 .DS_Store
 Thumbs.db

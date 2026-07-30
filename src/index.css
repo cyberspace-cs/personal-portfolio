@@ -4,18 +4,124 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================================================
+   主题变量：语义色板
+   - 风格由 [data-palette="tech"|"warm"] 决定
+   - 深浅由 .dark 决定
+   颜色以 "R G B" 形式给出，供 Tailwind rgb(var(--x) / <alpha>) 使用
+   ========================================================= */
+
+/* ---------- 科技蓝 tech（默认） ---------- */
+:root,
+:root[data-palette='tech'] {
+  --c-bg: 15 23 42; /* slate-900 */
+  --c-surface: 30 41 59; /* slate-800 */
+  --c-surface-2: 51 65 85; /* slate-700 */
+  --c-fg: 241 245 249; /* slate-100 */
+  --c-muted: 148 163 184; /* slate-400 */
+  --c-faint: 100 116 139; /* slate-500 */
+  --c-line: 30 41 59; /* slate-800 */
+  --c-accent: 56 189 248; /* sky-400 */
+  --c-accent-2: 129 140 248; /* indigo-400 */
+  --c-on-accent: 15 23 42;
+
+  /* 渐变光晕（Hero 背景） */
+  --glow-1: 56 189 248; /* sky */
+  --glow-2: 129 140 248; /* indigo */
+}
+
+:root[data-palette='tech'].dark {
+  --c-bg: 15 23 42;
+  --c-surface: 30 41 59;
+  --c-surface-2: 51 65 85;
+  --c-fg: 241 245 249;
+  --c-muted: 148 163 184;
+  --c-faint: 100 116 139;
+  --c-line: 51 65 85;
+  --c-accent: 56 189 248;
+  --c-accent-2: 129 140 248;
+  --c-on-accent: 15 23 42;
+  --glow-1: 56 189 248;
+  --glow-2: 129 140 248;
+}
+
+/* tech 浅色 */
+:root[data-palette='tech']:not(.dark) {
+  --c-bg: 248 250 252; /* slate-50 */
+  --c-surface: 255 255 255;
+  --c-surface-2: 241 245 249; /* slate-100 */
+  --c-fg: 15 23 42; /* slate-900 */
+  --c-muted: 71 85 105; /* slate-600 */
+  --c-faint: 100 116 139; /* slate-500 */
+  --c-line: 203 213 225; /* slate-300（浅底上边框可见） */
+  --c-accent: 3 105 161; /* sky-700（浅底上保证 >=4.5 对比度） */
+  --c-accent-2: 79 70 229; /* indigo-600 */
+  --c-on-accent: 255 255 255;
+  --glow-1: 56 189 248;
+  --glow-2: 129 140 248;
+}
+
+/* ---------- 暖色个人博客风 warm ---------- */
+:root[data-palette='warm'] {
+  --c-bg: 26 22 18; /* 暖墨 */
+  --c-surface: 38 32 26;
+  --c-surface-2: 51 42 33;
+  --c-fg: 245 240 233;
+  --c-muted: 191 178 162;
+  --c-faint: 156 144 128;
+  --c-line: 51 42 33;
+  --c-accent: 234 142 60; /* 暖橙（呼应橘猫 favicon） */
+  --c-accent-2: 214 122 92; /* 陶土 */
+  --c-on-accent: 26 22 18;
+  --glow-1: 234 142 60;
+  --glow-2: 214 122 92;
+}
+
+:root[data-palette='warm'].dark {
+  --c-bg: 26 22 18;
+  --c-surface: 38 32 26;
+  --c-surface-2: 51 42 33;
+  --c-fg: 245 240 233;
+  --c-muted: 191 178 162;
+  --c-faint: 156 144 128;
+  --c-line: 64 53 42;
+  --c-accent: 234 142 60;
+  --c-accent-2: 214 122 92;
+  --c-on-accent: 26 22 18;
+  --glow-1: 234 142 60;
+  --glow-2: 214 122 92;
+}
+
+/* warm 浅色：米白/暖灰 */
+:root[data-palette='warm']:not(.dark) {
+  --c-bg: 250 247 242; /* 米白 */
+  --c-surface: 255 255 255;
+  --c-surface-2: 245 239 230;
+  --c-fg: 41 33 26; /* 暖墨字 */
+  --c-muted: 110 96 80;
+  --c-faint: 146 130 112;
+  --c-line: 200 190 175;
+  --c-accent: 180 83 9; /* 深暖橙(amber-700级)，保证浅底 >=4.5 对比度 */
+  --c-accent-2: 163 77 52;
+  --c-on-accent: 255 255 255;
+  --glow-1: 234 142 60;
+  --glow-2: 214 122 92;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  @apply bg-slate-900 text-slate-100 font-sans;
+  @apply bg-bg text-fg font-sans;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 ::selection {
-  @apply bg-sky-400/30 text-slate-100;
+  background-color: rgb(var(--c-accent) / 0.3);
+  color: rgb(var(--c-fg));
 }
 
 ::-webkit-scrollbar {
@@ -23,13 +129,188 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-slate-900;
+  background-color: rgb(var(--c-bg));
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-700 rounded-full;
+  background-color: rgb(var(--c-surface-2));
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-600;
+  background-color: rgb(var(--c-faint));
+}
+
+/* =========================================================
+   博客正文排版 .blog-prose
+   直接复用站点语义色板（--c-fg / --c-muted / --c-accent / --c-line / --c-surface），
+   深浅 + 科技蓝/暖色 全部自动联动。代码块配色交给 highlight.js 主题。
+   ========================================================= */
+.blog-prose {
+  color: rgb(var(--c-fg));
+  font-size: 1.0625rem;
+  line-height: 1.85;
+}
+.blog-prose > * + * {
+  margin-top: 1.25em;
+}
+.blog-prose h1,
+.blog-prose h2,
+.blog-prose h3,
+.blog-prose h4 {
+  color: rgb(var(--c-fg));
+  font-weight: 700;
+  line-height: 1.35;
+  scroll-margin-top: 6rem;
+}
+.blog-prose h1 {
+  font-size: 1.9rem;
+  margin-top: 2em;
+}
+.blog-prose h2 {
+  font-size: 1.5rem;
+  margin-top: 2em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid rgb(var(--c-line));
+}
+.blog-prose h3 {
+  font-size: 1.25rem;
+  margin-top: 1.6em;
+}
+.blog-prose h4 {
+  font-size: 1.1rem;
+  margin-top: 1.4em;
+}
+.blog-prose p {
+  color: rgb(var(--c-fg));
+}
+.blog-prose a {
+  color: rgb(var(--c-accent));
+  text-decoration: none;
+  border-bottom: 1px solid rgb(var(--c-accent) / 0.4);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.blog-prose a:hover {
+  color: rgb(var(--c-accent-2));
+  border-bottom-color: rgb(var(--c-accent-2));
+}
+.blog-prose strong {
+  color: rgb(var(--c-fg));
+  font-weight: 700;
+}
+.blog-prose ul,
+.blog-prose ol {
+  padding-left: 1.5em;
+  color: rgb(var(--c-fg));
+}
+.blog-prose ul {
+  list-style: disc;
+}
+.blog-prose ol {
+  list-style: decimal;
+}
+.blog-prose li {
+  margin-top: 0.5em;
+}
+.blog-prose li::marker {
+  color: rgb(var(--c-accent));
+}
+.blog-prose blockquote {
+  border-left: 3px solid rgb(var(--c-accent));
+  padding: 0.2em 1em;
+  color: rgb(var(--c-muted));
+  background: rgb(var(--c-surface) / 0.5);
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+.blog-prose code {
+  font-family: 'JetBrains Mono', Menlo, monospace;
+  font-size: 0.9em;
+  background: rgb(var(--c-surface-2));
+  color: rgb(var(--c-accent));
+  padding: 0.15em 0.4em;
+  border-radius: 0.35rem;
+}
+.blog-prose pre {
+  margin-top: 1.5em;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(var(--c-line));
+  overflow-x: auto;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.blog-prose pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+  border-radius: 0;
+}
+.blog-prose img {
+  border-radius: 0.75rem;
+  border: 1px solid rgb(var(--c-line));
+  max-width: 100%;
+}
+.blog-prose hr {
+  border: none;
+  border-top: 1px solid rgb(var(--c-line));
+  margin: 2.5em 0;
+}
+.blog-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+.blog-prose th,
+.blog-prose td {
+  border: 1px solid rgb(var(--c-line));
+  padding: 0.6em 0.8em;
+  text-align: left;
+}
+.blog-prose th {
+  background: rgb(var(--c-surface));
+  color: rgb(var(--c-fg));
+  font-weight: 600;
+}
+.blog-prose ul li a {
+  border-bottom: none;
+}
+
+/* =========================================================
+   博客页 cozy 卡片风（借鉴 lvyovo-wiki：毛玻璃白卡 + 青绿主色 #35bfab）
+   仅作用于博客文章页，不动整站其他页面。
+   ========================================================= */
+.blog-shell {
+  --c-accent: 53 191 171;   /* #35bfab 青绿 */
+  --c-accent-2: 31 201 231; /* #1fc9e7 */
+  margin-top: 1.5rem;
+  background: rgb(var(--c-surface) / 0.55);
+  border: 1px solid rgb(var(--c-line));
+  border-radius: 1.5rem;
+  padding: 2.25rem 1.75rem;
+  box-shadow: 0 18px 50px -28px rgb(0 0 0 / 0.55);
+  backdrop-filter: blur(8px);
+}
+@media (min-width: 640px) {
+  .blog-shell {
+    padding: 3rem 2.75rem;
+  }
+}
+.blog-shell .blog-prose h2 {
+  border-bottom: 2px solid rgb(var(--c-accent) / 0.5);
+  padding-bottom: 0.35em;
+}
+.blog-shell .blog-prose blockquote {
+  background: rgb(var(--c-accent) / 0.08);
+  border-left-color: rgb(var(--c-accent));
+}
+.blog-shell .blog-prose a {
+  color: rgb(var(--c-accent));
+  border-bottom-color: rgb(var(--c-accent) / 0.4);
+}
+.blog-shell .blog-prose a:hover {
+  color: rgb(var(--c-accent-2));
+  border-bottom-color: rgb(var(--c-accent-2));
+}
+.blog-shell .blog-prose code {
+  color: rgb(var(--c-accent));
 }
