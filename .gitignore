@@ -59,3 +59,7 @@ project.private.config.json
 
 # IDE / agent memory (含本地保密笔记，禁止提交)
 .codebuddy/
+
+# 面试物料：隐藏含个人信息的简历二进制（本地保留，不入库，避免真实姓名/院校/简历公开）
+面试物料/**/*.pdf
+面试物料/**/*.docx

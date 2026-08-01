@@ -4,7 +4,7 @@
 
 ## 1. 官方招聘网址
 - 官网 / 招聘入口：**https://careers.tencent.com/**
-- 岗位示例直链：https://careers.tencent.com/jobdesc.html?postId=2031289374469160960
+- 岗位示例直链：https://careers.tencent.com/jobdesc.html?postId=XXX0
 - Boss 直聘可搜索「腾讯混元 混元大模型 Agent 应用开发工程师」同岗位（详情页有反爬，以官网为准）。
 
 ## 2. 简历匹配要点（投递前核对）

@@ -12,9 +12,9 @@ import { engineer, pm } from "./data.js";
 
 // —— 真实联系方式（覆盖 data.js 中的占位符）——
 const contact = {
-  name: "谢韬",
-  phone: "15662668065",
-  email: "2252125665@qq.com",
+  name: "【姓名】",
+  phone: "【电话】",
+  email: "【邮箱】",
   base: "北京 · 北京大学软件工程硕士",
   links: "GitHub: github.com/cyberspace-cs · 作品集: 见个人网站",
 };

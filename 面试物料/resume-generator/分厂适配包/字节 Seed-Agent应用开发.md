@@ -4,7 +4,7 @@
 
 ## 1. 官方招聘网址
 - 官网 / 招聘入口：**https://jobs.bytedance.com/**
-- 岗位示例直链：https://jobs.bytedance.com/experienced/position/7596960769942849845/detail
+- 岗位示例直链：https://jobs.bytedance.com/experienced/position/XXX5/detail
 - Boss 直聘可搜索「字节 Seed 大模型 Agent 框架工程师 / AI 搜索 Agent 算法工程师」同岗位（详情页有反爬，以官网为准）。
 
 ## 2. 简历匹配要点（投递前核对）

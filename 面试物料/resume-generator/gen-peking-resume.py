@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-"""生成「北大风格」单页式简历（谢韬），重点突出 coach + AIOPS 双旗舰 AI 项目。
+"""生成「北大风格」单页式简历（【姓名】），重点突出 coach + AIOPS 双旗舰 AI 项目。
 
 版式语言参考北京大学专属简历模板：姓名大标题 + 求职意向 + 联系方式，
 分节（教育/实习/项目/技能/荣誉）用粗体小标题 + 细分割线 + 「·」要点。
 页脚保留投递提示（与分厂适配包一致）。
 
-输出：output/谢韬-简历-北大风格.docx
+输出：output/【姓名】-简历-北大风格.docx
 """
 from docx import Document
 from docx.shared import Pt, RGBColor, Cm
@@ -90,7 +90,7 @@ def entry(title, sub, lines):
 # ===== 头部 =====
 name_p = doc.add_paragraph()
 name_p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-nr = name_p.add_run("谢韬")
+nr = name_p.add_run("【姓名】")
 set_font(nr, size=22, bold=True, font=FONT_H)
 
 obj_p = doc.add_paragraph()
@@ -98,7 +98,7 @@ orun = obj_p.add_run("求职意向：大模型算法工程师 / AI Agent 应用�
 set_font(orun, size=11, bold=True, color=RGBColor(0x25, 0x25, 0x25))
 
 contact = doc.add_paragraph()
-crun = contact.add_run("23岁 · 男 · 15662668065 · 2252125665@qq.com · 中国·北京")
+crun = contact.add_run("23岁 · 男 · 【电话】 · 【邮箱】 · 中国·北京")
 set_font(crun, size=9.5, color=RGBColor(0x44, 0x44, 0x44))
 
 # ===== 教育背景 =====
@@ -151,5 +151,5 @@ hr = hon.add_run("· 2021 全国大学生信息安全竞赛作品赛一等奖（
                  "· 北京大学三好学生 / 九坤奖学金 / 社会工作奖　· 山东大学优秀毕业生　· CET-6")
 set_font(hr, size=10)
 
-doc.save("output/谢韬-简历-北大风格.docx")
-print("OK -> output/谢韬-简历-北大风格.docx")
+doc.save("output/【姓名】-简历-北大风格.docx")
+print("OK -> output/【姓名】-简历-北大风格.docx")

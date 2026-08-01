@@ -19,7 +19,7 @@ export const companies = [
     keywords: ["Agent 框架", "Planning/Execution", "Tool-Use", "Memory", "Reflection", "Agent 评测", "SWE-Bench", "RAG", "搜索算法"],
     note: "强调评测闭环 + 多 Agent 编排 + 搜索式 RAG + 推理 Benchmark 化",
     url: "https://jobs.bytedance.com/",
-    urlDetail: "https://jobs.bytedance.com/experienced/position/7596960769942849845/detail",
+    urlDetail: "https://jobs.bytedance.com/experienced/position/XXX5/detail",
   },
   {
     id: "tencent-hunyuan",
@@ -32,7 +32,7 @@ export const companies = [
     keywords: ["混元", "RAG 防幻觉", "多轮对话", "Agent 强化", "Post-training", "记忆", "事实核查"],
     note: "强调 RAG 防幻觉 + 记忆多轮 + 混元优先 + 反思强化",
     url: "https://careers.tencent.com/",
-    urlDetail: "https://careers.tencent.com/jobdesc.html?postId=2031289374469160960",
+    urlDetail: "https://careers.tencent.com/jobdesc.html?postId=XXX0",
   },
   {
     id: "zhipu",
