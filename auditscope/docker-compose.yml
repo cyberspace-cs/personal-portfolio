@@ -1,0 +1,70 @@
+# AuditScope 全栈容器编排
+# 启动：docker compose up --build
+# 访问：前端 http://localhost:5173  → 反向代理到后端 8000
+#       后端 http://localhost:8000/api/v1
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: auditscope
+      POSTGRES_PASSWORD: auditscope
+      POSTGRES_DB: auditscope
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auditscope"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  milvus:
+    image: milvusdb/milvus:v2.4.5
+    command: ["milvus", "run", "standalone"]
+    ports: ["19530:19530"]
+    environment:
+      ETCD_USE_EMBED: "true"
+      MINIO_USE_EMBED: "true"
+    volumes: ["milvusdata:/var/lib/milvus"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  gateway:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg2://auditscope:auditscope@postgres:5432/auditscope
+      REDIS_URL: redis://redis:6379/0
+      MILVUS_HOST: milvus
+      MILVUS_PORT: "19530"
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      QWEN_API_KEY: ${QWEN_API_KEY:-}
+    ports: ["8000:8000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      milvus: { condition: service_healthy }
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports: ["5173:5173"]
+    depends_on: ["gateway"]
+
+volumes:
+  pgdata:
+  milvusdata:

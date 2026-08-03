@@ -1,0 +1,8 @@
+# 运行时
+*.db
+__pycache__/
+*.pyc
+.env
+node_modules/
+dist/
+.venv/
