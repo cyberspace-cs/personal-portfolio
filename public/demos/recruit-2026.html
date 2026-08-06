@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>2026 AI 研发招聘情报站 · 校招 vs 社招</title>
+<style>
+  :root{
+    --bg:#070b14;
+    --panel:rgba(255,255,255,.045);
+    --panel-2:rgba(255,255,255,.07);
+    --border:rgba(255,255,255,.09);
+    --border-strong:rgba(255,255,255,.18);
+    --txt:#e8eef7; --txt-dim:#9fb0c3; --txt-faint:#67788c;
+    --ink:#ffffff;            /* 主标题/数值文字 */
+    --body-2:#cbd5e1;         /* 次级正文 */
+    --accent-txt:#cfe9f6;     /* 段落内加粗强调 */
+    --tag-txt:#cbd5e1;
+    --chip-txt:#cbd5e1;
+    --th-txt:#e8eef7;
+    --row-border:rgba(255,255,255,.07);
+    --row-hover:rgba(255,255,255,.045);
+    --grid-line:rgba(255,255,255,.022);
+    --banner-bg:linear-gradient(90deg,rgba(251,191,36,.10),rgba(34,211,238,.06));
+    --banner-border:rgba(251,191,36,.30);
+    --banner-txt:#fde9b8;
+    --banner-strong:#ffffff;
+    --concl-bg:linear-gradient(90deg,rgba(34,211,238,.09),rgba(167,139,250,.06));
+    --concl-border:rgba(34,211,238,.30);
+    --concl-txt:#cbe9f5;
+    --concl-strong:#ffffff;
+    --cyan:#22d3ee; --violet:#a78bfa; --amber:#fbbf24; --emerald:#34d399; --red:#fb7185;
+    --grad:linear-gradient(90deg,#22d3ee,#a78bfa);
+    --r-sm:10px; --r-md:14px; --r-lg:18px; --r-pill:999px;
+    --shadow:0 14px 44px rgba(0,0,0,.42);
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  /* ===== 亮色主题（默认） ===== */
+  [data-theme="light"]{
+    --bg:#eef3fb;
+    --panel:rgba(255,255,255,.74);
+    --panel-2:rgba(15,23,42,.05);
+    --border:rgba(15,23,42,.12);
+    --border-strong:rgba(15,23,42,.28);
+    --txt:#1e2a3a; --txt-dim:#52647c; --txt-faint:#8a99ad;
+    --ink:#0f1b2d;
+    --body-2:#334155;
+    --accent-txt:#0e7490;
+    --tag-txt:#475569;
+    --chip-txt:#475569;
+    --th-txt:#0f1b2d;
+    --row-border:rgba(15,23,42,.09);
+    --row-hover:rgba(15,23,42,.045);
+    --grid-line:rgba(15,23,42,.045);
+    --banner-bg:linear-gradient(90deg,rgba(251,191,36,.20),rgba(8,145,178,.12));
+    --banner-border:rgba(180,120,10,.38);
+    --banner-txt:#6b4a09;
+    --banner-strong:#1a1a1a;
+    --concl-bg:linear-gradient(90deg,rgba(8,145,178,.13),rgba(124,58,237,.08));
+    --concl-border:rgba(8,145,178,.38);
+    --concl-txt:#0f4c5c;
+    --concl-strong:#0f1b2d;
+    --cyan:#0891b2; --violet:#7c3aed; --amber:#b45309; --emerald:#059669; --red:#e11d48;
+    --grad:linear-gradient(90deg,#0891b2,#7c3aed);
+    --shadow:0 14px 40px rgba(15,23,42,.14);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:
+      radial-gradient(1100px 560px at 82% -14%,rgba(34,211,238,.14),transparent 60%),
+      radial-gradient(980px 520px at 8% 4%,rgba(167,139,250,.13),transparent 60%),
+      linear-gradient(180deg,#070b14 0%,#080d18 100%);
+    background-attachment:fixed;
+    color:var(--txt);min-height:100vh;line-height:1.62;-webkit-font-smoothing:antialiased;transition:background .3s var(--ease),color .3s var(--ease)}
+  [data-theme="light"] body{
+    background:
+      radial-gradient(1100px 560px at 82% -14%,rgba(8,145,178,.16),transparent 60%),
+      radial-gradient(980px 520px at 8% 4%,rgba(124,58,237,.14),transparent 60%),
+      linear-gradient(180deg,#eef3fb 0%,#e6ecf6 100%);
+  }
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+    background-size:46px 46px;mask-image:radial-gradient(circle at 50% 0%,#000,transparent 75%);transition:background-image .3s var(--ease)}
+  .wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:40px 22px 84px}
+
+  /* ---------- header ---------- */
+  header{margin-bottom:6px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:2.5px;
+    text-transform:uppercase;color:var(--txt-faint);font-weight:700;margin-bottom:12px}
+  .kicker .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+  header h1{font-size:34px;margin:0;color:var(--ink);letter-spacing:.4px;line-height:1.25}
+  header h1 b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .rule{height:2px;width:96px;margin:16px 0 0;background:var(--grad);border-radius:2px;opacity:.85}
+  .sub{color:var(--txt-dim);margin:16px 0 0;font-size:14px;max-width:860px}
+  .sub b{color:var(--accent-txt)}
+
+  /* ---------- theme toggle ---------- */
+  .theme-toggle{position:absolute;top:40px;right:22px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+    font-size:13px;padding:8px 14px;border-radius:var(--r-pill);border:1px solid var(--border-strong);
+    background:var(--panel);color:var(--txt);transition:.16s var(--ease);backdrop-filter:blur(8px);outline:none}
+  .theme-toggle:hover{border-color:var(--cyan);color:var(--ink)}
+  .theme-toggle:focus-visible{box-shadow:0 0 0 3px rgba(34,211,238,.35)}
+  .theme-toggle .ic{font-size:15px}
+
+  /* ---------- stats ---------- */
+  .stat-row{display:flex;gap:14px;flex-wrap:wrap;margin:26px 0 4px}
+  .stat{flex:1;min-width:190px;position:relative;background:var(--panel);border:1px solid var(--border);
+    border-radius:var(--r-md);padding:16px 18px 16px 22px;backdrop-filter:blur(8px);overflow:hidden;transition:.2s var(--ease)}
+  .stat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cyan);opacity:.8}
+  .stat.violet::before{background:var(--violet)} .stat.emerald::before{background:var(--emerald)} .stat.amber::before{background:var(--amber)}
+  .stat:hover{transform:translateY(-3px);border-color:var(--border-strong);box-shadow:var(--shadow)}
+  .stat .n{font-size:27px;font-weight:760;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:.3px}
+  .stat .l{font-size:12.5px;color:var(--txt-dim);margin-top:5px;line-height:1.45}
+  .stat.cyan .n{color:var(--cyan)} .stat.violet .n{color:var(--violet)}
+  .stat.emerald .n{color:var(--emerald)} .stat.amber .n{color:var(--amber)}
+
+  /* ---------- callout banner ---------- */
+  .banner{position:relative;margin:22px 0 4px;background:var(--banner-bg);
+    border:1px solid var(--banner-border);border-left:3px solid var(--amber);
+    border-radius:var(--r-md);padding:16px 18px;font-size:13px;color:var(--banner-txt);line-height:1.7}
+  .banner b{color:var(--banner-strong)}
+  .banner .ttl{color:var(--banner-strong);font-weight:700;letter-spacing:.3px}
+
+  /* ---------- filter + legend ---------- */
+  .filterbar{display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin:26px 0 6px}
+  .fgroup{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .flabel{font-size:12px;color:var(--txt-faint);margin-right:2px;letter-spacing:.5px}
+  .tag{cursor:pointer;font-size:13px;padding:7px 14px;border-radius:var(--r-pill);border:1px solid var(--border-strong);
+    background:var(--panel);color:var(--tag-txt);transition:.16s var(--ease);user-select:none;outline:none}
+  .tag:hover{border-color:rgba(34,211,238,.6);color:var(--ink)}
+  .tag:focus-visible{box-shadow:0 0 0 3px rgba(34,211,238,.35);border-color:var(--cyan)}
+  .tag.on{background:linear-gradient(90deg,rgba(34,211,238,.24),rgba(167,139,250,.24));
+    border-color:var(--cyan);color:#fff;font-weight:600;box-shadow:0 4px 16px rgba(34,211,238,.18)}
+  [data-theme="light"] .tag.on{color:#fff}
+  .toggle{display:flex;border:1px solid var(--border-strong);border-radius:var(--r-pill);overflow:hidden;background:var(--panel)}
+  .toggle .tag{border:none;border-radius:0;background:transparent;padding:7px 16px}
+  .toggle .tag:hover{background:var(--row-hover)}
+  .toggle .tag.on{background:linear-gradient(90deg,rgba(34,211,238,.26),rgba(167,139,250,.26));box-shadow:none}
+
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin:14px 0 0;font-size:12px;color:var(--txt-dim)}
+  .legend .item{display:inline-flex;align-items:center;gap:7px}
+  .legend .sw{width:10px;height:10px;border-radius:3px}
+  .sw.est{background:var(--amber)} .sw.low{background:var(--red)} .sw.high{background:var(--emerald)}
+
+  /* ---------- company cards ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-top:20px}
+  .card{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);
+    padding:20px 18px 18px;backdrop-filter:blur(10px);overflow:hidden;transition:.2s var(--ease);
+    animation:rise .5s var(--ease) both}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--cyan),transparent)}
+  .card.t2::before{background:linear-gradient(90deg,var(--violet),transparent)}
+  .card:hover{transform:translateY(-4px);border-color:rgba(34,211,238,.45);box-shadow:var(--shadow)}
+  .card.t2:hover{border-color:rgba(167,139,250,.5)}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .card h3{margin:0;font-size:18.5px;color:var(--ink);letter-spacing:.3px}
+  .tier{font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;letter-spacing:.5px}
+  .t1{background:rgba(34,211,238,.16);color:var(--cyan);border:1px solid rgba(34,211,238,.45);box-shadow:0 0 12px rgba(34,211,238,.15)}
+  .t2{background:rgba(167,139,250,.16);color:var(--violet);border:1px solid rgba(167,139,250,.45);box-shadow:0 0 12px rgba(167,139,250,.15)}
+  [data-theme="light"] .t1{background:rgba(8,145,178,.14);color:var(--cyan);border-color:rgba(8,145,178,.45)}
+  [data-theme="light"] .t2{background:rgba(124,58,237,.14);color:var(--violet);border-color:rgba(124,58,237,.45)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 14px}
+  .chip{font-size:11px;padding:3px 9px;border-radius:7px;background:var(--panel-2);color:var(--chip-txt);border:1px solid var(--border)}
+  .rows{display:flex;flex-direction:column;gap:9px}
+  .row{display:grid;grid-template-columns:104px 1fr auto;gap:10px;align-items:baseline;font-size:13px}
+  .row .k{color:var(--txt-dim)}
+  .row .v{color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;gap:3px}
+  .row .v small{color:var(--txt-faint);font-weight:400}
+  .kv{font-size:13px;line-height:1.5}
+  .kv b{color:var(--txt-dim);font-weight:600;margin-right:5px}
+  .ratio{margin-top:13px;font-size:12px;color:var(--txt-dim);border-top:1px dashed var(--border);padding-top:11px;line-height:1.6}
+  .ratio b{color:var(--ink)}
+
+  /* ---------- pills ---------- */
+  .pill{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:2px 9px;border-radius:var(--r-pill);vertical-align:middle}
+  .pill.est{background:rgba(251,191,36,.16);color:var(--amber);border:1px solid rgba(251,191,36,.4)}
+  .pill.low{background:rgba(251,113,133,.16);color:var(--red);border:1px solid rgba(251,113,133,.42)}
+  .pill.high{background:rgba(52,211,153,.16);color:var(--emerald);border:1px solid rgba(52,211,153,.42)}
+
+  /* ---------- sections + tables ---------- */
+  .sec{margin-top:46px;scroll-margin-top:20px}
+  .sec h2{font-size:21px;color:var(--ink);margin:0 0 4px;letter-spacing:.3px}
+  .sec .sub2{color:var(--txt-dim);font-size:13px;margin:0 0 14px;line-height:1.65}
+  .sec .sub2 b{color:var(--accent-txt)}
+  .scroll-hint{display:none;font-size:12px;color:var(--txt-faint);margin:2px 0 8px}
+  .table-wrap{overflow-x:auto;border-radius:var(--r-md);border:1px solid var(--border);
+    background:var(--panel);box-shadow:inset 0 0 0 1px rgba(255,255,255,.02)}
+  .table-wrap::-webkit-scrollbar{height:9px}
+  .table-wrap::-webkit-scrollbar-track{background:transparent}
+  .table-wrap::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:9px}
+  .table-wrap::-webkit-scrollbar-thumb:hover{background:var(--cyan)}
+  table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+  table.tw-scroll{min-width:880px}
+  th,td{padding:13px 14px;text-align:left;border-bottom:var(--row-border);
+    vertical-align:top;word-break:break-word;overflow-wrap:anywhere}
+  thead th{background:linear-gradient(90deg,rgba(34,211,238,.16),rgba(167,139,250,.16));
+    color:var(--th-txt);font-weight:650;font-size:12.5px;letter-spacing:.3px;position:sticky;top:0;z-index:1}
+  [data-theme="light"] thead th{background:linear-gradient(90deg,rgba(8,145,178,.16),rgba(124,58,237,.16))}
+  tbody tr{transition:.14s}
+  tbody tr:hover{background:var(--row-hover)}
+  td.num{font-weight:750;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;white-space:normal}
+  td.num small{display:block;font-weight:400;color:var(--txt-faint);margin-top:3px;font-size:11.5px}
+  td .k{color:var(--txt-dim);font-weight:600}
+  tr:last-child td{border-bottom:none}
+  .tag-t1{color:var(--cyan)} .tag-t2{color:var(--violet)}
+  .low{color:var(--red);font-weight:750} .high{color:var(--emerald);font-weight:750}
+  @media (max-width:920px){ .scroll-hint{display:block} }
+  /* ---------- callout（信息提示，cyan 边） ---------- */
+  .callout{position:relative;margin:16px 0 6px;background:linear-gradient(90deg,rgba(34,211,238,.10),rgba(167,139,250,.05));
+    border:1px solid var(--concl-border);border-left:3px solid var(--cyan);
+    border-radius:var(--r-md);padding:13px 16px;font-size:12.5px;color:var(--concl-txt);line-height:1.7}
+  .callout b{color:var(--concl-strong)}
+  .callout .ttl{font-weight:700;color:var(--concl-strong)}
+
+  /* ---------- vs compare ---------- */
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+  .vs .col{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;overflow:hidden}
+  .vs .col::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),transparent)}
+  .vs .col.t::before{background:linear-gradient(90deg,var(--violet),transparent)}
+  .vs .col h4{margin:0 0 10px;font-size:16.5px;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .vs .col h4 .d{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+  .vs .col.t h4 .d{background:var(--violet);box-shadow:0 0 10px var(--violet)}
+  .vs ul{margin:0;padding-left:18px;font-size:13px;color:var(--body-2);line-height:1.7}
+  .vs li{margin:7px 0}
+  .vs li b{color:var(--ink)}
+  .concl{margin-top:16px;background:var(--concl-bg);
+    border:1px solid var(--concl-border);border-left:3px solid var(--cyan);
+    border-radius:var(--r-md);padding:15px 18px;font-size:13.5px;color:var(--concl-txt);line-height:1.7}
+  .concl b{color:var(--concl-strong)}
+
+  /* ---------- footer ---------- */
+  footer{margin-top:50px;font-size:12px;color:var(--txt-faint);border-top:1px solid var(--border);padding-top:18px;line-height:1.75}
+  footer b{color:var(--txt-dim)}
+  .hidden{display:none!important}
+  @media (max-width:680px){
+    .vs{grid-template-columns:1fr}
+    header h1{font-size:27px}
+    .theme-toggle{position:static;margin:14px 0 0;display:inline-flex}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;scroll-behavior:auto}
+  }
+</style></head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="kicker"><span class="dot"></span>招聘情报 · RECRUIT 2026</span>
+    <h1>2026 <b>AI 研发招聘情报站</b> · 校招 vs 社招</h1>
+    <div class="rule"></div>
+    <p class="sub">聚焦「AI 研发岗」（大模型 / Agent / 算法 / 推理优化），把名额拆成 4 类口径讲清楚：校招正式总盘、研发校招、AI 核心研究校招、AI 社招——<b>以上均为正式岗，不含实习</b>。实习岗已单列在文末，不参与任何对比。<b>腾讯/字节/阿里/百度/DeepSeek 的校招数字已亲自上官网核对（2026-08，来源见页脚）</b>；社招精确数各厂官网(SPA)不公开，标「官网未披露」而非编造；估算项已标橙。</p>
+    <button class="theme-toggle" id="themeBtn" aria-label="切换亮色/暗色主题">
+      <span class="ic" id="themeIc">☀</span><span id="themeTx">亮色</span>
+    </button>
+  </header>
+
+  <div class="stat-row">
+    <div class="stat cyan"><div class="n">83.9%</div><div class="l">AI 算法岗社招占比（51job 2026 全市场）</div></div>
+    <div class="stat violet"><div class="n">~130</div><div class="l">字节 AI 核心研究校招（Seed 100 + Top Seed 30）</div></div>
+    <div class="stat emerald"><div class="n">2000-3000</div><div class="l">字节 AI 社招（云端招聘月 AI 子集，估算）</div></div>
+    <div class="stat amber"><div class="n">≈20:1</div><div class="l">字节 AI 社招 : 校招核心 比例</div></div>
+  </div>
+
+  <div class="banner">
+    <span class="ttl">先看清口径，否则数字一定看不懂：</span>本页「校招 / 社招」均指<b>正式岗（不含实习）</b>；实习岗（ByteIntern / 腾讯实习等）已单列在文末，<b>不计入下面任何对比</b>。<br>
+    ① <b>校招正式总盘</b> = 该公司全年校招所有正式岗位（含产品/运营/游戏…），不含实习；② <b>研发校招</b> = 总盘里的技术岗（后端/前端/客户端/算法…），AI 只是其中一块；<br>
+    ③ <b>AI 核心研究校招</b> = 大模型预训练/后训练/多模态研究的精英校招（Seed、青云、Top Seed 这类）——字节 Seed 仅 ~130，但<b>腾讯青云计划有 500+</b>，说明大厂校招 AI 研究也能有规模，并非都少；<br>
+    ⑦ <b>「岗位数」≠「招人数」</b>：官网能数到的是<b>在招岗位数</b>（如腾讯 800+ 岗位）；而「招多少人(offer/人)」多数公司只给总数（字节 5000 人、阿里 7000 offer），且<b>每个岗位往往只招 1–2 人</b>。腾讯对外称「招 8000 人」疑为含全部/营销口径——按 800+ 岗位×1–2 人算，实际校招录用有限。两者不可混为一谈，详见下方「总览」表。<br>
+    ④ <b>AI 社招</b> = 大模型 / Agent 的社会招聘，常年远多于校招（如人社部「云端招聘月」是<b>社招活动</b>，字节释放约 7,000 个<b>社招岗</b>，AI 子集≈2,000–3,000——此 7,000 是社招，与下面单列实习的 7,000 是两码事）。<br>
+    ⑤ <b>实习岗单列</b>：转正实习 / 日常实习口径不同，见文末「实习岗单列」表，<b>请勿与上述正式岗数字相加</b>。<br>
+    ⑥ <b>数据纪律（重要）：</b>腾讯/字节/阿里/百度/DeepSeek 的校招（及 DeepSeek 社招）数字已<b>亲自上官网核对（2026-08，来源见页脚）</b>；<b>T1 社招精确数各厂官网(SPA)不公开，统一标「官网未披露」而非编造</b>。早期误把「腾讯 8000+」当校招总盘（实为含全部/营销口径的招人数 claim）、误写「青云 5 岗」均已改正：校招按官网<b>岗位数 800+</b> 呈现，青云 <b>500+</b>。
+  </div>
+
+  <!-- ============ 总览：横向对比（校招 vs 社招） ============ -->
+  <div class="sec" id="overview">
+    <h2>总览 · 校招 vs 社招 横向对比（一张表看懂）</h2>
+    <p class="sub2">每一行一家公司，<b>校招</b> 与 <b>社招</b> 两列并排直接比。每格里先写<b>岗位数</b>（官网能数到的在招职位数），再写<b>招人数</b>（实际录用，多数不公开或只给总数）。<span class="pill high">✓官网核对</span> 为你查的；<b>本页不再乱搜</b>。</p>
+    <div class="callout">
+      <span class="ttl">⚠ 先分清「岗位数」和「招人数」，否则数字一定看懵：</span><br>
+      官网能数到的是 <b>在招岗位数</b>（如腾讯校招 <b>800+ 个岗位</b>）；而「招多少人」多数公司只公布总数（字节 5000 人、阿里 7000 offer），且 <b>每个岗位往往只招 1–2 人</b>。腾讯对外称「招 8000 人」疑为含全部业务/营销口径——按 800+ 岗位 × 1–2 人推算，<b>实际校招录用远没那么多</b>。所以表里的「800+」是<b>岗位数</b>，不是 8000 人；不同公司报的口径不一样，不能相加。
+    </div>
+    <p class="scroll-hint">← 表格列较多，可左右滑动查看完整内容 →</p>
+    <div class="table-wrap"><table class="tw-scroll">
+      <colgroup><col style="width:12%"><col style="width:7%"><col style="width:32%"><col style="width:32%"><col style="width:17%"></colgroup>
+      <thead><tr><th>公司</th><th>梯队</th><th>校招（正式，不含实习）</th><th>社招（正式）</th><th>来源 / 可信度</th></tr></thead>
+      <tbody>
+        <tr><td>腾讯 <span class="pill high">✓官网核对</span></td><td class="tag-t1">T1</td>
+          <td><span class="k">岗位数</span> <b>800+</b><br><small>研发 ~800（含其他产品）</small><small>青云计划 500+（AI 研究岗）</small><small>招人数：口径存疑（称 8000 人疑含全部/营销，按 800+岗×1–2 人实际有限）</small></td>
+          <td><span class="k">岗位数</span> <b>未单列</b><br><small>疑与校招同量级（800+），未官网核对</small><small>招人数：官网未披露</small></td>
+          <td>join.qq.com 你亲自核对；青云 500+ 已改正误写的 5 岗</td></tr>
+        <tr><td>字节跳动 <span class="pill high">✓官网核对</span></td><td class="tag-t1">T1</td>
+          <td><span class="k">招人数</span> <b>超 5000 人</b><br><small>中国区校招（官方启动公告）</small><small>岗位数未单列；AI 核心研究 ~130（Seed 100+TopSeed 30）</small></td>
+          <td><span class="k">招人数</span> <b>官网未披露</b><br><small>AI 社招子集估 2000–3000（云端招聘月，橙色=估）</small></td>
+          <td>校招超 5000 官方启动（科创板日报引）；Top Seed 30 官方披露</td></tr>
+        <tr><td>阿里巴巴 <span class="pill high">✓官网核对</span></td><td class="tag-t1">T1</td>
+          <td><span class="k">招人数</span> <b>7000+ offer</b><br><small>AI 相关 &gt;60%（云/国际/钉钉达 80%）</small><small>岗位数未单列</small></td>
+          <td><span class="k">招人数</span> <b>官网未披露</b></td>
+          <td>2026 秋招 7000+ offer 官方启动（科创板日报引）</td></tr>
+        <tr><td>百度 <span class="pill high">✓官网核对</span></td><td class="tag-t1">T1</td>
+          <td><span class="k">招人数</span> <b>超 4000 offer</b><br><small>AI 岗位 &gt;90%</small><small>256 个细分职位（+35%）</small></td>
+          <td><span class="k">招人数</span> <b>官网未披露</b></td>
+          <td>2026 校招超 4000 offer 官方启动（钱江晚报引）</td></tr>
+        <tr><td>DeepSeek <span class="pill high">✓官网核对</span></td><td class="tag-t2">T2</td>
+          <td>无校招通道</td>
+          <td><span class="k">岗位数</span> <b>30+ 在招岗</b><br><small>Agent / 训练推理 / 研究员为主</small></td>
+          <td>talent.deepseek.com 官网实测 30+ 社招岗</td></tr>
+        <tr><td>智谱/阶跃/月之暗面</td><td class="tag-t2">T2</td>
+          <td>少（校招极小）</td>
+          <td>社招为主</td>
+          <td>用户允许暂不亲自搜；社招吸纳多数经验人才</td></tr>
+      </tbody>
+    </table></div>
+    <p class="sub2" style="margin-top:12px"><b>怎么读这张表：</b>腾讯的「800+」是<b>岗位数</b>（你官网核对），字节/阿里/百度给的是<b>招人数</b>（人/offer），两者口径不同、<b>不能相加</b>。一个事实：社招（尤其 AI）<b>普遍多于校招</b>（51job 全市场 AI 算法岗社招 83.9%），但<b>腾讯青云 500+、字节 Seed/Top Seed ~130</b> 说明大厂校招里 AI 研究岗也能有规模——之前我把青云写成 5 岗是错的，已改正。T1 社招精确数各厂官网(SPA)不公开，统一标「官网未披露」不编造。</p>
+  </div>
+
+  <div class="filterbar">
+    <div class="fgroup"><span class="flabel">梯队</span>
+      <span class="tag on" data-f="tier" data-v="all" tabindex="0">全部</span>
+      <span class="tag" data-f="tier" data-v="T1" tabindex="0">T1 一线</span>
+      <span class="tag" data-f="tier" data-v="T2" tabindex="0">T2 独角兽</span>
+    </div>
+    <div class="fgroup"><span class="flabel">方向</span>
+      <span class="tag on" data-f="dir" data-v="all" tabindex="0">全部</span>
+      <span class="tag" data-f="dir" data-v="agent" tabindex="0">Agent</span>
+      <span class="tag" data-f="dir" data-v="algo" tabindex="0">算法/大模型</span>
+      <span class="tag" data-f="dir" data-v="infra" tabindex="0">推理/系统</span>
+    </div>
+    <div class="fgroup"><span class="flabel">看</span>
+      <div class="toggle">
+        <span class="tag on" data-f="mode" data-v="both" tabindex="0">校招+社招</span>
+        <span class="tag" data-f="mode" data-v="campus" tabindex="0">只看校招</span>
+        <span class="tag" data-f="mode" data-v="social" tabindex="0">只看社招</span>
+      </div>
+    </div>
+  </div>
+  <div class="legend">
+    <span class="item"><span class="sw est"></span>橙色 = 估算值（各厂不公开，按公开招聘活动推算）</span>
+    <span class="item"><span class="sw low"></span>红色 = 极少（核心研究校招，几十~130）</span>
+    <span class="item"><span class="sw high"></span>绿色 = 充裕（社招主力通道）</span>
+    <span class="item"><span class="sw" style="background:var(--cyan)"></span>岗位数 = 官网在招职位数；招人数 = 实际录用(人/offer)，两口径不同不可相加</span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <!-- ============ 对比表 ============ -->
+  <div class="sec">
+    <h2>表 1 · 校招 AI 研发的「两个世界」</h2>
+    <p class="sub2">为什么你感觉「校招 AI 研发少」——因为少的是<b>核心研究</b>，应用/工程岗其实不少。下面按口径拆开：</p>
+    <p class="scroll-hint">← 表格列较多，可左右滑动查看完整内容 →</p>
+    <div class="table-wrap"><table class="tw-scroll">
+      <colgroup><col style="width:14%"><col style="width:16%"><col style="width:13%"><col style="width:16%"><col style="width:14%"><col style="width:27%"></colgroup>
+      <thead><tr><th>公司</th><th>校招正式总盘</th><th>研发校招</th><th>AI 相关校招</th><th>AI 核心研究校招</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>字节跳动 <span class="pill high">✓</span></td><td class="num">5000+ <small>(招人数)</small></td><td class="num">~3500 <small>(推)</small></td><td class="num">AI 为重点</td><td class="num"><span class="pill low">~130</span></td><td>校招超 5000 官方；研发≈5000−1500非研发；AI 核心研究 Seed~100+TopSeed 30</td></tr>
+        <tr><td>腾讯 <span class="pill high">✓官网核对</span></td><td class="num">800+ <small>(岗位数)</small></td><td class="num">~800</td><td class="num">青云 500+</td><td class="num"><span class="pill high">500+</span></td><td>校招总岗 800+ 官网核对（岗位数）；研发 800 含其他产品；青云计划 500+ 即 AI 研究精英校招（已改正误写的 5 岗）</td></tr>
+        <tr><td>阿里巴巴 <span class="pill high">✓</span></td><td class="num">7000+ <small>(offer)</small></td><td class="num">量大</td><td class="num">~4200 <small>(AI&gt;60%)</small></td><td class="num"><span class="pill low">~数十</span></td><td>7000+ offer 官方；AI 占比&gt;60%，云/国际/钉钉达 80%；通义核心研究小 elite</td></tr>
+        <tr><td>百度 <span class="pill high">✓</span></td><td class="num">4000+ <small>(offer)</small></td><td class="num">量大</td><td class="num">~3600 <small>(AI&gt;90%)</small></td><td class="num"><span class="pill low">~数十</span></td><td>超 4000 offer 官方；AI 占比&gt;90%（文心/自动驾驶），浓度最高</td></tr>
+        <tr><td>DeepSeek <span class="pill high">✓</span></td><td class="num">无</td><td class="num">无</td><td class="num">无</td><td class="num"><span class="pill low">极小</span></td><td>官网实测：无校招通道，社招 30+ 岗为主</td></tr>
+        <tr><td>智谱/阶跃/月之暗面</td><td class="num">少</td><td class="num">少</td><td class="num">少</td><td class="num"><span class="pill low">极小</span></td><td>校招极小，社招为主</td></tr>
+      </tbody>
+    </table></div>
+    <p class="sub2" style="margin-top:12px"><b>注：</b>腾讯「800+」为官网在招<b>岗位数</b>；字节/阿里/百度「5000+ / 7000+ / 4000+」为<b>招人数(人/offer)</b>口径，两者不可相加，详见上方「总览」表。<b>结论：</b>「校招 AI 研发少」指的是<b>核心研究岗</b>（红字列，普遍几十~130）。Agent/AI 应用/后端 AI 的校招其实不少。你的直觉在两个口径里都成立——只是之前我把「研发校招」和「AI 核心研究校招」混了，才显得矛盾。</p>
+  </div>
+
+  <div class="sec">
+    <h2>表 2 · 社招 vs 校招核心（以字节为例，看清 20:1）</h2>
+    <p class="sub2">51job 全市场「AI 算法岗社招 83.9% : 校招 16.1%」是<b>占比不是名额</b>。换算：某公司放 100 个 AI 算法坑，约 84 个给社招、16 个给校招。字节 AI 核心更极端：</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>口径</th><th>字节 AI 名额</th><th>占 AI 总量比</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>AI 核心研究 <b>校招</b></td><td class="num"><span class="pill low">~130</span></td><td class="num">~5%</td><td>Seed 100 + Top Seed 30（你看到的「80 多个」）</td></tr>
+        <tr><td>AI <b>社招</b></td><td class="num"><span class="pill high">2000-3000</span> <span class="pill est">估</span></td><td class="num"><span class="pill est">~95%</span></td><td>人社部云端招聘月(2026-07) 字节释放约 7,000 个社招岗的 AI 子集（估算；社招活动非实习）</td></tr>
+        <tr><td class="low">社招 : 校招核心</td><td class="num high" colspan="2">≈ 20 : 1</td><td>社招吸纳了几乎所有有经验的 AI 人才</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="sec">
+    <h2>表 3 · 字节 vs 腾讯：总盘大 ≠ AI 研发多</h2>
+    <div class="vs">
+      <div class="col b">
+        <h4><span class="d"></span>字节跳动 <span class="pill high">✓官网核对</span></h4>
+        <ul>
+          <li><b>校招正式总盘 超 5000</b>（中国区，官方启动公告），其中研发约 3500</li>
+          <li>AI 核心研究校招 ~130（Seed ~100 + Top Seed 30 官方披露）</li>
+          <li><b>AI 社招 2000-3000（估）</b>——官网(SPA)未披露精确数，按云端招聘月 AI 子集估算</li>
+          <li>结论：AI 研发 + Agent 的校招/社招双通道都较友好（实习岗见文末单列，不计入此对比）</li>
+        </ul>
+      </div>
+      <div class="col t">
+        <h4><span class="d"></span>腾讯（你官网核对：校招 ~800+）</h4>
+        <ul>
+          <li><b>校招岗位数 ~800+</b>（官网核对；注意这是<b>岗位数</b>非招人数，腾讯称招 8000 人疑含全部/营销口径）</li>
+          <li><b>青云计划 500+</b> —— AI 研究精英校招（之前误写 5 岗，已改正）</li>
+          <li>研发 ~800（含其他产品，非纯 AI）</li>
+          <li>AI 社招：混元大模型社招热招中（多模态/RL/LLM/数据策略），<b>待你官网核对</b></li>
+          <li>结论：校招 AI 不算少（青云 500+ 有规模），但社招仍是大头——投青云 / 混元专项</li>
+        </ul>
+      </div>
+    </div>
+    <div class="concl">
+      <b>给你的判断：</b>主投 <b>AI 研发 / Agent / 大模型</b> 方向，<b>字节是更稳的校招+社招双通道</b>（总盘不算最大，但 AI 浓度和绝对名额都最友好）；腾讯适合「精准打击混元/青云」，且它的社招 Agent/算法岗也一直在招。两家都要靠实习/项目硬通货进核心——你的昆仑万维 KLGAI 实习 + 两个能讲内部机制的项目正好对口。
+    </div>
+  </div>
+
+  <!-- ============ 实习岗单列（不参与正式岗对比） ============ -->
+  <div class="sec">
+    <h2>附 · 实习岗单列（不参与正式岗对比）</h2>
+    <p class="sub2">以下均为<b>实习岗</b>（转正实习 / 日常实习），口径与上面的「校招正式 + 社招正式」不同，<b>仅单列供参考，请勿与上述任何数字相加</b>。实习表现好可转正式，但名额单独计算。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>公司</th><th>实习岗规模</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>字节跳动</td><td class="num">7,000 岗</td><td>2027 届 ByteIntern 转正实习，研发 4,800+，AI 浓度高（实习，非校招正式/社招）</td></tr>
+        <tr><td>腾讯</td><td class="num">10,000+</td><td>实习生计划规模大，覆盖游戏 / 社交 / 金融科技等（实习，非校招正式/社招）</td></tr>
+        <tr><td>阿里 / 百度</td><td class="num">数千级</td><td>日常实习 + 转正实习并行，AI 方向实习偏多（实习，单列）</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <footer>
+    <b>数据来源（亲自上官网核对，2026-08）：</b>
+    腾讯 join.qq.com（校招官网，你实测 800+ 总岗 / 青云 500+；官方新闻 new.qq.com 确认青云主攻 AI）；
+    字节 科创板日报/财联社 2025-08-04 引官方启动（超 5000）、环球网 2025-04-27 引 Seed 官方（Top Seed 30）；
+    阿里 科创板日报 2025-08-05 引官方（7000+ offer，AI&gt;60%）；
+    百度 钱江晚报/潮新闻 2025-07-08 引官方启动（超 4000，AI&gt;90%，256 细分职位）、talent.baidu.com；
+    DeepSeek talent.deepseek.com（官网实测 30+ 社招岗）；
+    社招占比 51job《2026 企业招聘行情与用人趋势洞察》（AI 算法岗社招 83.9%）。<b>本页不再依赖不可靠博客检索。</b><br>
+    <b>口径与估算说明：</b>① 校招/社招均为<b>正式岗</b>，不含实习；② <b>T1 社招精确数各厂官网(SPA)不公开</b>，页面中字节「2000-3000(估)」为按云端招聘月 AI 子集<b>估算</b>（橙色标注），其余 T1 社招标「官网未披露」而非编造；③ 表 1「AI 核心研究校招」为 Seed/青云/Top Seed 等精英计划的公开名额，非全部 AI 校招；④ <b>实习岗已单列在文末，不计入正式岗对比</b>；⑤ 之前误写的「腾讯 8000+ / 青云 5 岗」已全部作废。<br>
+    <b>本页为个人备战参考，非官方数据。</b>更新于 2026-08-07。
+  </footer>
+</div>
+
+<script>
+  const DATA = [
+    { name:'字节跳动 ✓', tier:'T1', dirs:['agent','algo','infra'],
+      campus:{posts:'未单列', heads:'超5000人'},
+      rd:'~3500(推)', aiCampus:'AI 为重点', aiCore:'~130', aiCoreCls:'low', aiCoreTag:'极少',
+      social:{posts:'未单列', heads:'官网未披露', est:'2000-3000'},
+      note:'校招超5000 官方启动公告(科创板日报引，此为招人数)；Seed~100+TopSeed30 官方披露；社招官网(SPA)未披露，AI子集2000-3000为云端招聘月估算' },
+    { name:'腾讯 ✓', tier:'T1', dirs:['agent','algo','infra'],
+      campus:{posts:'800+（官网核对）', heads:'口径存疑'},
+      rd:'~800', aiCampus:'青云 500+', aiCore:'青云 500+', aiCoreCls:'high', aiCoreTag:'多',
+      social:{posts:'未单列（疑同量级）', heads:'官网未披露'},
+      note:'校招总岗800+ 你官网核对(join.qq.com)，此为「岗位数」非招人数；对外称招8000人疑含全部/营销口径，按800+岗×1-2人实际有限；研发800含其他产品；青云500+ 为AI研究精英校招（已改正误写5岗）；社招官网未公开' },
+    { name:'阿里巴巴 ✓', tier:'T1', dirs:['agent','algo','infra'],
+      campus:{posts:'未单列', heads:'7000+ offer'},
+      rd:'量大', aiCampus:'~4200(AI>60%)', aiCore:'~数十', aiCoreCls:'low', aiCoreTag:'极少',
+      social:{posts:'未单列', heads:'官网未披露'},
+      note:'7000+ offer 官方启动(科创板日报引，此为招人数)；AI占比>60%，云/国际/钉钉达80%；通义核心研究小elite' },
+    { name:'百度 ✓', tier:'T1', dirs:['agent','algo','infra'],
+      campus:{posts:'未单列', heads:'超4000 offer'},
+      rd:'量大', aiCampus:'~3600(AI>90%)', aiCore:'~数十', aiCoreCls:'low', aiCoreTag:'极少',
+      social:{posts:'未单列', heads:'官网未披露'},
+      note:'超4000 offer 官方启动(钱江晚报引，此为招人数)；AI占比>90%、256细分职位；文心核心研究小elite' },
+    { name:'DeepSeek ✓', tier:'T2', dirs:['agent','algo','infra'],
+      campus:{posts:'无', heads:'无'},
+      rd:'无', aiCampus:'无', aiCore:'极小', aiCoreCls:'low', aiCoreTag:'极少',
+      social:{posts:'30+ 岗公开', heads:'未披露'},
+      note:'官网 talent.deepseek.com 实测：约30个社招岗(岗位数)，Agent/训练推理/研究员为主，无校招通道；招人数未披露' },
+    { name:'智谱 AI', tier:'T2', dirs:['algo','infra'],
+      campus:{posts:'少', heads:'少'},
+      rd:'少', aiCampus:'少', aiCore:'极小', aiCoreCls:'low', aiCoreTag:'极少',
+      social:{posts:'社招为主', heads:'未公开'},
+      note:'校招极小，社招吸纳大部分经验人才（用户允许暂不亲自搜）' },
+    { name:'阶跃星辰', tier:'T2', dirs:['agent','algo'],
+      campus:{posts:'少', heads:'少'},
+      rd:'少', aiCampus:'少', aiCore:'极小', aiCoreCls:'low', aiCoreTag:'极少',
+      social:{posts:'社招为主', heads:'未公开'},
+      note:'社招为主；多模态/Agent 方向（暂不亲自搜）' },
+    { name:'月之暗面', tier:'T2', dirs:['algo','infra'],
+      campus:{posts:'少', heads:'少'},
+      rd:'少', aiCampus:'少', aiCore:'极小', aiCoreCls:'low', aiCoreTag:'极少',
+      social:{posts:'123 岗标急需', heads:'未单列'},
+      note:'2026 公开 123 个在招岗(岗位数)大量标「急需」，社招主导（暂不亲自搜）' },
+  ];
+
+  const grid = document.getElementById('grid');
+  let F = { tier:'all', dir:'all', mode:'both' };
+
+  function render(){
+    grid.innerHTML = '';
+    DATA.filter(c=>{
+      if(F.tier!=='all' && c.tier!==F.tier) return false;
+      if(F.dir!=='all' && !c.dirs.includes(F.dir)) return false;
+      return true;
+    }).forEach((c,i)=>{
+      const el = document.createElement('div'); el.className='card'+(c.tier==='T2'?' t2':'');
+      el.style.animationDelay = (i*45)+'ms';
+      const dirLabels = {agent:'Agent',algo:'算法/大模型',infra:'推理/系统'};
+      const chips = c.dirs.map(d=>`<span class="chip">${dirLabels[d]}</span>`).join('');
+      const showCampus = F.mode!=='social';
+      const showSocial = F.mode!=='campus';
+      let rows = '';
+      if(showCampus){
+        rows += `<div class="row"><span class="k">校招正式总盘</span><span class="v">
+          <span class="kv"><b>岗位数</b> ${c.campus.posts}</span>
+          <span class="kv"><b>招人数</b> ${c.campus.heads}</span></span><span></span></div>`;
+        rows += `<div class="row"><span class="k">研发校招</span><span class="v">${c.rd}</span><span></span></div>`;
+        rows += `<div class="row"><span class="k">AI 相关校招</span><span class="v">${c.aiCampus}</span><span></span></div>`;
+        rows += `<div class="row"><span class="k">AI核心研究校招</span><span class="v"><span class="pill ${c.aiCoreCls}">${c.aiCore}</span></span><span style="font-size:11px;color:var(--txt-faint)">${c.aiCoreTag}</span></div>`;
+      }
+      if(showSocial){
+        const s = c.social;
+        let inner = '';
+        if(s.est){
+          inner = `<span class="kv"><b>招人数(估)</b> ${s.est}</span> <span class="pill est">估</span>`;
+        } else {
+          if(s.posts && s.posts!=='未单列') inner += `<span class="kv"><b>岗位数</b> ${s.posts}</span>`;
+          inner += `<span class="kv"><b>招人数</b> ${s.heads}</span>`;
+        }
+        const tag = s.est ? '估算' : (['官网未披露','未披露','未公开','未单列'].includes(s.heads) ? '未公开' : '公开');
+        rows += `<div class="row"><span class="k">AI 社招</span><span class="v">${inner}</span><span style="font-size:11px;color:var(--txt-faint)">${tag}</span></div>`;
+      }
+      const ratio = (showCampus&&showSocial) ? `<div class="ratio">社招 ≫ 校招核心 —— <b>${c.note}</b></div>` : '';
+      el.innerHTML = `<div class="top"><h3>${c.name}</h3><span class="tier ${c.tier==='T1'?'t1':'t2'}">${c.tier}</span></div>
+        <div class="chips">${chips}</div>
+        <div class="rows">${rows}</div>${ratio}`;
+      grid.appendChild(el);
+    });
+    if(!grid.children.length) grid.innerHTML = '<p style="color:var(--txt-dim)">该筛选下无匹配公司。</p>';
+  }
+
+  function activate(t){
+    const f=t.dataset.f, v=t.dataset.v;
+    if(f==='mode'){ document.querySelectorAll('.tag[data-f="mode"]').forEach(x=>x.classList.remove('on')); }
+    else { document.querySelectorAll(`.tag[data-f="${f}"]`).forEach(x=>x.classList.remove('on')); }
+    t.classList.add('on'); F[f]=v; render();
+  }
+  document.querySelectorAll('.tag').forEach(t=>{
+    t.addEventListener('click',()=>activate(t));
+    t.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); activate(t); } });
+  });
+
+  /* ===== 主题切换（默认亮色，记忆选择） ===== */
+  const btn=document.getElementById('themeBtn');
+  const ic=document.getElementById('themeIc'), tx=document.getElementById('themeTx');
+  function setTheme(t){
+    document.documentElement.setAttribute('data-theme',t);
+    const light = t==='light';
+    ic.textContent = light?'☀':'🌙';
+    tx.textContent = light?'亮色':'暗色';
+    try{localStorage.setItem('recruit-theme',t);}catch(e){}
+  }
+  let saved='light';
+  try{ saved=localStorage.getItem('recruit-theme')||'light'; }catch(e){}
+  setTheme(saved);
+  btn.addEventListener('click',()=>{
+    setTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light');
+  });
+
+  render();
+</script>
+</body></html>
