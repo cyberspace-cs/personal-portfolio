@@ -228,6 +228,17 @@ export const projects: Project[] = [
     icon: "activity",
   },
   {
+    name: { en: "AI Recruitment Intelligence", zh: "AI 研发招聘情报站" },
+    description: {
+      en: "Campus vs social hiring headcount for AI R&D roles across BAT, ByteDance and DeepSeek — official-verified, with post-count vs headcount distinguished.",
+      zh: "BAT、字节、DeepSeek 校招与社招 AI 研发岗名额与需求横向对比，数据官网核对，严格区分岗位数与招人数口径。",
+    },
+    tech: ["Recruit Intel", "Data Viz", "Standalone HTML"],
+    github: REPO,
+    demo: "/demos/recruit-2026.html",
+    icon: "bar-chart",
+  },
+  {
     name: { en: "AI Quiz Coach", zh: "专属刷题教练" },
     description: {
       en: "Multi-source question bank aggregator for exam prep (postgrad, civil service, tech interviews) with smart recommendations, wrong-question review and progress analytics.",

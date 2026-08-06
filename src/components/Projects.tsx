@@ -1,7 +1,7 @@
 import { useScrollAnimationStagger } from '../hooks/useScrollAnimation';
 import { useLanguage } from '../context/LanguageContext';
 import { projects } from '../data/portfolio';
-import { Github, ExternalLink, Sparkles, Search, Code, MessageCircle, Bot, GraduationCap, Flower2, ShieldCheck } from 'lucide-react';
+import { Github, ExternalLink, Sparkles, Search, Code, MessageCircle, Bot, GraduationCap, Flower2, ShieldCheck, BarChart3 } from 'lucide-react';
 
 const iconMap: Record<string, any> = {
   'sparkles': Sparkles,
@@ -12,6 +12,7 @@ const iconMap: Record<string, any> = {
   'graduation-cap': GraduationCap,
   'flower-2': Flower2,
   'shield': ShieldCheck,
+  'bar-chart': BarChart3,
 };
 
 export default function Projects() {
