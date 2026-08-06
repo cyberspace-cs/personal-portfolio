@@ -93,7 +93,6 @@ export const personalInfo: PersonalInfo = {
 
 export const socialLinks: SocialLink[] = [
   { name: "GitHub", url: "https://github.com/cyberspace-cs/personal-portfolio", icon: "github" },
-  { name: "LinkedIn", url: "https://github.com/cyberspace-cs", icon: "linkedin" },
   { name: "Twitter", url: "https://github.com/cyberspace-cs", icon: "twitter" },
   { name: "Email", url: "mailto:2252125665@qq.com", icon: "mail" },
 ];

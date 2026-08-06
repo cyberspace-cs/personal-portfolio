@@ -1,10 +1,9 @@
-import { Github, Linkedin, Twitter, Mail, ChevronDown, Download, Sparkles } from 'lucide-react';
+import { Github, Twitter, Mail, ChevronDown, Download, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { personalInfo, socialLinks } from '../data/portfolio';
 
 const iconMap: Record<string, any> = {
   github: Github,
-  linkedin: Linkedin,
   twitter: Twitter,
   mail: Mail,
 };
@@ -60,7 +59,7 @@ export default function Hero() {
         {/* Live Demo Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium mb-8">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          7 个 AI 项目已上线可交互 Demo
+          9 个 AI 项目已上线可交互 Demo
         </div>
 
         {/* CTA Buttons */}

@@ -1,11 +1,10 @@
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { useLanguage } from '../context/LanguageContext';
 import { personalInfo, socialLinks } from '../data/portfolio';
-import { Mail, MapPin, Github, Linkedin, Twitter } from 'lucide-react';
+import { Mail, MapPin, Github, Twitter } from 'lucide-react';
 
 const iconMap: Record<string, any> = {
   github: Github,
-  linkedin: Linkedin,
   twitter: Twitter,
   mail: Mail,
 };
