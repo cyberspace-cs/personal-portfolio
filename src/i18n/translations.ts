@@ -37,7 +37,8 @@ export interface Translations {
   // Skills
   skillsTitle: string;
   skillsLLM: string;
-  skillsML: string;
+  skillsTraining: string;
+  skillsHarness: string;
   skillsTools: string;
 
   // Experience
@@ -92,16 +93,17 @@ export const translations: Record<Language, Translations> = {
     aboutTitle: 'About Me',
     aboutLocation: 'Location',
     aboutContent: [
-      "I'm a passionate full-stack developer with over 5 years of experience building web applications that make a difference. My journey in tech started with a curiosity about how things work on the web, which evolved into a career crafting digital experiences.",
-      'I specialize in building scalable applications using modern technologies like React, TypeScript, and Node.js. I believe in writing clean, maintainable code and creating intuitive user interfaces that delight users.',
-      "When I'm not coding, you'll find me exploring new technologies, contributing to open-source projects, or sharing knowledge through tech blogs. I'm always excited to take on new challenges and collaborate with creative teams.",
+      "I'm an LLM Agent Engineer focused on turning large-model capabilities into production-grade, observable, self-improving agent systems. My technical core spans RAG, Agent orchestration, SFT and RL alignment.",
+      "I follow the frontier of Agent engineering — Harness Engineering and Self-Evolving Agents: through state persistence, error self-healing, tool-permission governance and full-chain observability, I turn uncontrolled generative AI into stable, reliable productivity tools.",
+      "Off work, I read the latest Agent / RL papers, contribute to open source, and distill engineering practice into reusable Harness components — always curious about the boundary between model capability and systems engineering.",
     ],
 
     // Skills
     skillsTitle: 'Skills & Technologies',
-    skillsLLM: 'LLM & AI',
-    skillsML: 'Machine Learning',
-    skillsTools: 'Tools & Frameworks',
+    skillsLLM: 'LLM & Agent',
+    skillsTraining: 'Training & Alignment',
+    skillsHarness: 'Agent Eng · Harness/Loop',
+    skillsTools: 'Engineering & Infra',
 
     // Experience
     experienceTitle: 'Work Experience',
@@ -164,16 +166,17 @@ export const translations: Record<Language, Translations> = {
     aboutTitle: '关于我',
     aboutLocation: '位置',
     aboutContent: [
-      '我是一名专注于大语言模型的算法工程师，拥有5年以上NLP和AI领域的研究与工程经验。我的技术之旅始于对自然语言理解的好奇，后来逐渐深入到大模型研发与应用的前沿领域。',
-      '我专注于大模型的微调、对齐、推理优化以及RAG等方向，擅长将前沿研究成果转化为可落地的产品。我相信技术应当服务于人，致力于打造真正有价值的AI系统。',
-      '当我不做研究时，你会发现我在阅读最新的AI论文、参与开源项目，或在技术社区分享见解。我始终对新的研究方向和技术突破保持着浓厚的兴趣。',
+      '我是一名大模型 Agent 开发工程师，专注将大语言模型能力工程化落地为可生产、可观测、可进化的智能体系统。技术主线围绕 RAG、Agent 编排、SFT 与 RL 对齐展开。',
+      '我关注 Agent 工程的前沿范式——Harness Engineering 与 Self-Evolving Agent：通过状态持久化、错误自愈、工具权限管控与全链路可观测，把不可控的生成式 AI 变为稳定的生产力工具。',
+      '工作之余，我喜欢研读最新的 Agent / RL 论文、参与开源，并把工程实践沉淀为可复用的 Harness 组件。始终对模型能力与系统工程的边界保持好奇。',
     ],
 
     // Skills
     skillsTitle: '技能 & 技术',
-    skillsLLM: '大模型 & AI',
-    skillsML: '机器学习',
-    skillsTools: '工具 & 框架',
+    skillsLLM: '大模型 & Agent',
+    skillsTraining: '模型训练与对齐',
+    skillsHarness: 'Agent 工程 · Harness/Loop',
+    skillsTools: '工程与部署',
 
     // Experience
     experienceTitle: '工作经历',

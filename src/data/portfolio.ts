@@ -76,12 +76,12 @@ export const personalInfo: PersonalInfo = {
     zh: "谢韬",
   },
   title: {
-    en: "LLM Algorithm Engineer",
-    zh: "大模型算法工程师",
+    en: "LLM Agent Engineer",
+    zh: "大模型 Agent 开发工程师",
   },
   bio: {
-    en: "Passionate about advancing large language model capabilities and building intelligent AI systems that bridge the gap between cutting-edge research and real-world applications.",
-    zh: "致力于推动大语言模型能力的发展，构建智能AI系统，弥合前沿研究与实际应用之间的差距。",
+    en: "Focused on turning large language models into production-grade, observable and self-improving Agent systems — spanning RAG, Agent orchestration, SFT and RL alignment, with a frontier focus on Agent self-evolution and Harness/Loop engineering.",
+    zh: "专注将大语言模型工程化落地为可生产、可观测、可进化的智能体系统——覆盖 RAG、Agent 编排、SFT 与 RL 对齐，并聚焦 Agent 自进化与 Harness/Loop 工程等前沿方向。",
   },
   location: {
     en: "San Francisco, CA",
@@ -101,55 +101,89 @@ export const skillCategories: SkillCategory[] = [
   {
     titleKey: "skillsLLM",
     skills: [
-      { name: "LLaMA / GPT", level: 90 },
-      { name: "Fine-tuning", level: 85 },
-      { name: "RAG", level: 88 },
-      { name: "Prompt Engineering", level: 92 },
-      { name: "Alignment", level: 80 },
+      { name: "LLM / GPT / LLaMA", level: 92 },
+      { name: "RAG (混合检索 + 重排)", level: 90 },
+      { name: "Agent / Multi-Agent", level: 90 },
+      { name: "Function Calling / MCP", level: 88 },
+      { name: "Prompt / Context Engineering", level: 90 },
     ],
   },
   {
-    titleKey: "skillsML",
+    titleKey: "skillsTraining",
     skills: [
-      { name: "PyTorch", level: 90 },
-      { name: "TensorFlow", level: 80 },
-      { name: "Transformers", level: 92 },
-      { name: "Deep Learning", level: 88 },
-      { name: "NLP", level: 90 },
+      { name: "SFT / LoRA / QLoRA", level: 88 },
+      { name: "RLHF / DPO / RL", level: 85 },
+      { name: "训练数据构造与评测", level: 86 },
+      { name: "PyTorch / DeepSpeed / FSDP", level: 88 },
+      { name: "模型蒸馏与推理优化", level: 84 },
+    ],
+  },
+  {
+    titleKey: "skillsHarness",
+    skills: [
+      { name: "Agent Harness 架构", level: 88 },
+      { name: "Self-Evolving Agent", level: 85 },
+      { name: "LangGraph / LangChain", level: 90 },
+      { name: "Memory / 状态持久化", level: 87 },
+      { name: "可观测性 LangSmith / Prometheus", level: 83 },
     ],
   },
   {
     titleKey: "skillsTools",
     skills: [
       { name: "Python", level: 95 },
-      { name: "CUDA / GPU", level: 82 },
-      { name: "Docker", level: 85 },
-      { name: "LangChain", level: 88 },
-      { name: "vLLM", level: 80 },
+      { name: "TypeScript / React", level: 85 },
+      { name: "FastAPI / 异步后端", level: 90 },
+      { name: "vLLM / TGI 部署", level: 84 },
+      { name: "Docker / Kubernetes", level: 83 },
     ],
   },
 ];
 
 export const experiences: Experience[] = [
   {
-    company: { en: "ByteDance", zh: "字节跳动" },
-    position: { en: "LLM Algorithm Engineer", zh: "大模型算法工程师" },
-    period: { en: "2025.07 - Present", zh: "2025.07 - 至今" },
+    company: { en: "Tencent", zh: "腾讯" },
+    position: { en: "Agent Engineer", zh: "Agent 开发工程师" },
+    period: { en: "2026.08 - Present", zh: "2026.08 - 至今" },
     description: [
       {
-        en: "Working on large language model research and applications",
-        zh: "从事大语言模型研究与应用的相关工作",
+        en: "Focus on Agent self-evolution and Harness/Loop engineering, building a generate-verify-reflect loop that lets agents continuously self-optimize as models iterate.",
+        zh: "聚焦 Agent 自进化与 Harness/Loop 工程，构建「生成-验证-反思」闭环，使智能体在模型迭代中持续自我优化。",
+      },
+      {
+        en: "Designed a multi-Agent collaboration framework (Manager-Workers) with task orchestration, memory isolation and cross-review to raise complex task completion rate.",
+        zh: "设计多 Agent 协作框架（Manager-Workers），实现任务编排、记忆隔离与结果交叉评审，提升复杂任务完成率。",
+      },
+      {
+        en: "Drove model training & alignment: built training sets from business data, applied SFT and RL to improve domain task completion and tool-call success, and established auto + human eval.",
+        zh: "推进模型训练与对齐：基于业务数据构造训练集，进行 SFT 与 RL 提升领域任务完成率与工具调用成功率，建立自动评测 + 人工评测体系。",
+      },
+      {
+        en: "Shipped production-grade Agents with sandbox isolation, resume-from-checkpoint, safety guardrails and graceful degradation for high-concurrency online services.",
+        zh: "工程化落地生产级 Agent：沙箱隔离、断点续跑、安全护栏与降级策略，支撑高并发线上服务。",
       },
     ],
   },
   {
-    company: { en: "Kunlun Tech", zh: "昆仑万维" },
-    position: { en: "AI Game Algorithm Intern", zh: "AI游戏算法实习生" },
-    period: { en: "2023.09 - 2024.03", zh: "2023.09 - 2024.03" },
+    company: { en: "ByteDance", zh: "字节跳动" },
+    position: { en: "AI Agent Engineer", zh: "AI Agent 开发工程师" },
+    period: { en: "2025.07 - 2026.07", zh: "2025.07 - 2026.07" },
     description: [
       {
-        en: "Developed AI algorithms for game applications",
-        zh: "开发游戏应用中的AI算法",
+        en: "Designed and built LLM Agent systems using ReAct / Plan-Act-Observe patterns, endowing models with tool use, multi-step planning and self-reflection.",
+        zh: "负责大模型 Agent 系统的设计与开发，基于 ReAct / Plan-Act-Observe 范式构建具备工具调用、多步规划与自我反思能力的智能体。",
+      },
+      {
+        en: "Led RAG retrieval optimization (hybrid BM25 + vector search, Rerank, citation tracing) to improve answer accuracy and traceability.",
+        zh: "主导 RAG 检索链路优化（混合检索 BM25+向量、Rerank 重排序、引用溯源），提升回答准确率与可追溯性。",
+      },
+      {
+        en: "Implemented Agent Harness engineering: state persistence, error self-healing, tool-permission governance and full-chain observability (LangSmith / Prometheus).",
+        zh: "落地 Agent Harness 工程：状态持久化、错误自愈、工具权限管控与全链路可观测（LangSmith / Prometheus）。",
+      },
+      {
+        en: "Iterated model capabilities: constructed training data from business scenarios, ran SFT / LoRA fine-tuning and RLHF / DPO alignment, and built up an evaluation system.",
+        zh: "参与模型能力迭代：基于业务场景构造训练数据，进行 SFT / LoRA 微调与 RLHF / DPO 对齐，沉淀评测体系。",
       },
     ],
   },
