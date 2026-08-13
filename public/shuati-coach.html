@@ -233,7 +233,7 @@
   .opt{display:flex;align-items:center;gap:14px;padding:15px 18px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;transition:.15s;background:var(--surface-2)}
   .opt:hover{border-color:var(--brand-2);background:var(--brand-soft)}
   .opt .key{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.05);display:grid;place-items:center;font-weight:800;font-size:14px;color:var(--ink-2);flex-shrink:0;transition:.15s}
-  .opt .lbl{font-size:15px;font-weight:600}
+  .opt .lbl{font-size:15px;font-weight:600;white-space:pre-wrap;word-break:break-word}
   .opt.selected{border-color:var(--brand);background:var(--brand-soft)}
   .opt.selected .key{background:var(--brand);color:#fff}
   .opt.correct{border-color:var(--teal);background:var(--teal-soft)}
@@ -528,7 +528,7 @@
   .gen-q{background:rgba(255,255,255,.05);border-radius:12px;padding:16px;margin-bottom:12px}
   .gen-q .gq-stem{font-weight:700;font-size:14px;margin-bottom:10px}
   .gen-q .gq-opts{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
-  .gen-q .gq-opt{font-size:13.5px;color:var(--ink-2);padding:6px 10px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line)}
+  .gen-q .gq-opt{font-size:13.5px;color:var(--ink-2);padding:6px 10px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);white-space:pre-wrap;word-break:break-word}
   .gen-q .gq-opt.ok{border-color:var(--teal);background:var(--teal-soft);color:var(--teal);font-weight:700}
   .gen-q .gq-exp{font-size:12.5px;color:var(--ink-3);margin-top:6px}
 
@@ -1625,10 +1625,27 @@ async function apiFetch(path, options = {}) {
 /* ---------------- 题目数据加载 ---------------- */
 let questionsCache = [];
 
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+// 选项文本里常自带 A./B./（C）/D、 等前缀，与前端自动生成的 A/B/C/D 键重复导致「格式不对齐」。
+// 这里在解析阶段统一去掉冗余前缀，并对 < > 做转义，避免 <class 'int'> 被浏览器当标签吃掉、矩阵/代码换行错位。
+function normalizeOpts(opts) {
+  if (!Array.isArray(opts)) return opts;
+  return opts.map(function (o) {
+    let s = String(o == null ? '' : o);
+    s = s.replace(/^\s*(?:[（(]\s*[A-Da-d]\s*[)）]|[A-Da-d]\s*[.．、)）\]])\s*/, '');
+    return escHtml(s);
+  });
+}
+
 function parseQuestion(q) {
   return {
     ...q,
-    opts: typeof q.opts === 'string' ? JSON.parse(q.opts) : q.opts,
+    opts: normalizeOpts(typeof q.opts === 'string' ? JSON.parse(q.opts) : q.opts),
     answer: typeof q.answer === 'string' ? JSON.parse(q.answer) : q.answer,
     _idx: q.id
   };
