@@ -129,6 +129,30 @@
 
   .foot { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
   .foot b { color: var(--ink-2); }
+
+  /* —— 当前热点 · 完整榜单 —— */
+  .hot { background: linear-gradient(135deg, #ffffff 0%, #fff7f2 100%); border: 1px solid #ffd9c2; border-radius: 18px; padding: 20px 22px 22px; box-shadow: var(--shadow); margin-bottom: 30px; }
+  .hot-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .hot-head .fire { font-size: 22px; line-height: 1; }
+  .hot-head h2 { font-size: 20px; margin: 0; font-weight: 800; }
+  .hot-head .sub { font-size: 12.5px; color: var(--ink-3); margin-left: auto; white-space: nowrap; }
+  .hot-list { display: flex; flex-direction: column; gap: 10px; }
+  .hot-item { display: flex; align-items: flex-start; gap: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; transition: all .16s; }
+  .hot-item:hover { border-color: #ffb38a; box-shadow: var(--shadow); transform: translateX(2px); }
+  .hot-rank { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; color: #fff; background: var(--brand-2); }
+  .hot-rank.top1 { background: linear-gradient(135deg, #ff8a3d, #ff5e62); }
+  .hot-rank.top2 { background: linear-gradient(135deg, #ffb347, #ff8c42); }
+  .hot-rank.top3 { background: linear-gradient(135deg, #ffcf6b, #ffae42); }
+  .hot-body { flex: 1; min-width: 0; }
+  .hot-title { font-size: 15.5px; font-weight: 700; line-height: 1.45; margin: 0 0 6px; }
+  .hot-title a { text-decoration: none; color: var(--ink); }
+  .hot-title a:hover { color: #ff5e3a; }
+  .hot-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-3); }
+  .hot-chip { background: var(--brand-soft); border: 1px solid #d4e4f8; color: var(--ink-2); padding: 3px 9px; border-radius: 999px; }
+  .hot-heat { color: #ff5e3a; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+  .heat-bar { margin-top: 8px; height: 5px; border-radius: 999px; background: #fff0e8; overflow: hidden; }
+  .heat-bar span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #ff8a3d, #ff5e62); }
+
   .state { text-align: center; padding: 70px 20px; color: var(--ink-3); }
   .state .big { font-size: 18px; color: var(--ink-2); margin-bottom: 10px; }
   .spinner { width: 38px; height: 38px; margin: 0 auto 16px; border: 4px solid var(--brand-soft); border-top-color: var(--brand-2); border-radius: 50%; animation: spin .8s linear infinite; }
@@ -186,6 +210,8 @@
         <a class="to-top" href="#hero">↑ 顶部</a>
       </nav>
     </div>
+
+    <div id="hotSlot"></div>
 
     <main id="content">
       <div class="state" id="state">
@@ -362,6 +388,7 @@ async function load(manual) {
     currentDate = data.date;
     render(data, manual);
     syncControls();
+    fetchHot();
   } catch (e) {
     document.getElementById("content").innerHTML =
       `<div class="state"><div class="big">⚠️ 数据加载失败</div>
@@ -461,6 +488,58 @@ function render(data, scroll) {
   foot.hidden = false;
 
   if (scroll) window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderHot(data) {
+  const slot = document.getElementById("hotSlot");
+  if (!data || !data.items || !data.items.length) { slot.innerHTML = ""; return; }
+  const items = data.items;
+  const maxSig = Math.max(1, ...items.map(i => i.signalCount || 0));
+  slot.innerHTML = `
+    <section class="hot" id="hot-topics">
+      <div class="hot-head">
+        <span class="fire">🔥</span>
+        <h2>当前热点 · 完整榜单</h2>
+        <span class="sub">实时热度 · 共 ${items.length} 条 · 拉取于 ${fmtBJ(data.fetchedAt, true)}</span>
+      </div>
+      <div class="hot-list">
+        ${items.map(it => {
+          const url = safeUrl(it.sourceUrl);
+          const ext = url !== "#";
+          const linkAttrs = ext ? ` target="_blank" rel="noopener noreferrer"` : "";
+          const rc = it.rank === 1 ? "top1" : it.rank === 2 ? "top2" : it.rank === 3 ? "top3" : "";
+          const heatW = Math.max(6, Math.round(((it.signalCount || 0) / maxSig) * 100));
+          return `
+          <div class="hot-item">
+            <span class="hot-rank ${rc}">${it.rank}</span>
+            <div class="hot-body">
+              <p class="hot-title"><a href="${esc(url)}"${linkAttrs}>${esc(it.title)}</a></p>
+              <div class="hot-meta">
+                <span class="hot-chip">${esc(it.sourceName)}</span>
+                <span class="hot-heat">🔥 ${it.signalCount || 0} 热度 · ${it.sourceCount || 0} 信源</span>
+                ${it.latestAt ? `<span>${fmtBJ(it.latestAt, true)}</span>` : ""}
+              </div>
+              <div class="heat-bar"><span style="width:${heatW}%"></span></div>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+    </section>`;
+  // 导航锚点：页面主渲染之后才追加，避免热点缺失时出现死链
+  const navLinks = document.getElementById("navLinks");
+  const nav = document.getElementById("nav");
+  if (navLinks && nav) {
+    navLinks.insertAdjacentHTML("afterbegin",
+      `<a href="#hot-topics"><span class="n">🔥</span>当前热点</a>`);
+  }
+}
+
+async function fetchHot() {
+  try {
+    const r = await fetch("/api/aihot/hot-topics", { cache: "no-store" });
+    if (!r.ok) return;
+    renderHot(await r.json());
+  } catch (e) { /* 热点榜单为增强功能，失败不影响主简报 */ }
 }
 
 // 直接以 file:// 打开时，同源代理 /api/aihot 不存在，无法拉数据；给出明确提示而非静默失败

@@ -9,6 +9,7 @@
 #   /api/aihot/daily         -> https://aihot.virxact.com/api/v1/dailies/latest
 #   /api/aihot/daily?date=X   -> .../api/v1/dailies/{X}（不存在则回退最近一期）
 #   /api/aihot/dailies?take=N -> .../api/v1/dailies?limit=N
+#   /api/aihot/hot-topics     -> .../api/v1/hot-topics（当前热点·完整榜单，含热度/信源数）
 # 并归一化为前端所需字段（title/summary/sourceName/sourceUrl/permalink），
 # 保证「模型 / 产品 / 行业 / 论文 / 观点」五版块齐全。
 #
@@ -113,6 +114,49 @@ def norm_sections(sections):
     return out
 
 
+def norm_hot_item(it):
+    """归一化 hot-topics 单条为前端字段。"""
+    if not isinstance(it, dict):
+        return None
+    links = it.get("links") or {}
+    url = links.get("aihot") or links.get("original") or it.get("sourceUrl") or ""
+    src = it.get("source")
+    if isinstance(src, dict):
+        src_name = src.get("name")
+    else:
+        src_name = None
+    if not src_name:
+        src_name = it.get("sourceName") or "未知来源"
+    title = it.get("title")
+    if not title:
+        return None
+    return {
+        "rank": it.get("rank"),
+        "title": title,
+        "sourceName": src_name,
+        "sourceUrl": url,
+        "signalCount": it.get("signalCount") or 0,
+        "sourceCount": it.get("sourceCount") or 0,
+        "sourceNames": it.get("sourceNames") or [],
+        "latestAt": it.get("latestAt"),
+        "storyUrl": links.get("story") or "",
+    }
+
+
+def fetch_hot():
+    """当前热点榜单（hot-topics），实时拉取 aihot v1。"""
+    raw = fetch_json(f"{AIHOT}/api/v1/hot-topics")
+    items = [norm_hot_item(i) for i in (raw.get("items") or [])]
+    items = [i for i in items if i]
+    items.sort(key=lambda x: (x.get("rank") is None, x.get("rank") or 0))
+    return {
+        "count": len(items),
+        "items": items,
+        "fetchedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "source": "aihot.virxact.com",
+    }
+
+
 def build_daily(raw):
     rep = extract_report(raw)
     return {
@@ -181,6 +225,9 @@ class H(BaseHTTPRequestHandler):
                     for i in (arch.get("items") or [])
                 ][:take]
                 self._send({"items": items})
+            elif path.startswith("/api/aihot/hot-topics"):
+                data = get_cached("hot-topics", 600, fetch_hot)
+                self._send(data)
             else:
                 self._send({"error": "not found"}, 404)
         except Exception as e:  # noqa: BLE001
