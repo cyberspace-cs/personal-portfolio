@@ -166,6 +166,7 @@ async def lifespan(app):
     seed_questions()
     ensure_agent_tables()   # 持久化 Agent 记忆表（长期画像 + 短期对话）
     ensure_eval_table()      # 评测闭环日志表
+    ensure_subcat()          # 幂等回填 subcat 子类列（支撑子类标签刷题）
     yield
 
 app = FastAPI(title="专属刷题教练 API", version="3.7.0-channel-history-mcp", lifespan=lifespan)
@@ -504,6 +505,89 @@ def verify_password(password: str, stored: str) -> bool:
     return hmac.compare_digest(hashlib.sha256((salt + password).encode()).hexdigest(), h)
 
 
+# ================================================================
+# 子类（subcat）派生与分组
+# ================================================================
+def derive_subcat(cat: str, topic: str) -> str:
+    """从 topic（形如 `一级·二级`）取一级作为子类；处理少量无 `·` 的脏变体，归并到规范子类。"""
+    if not topic:
+        return ""
+    if "·" in topic:
+        return topic.split("·", 1)[0]
+    cs = {"数据库", "计算机网络", "操作系统", "数据结构", "计算机组成"}
+    if cat == "考研" and topic in cs:
+        return "计算机408"
+    if cat == "大厂" and topic == "数据结构":
+        return "算法与数据结构"
+    if cat == "大厂" and topic in {"计算机网络", "操作系统", "数据库"}:
+        return "计算机基础"
+    if cat == "大厂" and topic in {"Python基础", "Java基础", "前端基础"}:
+        return "编程语言"
+    if cat == "大厂" and topic == "算法":
+        return "算法与数据结构"
+    if cat == "考研" and topic in {"英语词汇", "英语语法"}:
+        return "英语"
+    if cat == "考研" and topic in {"高等数学", "线性代数", "概率统计"}:
+        return "数学"
+    if cat == "考公" and topic == "政治":
+        return "行测"
+    return topic
+
+
+def ensure_subcat():
+    """幂等回填 subcat 列（仅处理空值行）。"""
+    conn = get_db()
+    try:
+        rows = conn.execute("SELECT id, cat, topic, subcat FROM questions WHERE subcat IS NULL OR subcat=''").fetchall()
+        for r in rows:
+            sc = derive_subcat(r["cat"], r["topic"])
+            conn.execute("UPDATE questions SET subcat=? WHERE id=?", (sc, r["id"]))
+        if rows:
+            conn.commit()
+    finally:
+        conn.close()
+
+
+# 刷题界面子类分组（对齐用户期望的 考研/考公/大厂 子类标签），match 为底层 subcat 取值
+SUBCAT_GROUPS = {
+    "考研": [
+        ("政治", ["政治"]),
+        ("英语", ["英语"]),
+        ("数学", ["数学"]),
+        ("专业课·408", ["计算机408"]),
+    ],
+    "考公": [
+        ("行测", ["行测"]),
+        ("申论", ["申论"]),
+        ("公共基础", ["公共基础"]),
+    ],
+    "大厂": [
+        ("算法", ["算法与数据结构"]),
+        ("八股", ["编程语言", "计算机基础"]),
+        ("系统设计", ["系统设计"]),
+        ("面试·职场", ["职场软技能"]),
+    ],
+}
+
+
+def subcat_groups_with_counts(meta_rows) -> dict:
+    """基于已加载的题库行，计算每个子类分组的题目数。"""
+    from collections import Counter
+    pair = Counter()
+    for r in meta_rows:
+        c = r["cat"]
+        sc = r["subcat"] or derive_subcat(c, r["topic"] or "")
+        pair[(c, sc)] += 1
+    result = {}
+    for cat, groups in SUBCAT_GROUPS.items():
+        items = []
+        for name, match in groups:
+            cnt = sum(pair.get((cat, m), 0) for m in match)
+            items.append({"name": name, "count": cnt, "match": match})
+        result[cat] = items
+    return result
+
+
 def seed_default_accounts():
     """首次启动播种默认账号：admin（管理员）+ demo（体验账号），便于直接体验登录 / 注册。
 
@@ -544,10 +628,14 @@ def sample_questions(
     cat: str | None = None,
     src: str | None = None,
     topic: str | None = None,
+    subcats: str | None = None,
     difficulty: str | None = None,
     limit: int = 150,
 ):
-    """随机抽取题（示例刷题 / 随机刷题），避免一次性把全库 2 万+ 题拉到前端。"""
+    """随机抽取题（示例刷题 / 随机刷题），避免一次性把全库 2 万+ 题拉到前端。
+
+    subcats 支持逗号分隔多选（如 `编程语言,计算机基础`），按底层 subcat 列 IN 过滤。
+    """
     limit = max(1, min(int(limit or 150), 500))
     conn = get_db()
     sql = "SELECT * FROM questions WHERE 1=1"
@@ -561,6 +649,12 @@ def sample_questions(
     if topic:
         sql += " AND topic=?"
         args.append(topic)
+    if subcats:
+        subs = [s.strip() for s in subcats.split(",") if s.strip()]
+        if subs:
+            ph = ",".join("?" * len(subs))
+            sql += f" AND subcat IN ({ph})"
+            args.extend(subs)
     if difficulty and difficulty != "all":
         sql += " AND difficulty=?"
         args.append(difficulty)
@@ -578,10 +672,11 @@ def page_questions(
     cat: str | None = None,
     src: str | None = None,
     topic: str | None = None,
+    subcats: str | None = None,
     difficulty: str | None = None,
     q: str | None = None,
 ):
-    """分页浏览全量题库（全量题库抽屉用），支持按分类/来源/知识点/难度/关键词过滤。"""
+    """分页浏览全量题库（全量题库抽屉用），支持按分类/来源/知识点/子类/难度/关键词过滤。"""
     offset = max(0, int(offset or 0))
     limit = max(1, min(int(limit or 30), 100))
     conn = get_db()
@@ -596,6 +691,12 @@ def page_questions(
     if topic:
         where += " AND topic=?"
         args.append(topic)
+    if subcats:
+        subs = [s.strip() for s in subcats.split(",") if s.strip()]
+        if subs:
+            ph = ",".join("?" * len(subs))
+            where += f" AND subcat IN ({ph})"
+            args.extend(subs)
     if difficulty and difficulty != "all":
         where += " AND difficulty=?"
         args.append(difficulty)
@@ -604,7 +705,7 @@ def page_questions(
         args.append("%" + q + "%")
     total = conn.execute("SELECT COUNT(*) FROM questions WHERE 1=1" + where, args).fetchone()[0]
     rows = conn.execute(
-        "SELECT id, cat, src, type, topic, difficulty, stem, src_type, year FROM questions WHERE 1=1"
+        "SELECT id, cat, src, type, topic, subcat, difficulty, stem, src_type, year FROM questions WHERE 1=1"
         + where
         + " ORDER BY id LIMIT ? OFFSET ?",
         args + [limit, offset],
@@ -624,7 +725,7 @@ def questions_meta():
     额外返回题库版本信息（version/sources/checksum），由 questions.json 提供。"""
     from collections import Counter
     conn = get_db()
-    rows = conn.execute("SELECT cat, type, src, difficulty, topic, src_type, year FROM questions").fetchall()
+    rows = conn.execute("SELECT cat, type, src, difficulty, topic, subcat, src_type, year FROM questions").fetchall()
     conn.close()
     cats = Counter(r["cat"] for r in rows)
     types = Counter(r["type"] for r in rows)
@@ -673,6 +774,7 @@ def questions_meta():
         "src_types": dict(src_types),
         "difficulty": dict(diff),
         "topics": dict(topics),
+        "subcat_groups": subcat_groups_with_counts(rows),
         "version": meta_extra["version"],
         "generated_at": meta_extra["generated_at"],
         "updated_at": updated_at,

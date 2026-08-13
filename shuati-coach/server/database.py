@@ -44,6 +44,8 @@ def _migrate_questions_schema(conn):
         conn.execute("ALTER TABLE questions ADD COLUMN year INTEGER")
     if "license" not in cols:
         conn.execute("ALTER TABLE questions ADD COLUMN license TEXT NOT NULL DEFAULT ''")
+    if "subcat" not in cols:
+        conn.execute("ALTER TABLE questions ADD COLUMN subcat TEXT NOT NULL DEFAULT ''")
 
     if _OFFICIAL_SRCS:
         ph = ",".join("?" * len(_OFFICIAL_SRCS))

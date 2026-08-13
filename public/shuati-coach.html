@@ -210,6 +210,9 @@
   .chip:hover{border-color:var(--brand-2)}
   .chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
   .chip.disabled-chip{opacity:.5;pointer-events:none}
+  .chip.sub{font-size:12.5px;padding:6px 13px;font-weight:600}
+  .chip .cnt{opacity:.7;font-weight:700;margin-left:3px}
+  .filter-label{font-size:12px;color:var(--ink-3);margin:14px 0 2px;font-weight:700;letter-spacing:.04em}
 
   .quiz-layout{display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start}
   .quiz-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--line);padding:30px}
@@ -1000,12 +1003,16 @@
           <h2><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:8px"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>智能刷题</h2>
           <p>多源题库聚合 · 多题型交互 · 即时解析</p>
         </div>
-        <div class="chip-row" id="catChips">
-          <button class="chip active" data-cat="all">全部(21)</button>
-          <button class="chip" data-cat="考研">考研(8)</button>
-          <button class="chip" data-cat="考公">考公(7)</button>
-          <button class="chip" data-cat="大厂">大厂笔面(6)</button>
-        </div>
+      <div class="chip-row" id="catChips">
+        <button class="chip active" data-cat="all">全部</button>
+        <button class="chip" data-cat="考研">考研</button>
+        <button class="chip" data-cat="考公">考公</button>
+        <button class="chip" data-cat="大厂">大厂笔面</button>
+      </div>
+      <div class="filter-label" id="subcatLabel" style="display:none">按科目刷题</div>
+      <div class="chip-row" id="subcatChips" style="display:none"></div>
+      <div class="filter-label" id="diffLabel" style="display:none">难度</div>
+      <div class="chip-row" id="diffChips" style="display:none"></div>
       </div>
 
       <div class="quiz-layout">
@@ -1627,11 +1634,35 @@ function parseQuestion(q) {
   };
 }
 
-async function loadQuestions(cat) {
-  cat = cat || 'all';
+let currentCat = 'all';
+let currentSubcats = [];
+let currentDiff = 'all';
+let metaCats = {};
+let metaGroups = {};
+let metaLoaded = false;
+
+async function ensureMeta() {
+  if (metaLoaded) return;
   try {
-    // 只随机抽 30 题（智能答题默认一题量，与后端 /api/questions/sample 对齐），避免一次性把全库 2 万+ 题拉到前端导致页面卡死/无题
-    const data = await apiFetch('/questions/sample?cat=' + cat + '&limit=30');
+    const m = await apiFetch('/api/questions/meta');
+    metaCats = m.cats || {};
+    metaGroups = m.subcat_groups || {};
+    metaLoaded = true;
+  } catch(e) { console.error('题库 meta 加载失败', e); }
+}
+
+async function loadQuestions(opts) {
+  if (typeof opts === 'string') opts = { cat: opts };
+  opts = Object.assign({ cat: currentCat, subcats: currentSubcats, difficulty: currentDiff }, opts || {});
+  currentCat = opts.cat;
+  currentSubcats = opts.subcats || [];
+  currentDiff = opts.difficulty || 'all';
+  try {
+    // 智能答题默认抽 30 题（与后端 /api/questions/sample 对齐），并按子类/难度过滤，避免一次性把全库 2 万+ 题拉到前端
+    let url = '/questions/sample?cat=' + encodeURIComponent(opts.cat) + '&limit=30';
+    if (opts.subcats && opts.subcats.length) url += '&subcats=' + encodeURIComponent(opts.subcats.join(','));
+    if (opts.difficulty && opts.difficulty !== 'all') url += '&difficulty=' + encodeURIComponent(opts.difficulty);
+    const data = await apiFetch(url);
     questionsCache = data.map(parseQuestion);
     return questionsCache;
   } catch(e) {
@@ -1823,6 +1854,7 @@ function logout() {
 
 async function refreshAllData() {
   updateHomeStats();
+  await ensureMeta();
   await loadQuestions();
   updateCatChips();
   const activeView = document.querySelector('.view.active');
@@ -1930,16 +1962,14 @@ document.getElementById('clearDataBtn').addEventListener('click', async function
 
 /* ---------------- 分类筛选 ---------------- */
 function updateCatChips() {
-  const counts = {};
-  questionsCache.forEach(function(q) { counts[q.cat] = (counts[q.cat] || 0) + 1; });
-  const total = questionsCache.length;
+  const total = Object.values(metaCats).reduce(function(a, b) { return a + b; }, 0) || questionsCache.length;
   const chips = document.querySelectorAll('#catChips .chip');
   chips.forEach(function(c) {
     const cat = c.dataset.cat;
     if (cat === 'all') c.textContent = '全部(' + total + ')';
-    else if (cat === '考研') c.textContent = '考研(' + (counts['考研'] || 0) + ')';
-    else if (cat === '考公') c.textContent = '考公(' + (counts['考公'] || 0) + ')';
-    else if (cat === '大厂') c.textContent = '大厂笔面(' + (counts['大厂'] || 0) + ')';
+    else if (cat === '考研') c.textContent = '考研(' + (metaCats['考研'] || 0) + ')';
+    else if (cat === '考公') c.textContent = '考公(' + (metaCats['考公'] || 0) + ')';
+    else if (cat === '大厂') c.textContent = '大厂笔面(' + (metaCats['大厂'] || 0) + ')';
   });
 }
 
@@ -2076,16 +2106,80 @@ document.querySelectorAll('#catChips .chip').forEach(function(c) {
   c.addEventListener('click', async function() {
     document.querySelectorAll('#catChips .chip').forEach(function(x) { x.classList.remove('active'); });
     c.classList.add('active');
-    const cat = c.dataset.cat;
-    await loadQuestions(cat);
-    filtered = questionsCache.slice();
-    cur = 0;
-    Object.keys(answers).forEach(function(k) { delete answers[k]; });
-    updateCatChips();
-    renderQ();
-    buildNav();
+    currentCat = c.dataset.cat;
+    currentSubcats = [];
+    currentDiff = 'all';
+    renderSubcatChips(currentCat);
+    await applyFilters();
   });
 });
+
+/* 子类标签（按 cat 动态渲染，参考牛客/粉笔的科目标签） */
+function renderSubcatChips(cat) {
+  const box = document.getElementById('subcatChips');
+  const diffBox = document.getElementById('diffChips');
+  const subLabel = document.getElementById('subcatLabel');
+  const diffLabel = document.getElementById('diffLabel');
+  if (!box) return;
+  if (cat === 'all' || !metaGroups[cat]) {
+    box.style.display = 'none'; box.innerHTML = '';
+    if (diffBox) diffBox.style.display = 'none';
+    if (subLabel) subLabel.style.display = 'none';
+    if (diffLabel) diffLabel.style.display = 'none';
+    return;
+  }
+  box.style.display = 'flex';
+  if (subLabel) subLabel.style.display = 'block';
+  const groups = metaGroups[cat];
+  let html = '<button class="chip sub' + (currentSubcats.length === 0 ? ' active' : '') + '" data-all="1">全部子类</button>';
+  groups.forEach(function(g) {
+    if (!g.count) return;  // 跳过无题的子类（如考公·面试暂无数据）
+    const active = currentSubcats.length && currentSubcats.join(',') === g.match.join(',');
+    html += '<button class="chip sub' + (active ? ' active' : '') + '" data-sub="' + encodeURIComponent(g.match.join(',')) + '">'
+          + escHtml(g.name) + '<span class="cnt">' + g.count + '</span></button>';
+  });
+  box.innerHTML = html;
+  // 难度筛选
+  if (diffBox) {
+    diffBox.style.display = 'flex';
+    if (diffLabel) diffLabel.style.display = 'block';
+    const diffs = [['all', '全部难度'], ['easy', '简单'], ['medium', '中等'], ['hard', '困难']];
+    let dh = '';
+    diffs.forEach(function(d) {
+      dh += '<button class="chip sub' + (currentDiff === d[0] ? ' active' : '') + '" data-diff="' + d[0] + '">' + d[1] + '</button>';
+    });
+    diffBox.innerHTML = dh;
+  }
+}
+
+document.getElementById('subcatChips').addEventListener('click', async function(e) {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  if (btn.dataset.all) currentSubcats = [];
+  else currentSubcats = decodeURIComponent(btn.dataset.sub).split(',');
+  renderSubcatChips(currentCat);
+  await applyFilters();
+});
+
+document.getElementById('diffChips').addEventListener('click', async function(e) {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  currentDiff = btn.dataset.diff;
+  renderSubcatChips(currentCat);
+  await applyFilters();
+});
+
+/* 按当前筛选状态重新拉题并重置答题进度 */
+async function applyFilters() {
+  await loadQuestions({ cat: currentCat, subcats: currentSubcats, difficulty: currentDiff });
+  filtered = questionsCache.slice();
+  cur = 0;
+  Object.keys(answers).forEach(function(k) { delete answers[k]; });
+  updateCatChips();
+  renderQ();
+  buildNav();
+}
+
+// 启动时拉取 meta（用于真实分类总量与子类标签）
+ensureMeta().then(function() { updateCatChips(); renderSubcatChips(currentCat); });
 
 const el = function(id) { return document.getElementById(id); };
 
