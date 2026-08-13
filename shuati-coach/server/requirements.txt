@@ -5,3 +5,4 @@ pydantic>=2.0.0
 gunicorn>=21.2.0
 # Agent 编排（生产环境以 LangGraph 实现同构编排层；Phase A 轻量编排已内置，可不装）
 langgraph>=0.2.0
+langgraph-checkpoint-sqlite>=0.2.0

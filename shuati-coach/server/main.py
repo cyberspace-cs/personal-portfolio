@@ -162,6 +162,7 @@ from contextlib import asynccontextmanager
 @asynccontextmanager
 async def lifespan(app):
     init_db()
+    seed_default_accounts()  # 播种默认 admin / demo 账号（幂等）
     seed_questions()
     ensure_agent_tables()   # 持久化 Agent 记忆表（长期画像 + 短期对话）
     ensure_eval_table()      # 评测闭环日志表
@@ -501,6 +502,26 @@ def verify_password(password: str, stored: str) -> bool:
         return hmac.compare_digest(hashlib.sha256(password.encode()).hexdigest(), stored or "")
     salt, h = stored.split("$", 1)
     return hmac.compare_digest(hashlib.sha256((salt + password).encode()).hexdigest(), h)
+
+
+def seed_default_accounts():
+    """首次启动播种默认账号：admin（管理员）+ demo（体验账号），便于直接体验登录 / 注册。
+
+    幂等：仅当账号不存在时插入；后续可随时在 UI 注册新账号或改密。
+    """
+    defaults = [("admin", "admin123"), ("demo", "demo123")]
+    conn = get_db()
+    try:
+        for username, password in defaults:
+            row = conn.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()
+            if not row:
+                conn.execute(
+                    "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+                    (username, hash_password(password)),
+                )
+        conn.commit()
+    finally:
+        conn.close()
 
 
 # ================================================================
@@ -1648,9 +1669,11 @@ def health():
 # ================================================================
 # 根路径重定向 + 静态文件服务
 # ================================================================
+COACH_PREFIX = os.getenv("COACH_PREFIX", "")
+
 @app.get("/")
 def root():
-    return RedirectResponse(url="/coach.html")
+    return RedirectResponse(url=COACH_PREFIX + "/coach.html")
 
 _STATIC_DIR = os.getenv("STATIC_DIR", os.path.dirname(DB_DIR))
 app.mount("/", StaticFiles(directory=_STATIC_DIR, html=True), name="static")
