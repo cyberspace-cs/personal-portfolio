@@ -661,6 +661,7 @@
       <button class="login-btn" id="loginBtn" onclick="showAuthModal()">登录/注册</button>
       <div class="avatar" id="userAvatar" style="display:none">备</div>
       <span class="user-name" id="userNameDisplay" style="display:none"></span>
+      <button class="logout-btn" id="logoutBtn" style="display:none;padding:7px 13px;border-radius:10px;font-size:13px;font-weight:600;color:var(--ink-2);border:1px solid var(--line);background:var(--surface-2);cursor:pointer;transition:.18s" onmouseover="this.style.color='var(--brand)';this.style.borderColor='var(--brand)'" onmouseout="this.style.color='var(--ink-2)';this.style.borderColor='var(--line)'" onclick="logout()">退出登录</button>
       <button class="menu-toggle" id="menuToggle">☰</button>
     </div>
   </div>
@@ -1629,8 +1630,8 @@ function parseQuestion(q) {
 async function loadQuestions(cat) {
   cat = cat || 'all';
   try {
-    // 只随机抽 150 题（与后端 /api/questions/sample 对齐），避免一次性把全库 2 万+ 题拉到前端导致页面卡死/无题
-    const data = await apiFetch('/questions/sample?cat=' + cat + '&limit=150');
+    // 只随机抽 30 题（智能答题默认一题量，与后端 /api/questions/sample 对齐），避免一次性把全库 2 万+ 题拉到前端导致页面卡死/无题
+    const data = await apiFetch('/questions/sample?cat=' + cat + '&limit=30');
     questionsCache = data.map(parseQuestion);
     return questionsCache;
   } catch(e) {
@@ -1793,6 +1794,7 @@ function updateAuthUI() {
   const avatarEl = document.getElementById('userAvatar');
   const loginBtn = document.getElementById('loginBtn');
   const userNameEl = document.getElementById('userNameDisplay');
+  const logoutBtn = document.getElementById('logoutBtn');
   if (isLoggedIn()) {
     const name = (sessionStorage.getItem('coach_username') || '用户');
     loginBtn.style.display = 'none';
@@ -1800,11 +1802,23 @@ function updateAuthUI() {
     avatarEl.textContent = name.charAt(0).toUpperCase();
     userNameEl.textContent = name;
     userNameEl.style.display = 'inline';
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
   } else {
     loginBtn.style.display = 'inline-flex';
     avatarEl.style.display = 'none';
     userNameEl.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'none';
   }
+}
+
+function logout() {
+  sessionStorage.removeItem('coach_user_id');
+  sessionStorage.removeItem('coach_username');
+  updateAuthUI();
+  updateDemoBanner();
+  toast('已退出登录');
+  // 重新载入体验模式数据（答题记录等回到未登录态）
+  loadQuestions().then(function() { updateCatChips(); }).catch(function() {});
 }
 
 async function refreshAllData() {
