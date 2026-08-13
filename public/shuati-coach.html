@@ -1559,6 +1559,10 @@
       <input class="auth-input" id="loginPassword" type="password" placeholder="密码" autocomplete="current-password">
       <button class="auth-btn" type="submit">登 录</button>
     </form>
+    <div class="auth-demo-hint" id="authDemoHint" style="margin-top:14px;padding:10px 12px;border:1px dashed #bac8ff;background:#f5f7ff;border-radius:10px;font-size:13px;color:#364fc7;line-height:1.7">
+      🎯 <b>体验账号</b>：<code style="background:#e7ecff;padding:1px 6px;border-radius:5px">demo</code> / <code style="background:#e7ecff;padding:1px 6px;border-radius:5px">demo123</code><br>
+      <span style="color:#5c6fa6">直接用体验账号登录即可刷题，答题记录会自动保存（<b>admin 为后台管理账号，不对外提供</b>）。</span>
+    </div>
     <form class="auth-form" id="authRegisterForm" style="display:none">
       <input class="auth-input" id="regUsername" placeholder="用户名" autocomplete="username">
       <input class="auth-input" id="regPassword" type="password" placeholder="密码（至少4位）" autocomplete="new-password">
@@ -1625,7 +1629,8 @@ function parseQuestion(q) {
 async function loadQuestions(cat) {
   cat = cat || 'all';
   try {
-    const data = await apiFetch('/questions?cat=' + cat);
+    // 只随机抽 150 题（与后端 /api/questions/sample 对齐），避免一次性把全库 2 万+ 题拉到前端导致页面卡死/无题
+    const data = await apiFetch('/questions/sample?cat=' + cat + '&limit=150');
     questionsCache = data.map(parseQuestion);
     return questionsCache;
   } catch(e) {
@@ -1709,6 +1714,8 @@ function initAuthModal() {
     registerTab.classList.toggle('active', m === 'register');
     loginForm.style.display = m === 'login' ? 'flex' : 'none';
     registerForm.style.display = m === 'register' ? 'flex' : 'none';
+    const hint = document.getElementById('authDemoHint');
+    if (hint) hint.style.display = m === 'login' ? '' : 'none';
     authError.textContent = '';
     authSuccess.textContent = '';
     document.getElementById('authTitle').textContent = m === 'login' ? '登录' : '注册';
