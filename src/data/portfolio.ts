@@ -72,8 +72,8 @@ export function getLocalized<T extends LocalizedString>(item: T, lang: Language)
 
 export const personalInfo: PersonalInfo = {
   name: {
-    en: "Tao Xie",
-    zh: "谢韬",
+    en: "Friday",
+    zh: "Friday",
   },
   title: {
     en: "LLM Agent Engineer",
