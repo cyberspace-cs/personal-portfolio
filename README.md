@@ -1,4 +1,4 @@
-# 🏠 Tao Xie · Portfolio
+# 🏠 Friday · Portfolio
 
 > 个人简历网页 + 项目集散地：这里是 **AI Agent / LLM 工程 / 审计智能化** 方向的实战项目合集。
 > 每一个项目都从 0 到 1 亲手实现，不调用 LLM API 也能跑通完整链路。
@@ -122,7 +122,7 @@
 
 <div align="center">
 
-![Tao Xie's GitHub stats](https://github-readme-stats.vercel.app/api?username=cyberspace-cs&show_icons=true&theme=vue)
+![Friday's GitHub stats](https://github-readme-stats.vercel.app/api?username=cyberspace-cs&show_icons=true&theme=vue)
 
 </div>
 
@@ -130,7 +130,7 @@
 
 ## 📄 关于
 
-- 👋 你好，我是 **Tao Xie（buleboy）**
+- 👋 你好，我是 **Friday（buleboy）**
 - 🎯 方向：AI Agent 应用开发、LLM 工程化、审计智能化
 - ✨ 欢迎 Star ⭐，也欢迎交流合作
 
